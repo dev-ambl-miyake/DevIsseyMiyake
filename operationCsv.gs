@@ -1,4 +1,60 @@
 /*
+　// 指定のドライブフォルダから対象のCSVファイルを参照する
+
+  // integer operation_type
+    // 3: 発令
+    // 4: 標準報酬月額
+    // 5: 源泉徴収票
+
+*/
+// CSV取り込み
+function import_csv(operation_type = 5) {
+  /* CSV設定 */
+  // 発令
+  if (operation_type === 3) {
+    var define = define_announcement()
+  // 標準報酬月額
+  } else if (operation_type === 4) {
+    var define = define_monthly_salary()
+  // 源泉徴収票
+  } else if (operation_type === 5) {
+    var define = define_tax_withoutholding()
+  } else {
+    console.log('エラー')
+  }
+
+  // ドライブフォルダ, ファイル情報定義
+  const folderId = define.import_folder_id
+  const folder = DriveApp.getFolderById(folderId)
+  const file_name = define.import_file_name
+
+  const imported_files = folder.getFilesByName(file_name);
+  const imported_file   = imported_files.next();
+  const fileId = imported_file.getId();
+
+  // Blob を作成する
+  const blob = DriveApp.getFileById(fileId).getBlob();
+  const csv = blob.getDataAsString();
+  const csv_data = Utilities.parseCsv(csv);
+
+  // インポートした取得データを出力用データに加工
+  // 発令
+  if (operation_type === 3) {
+    var processed_data = processing_announcement_data(csv_data)
+  // 標準報酬月額
+  } else if (operation_type === 4) {
+    var processed_data = processing_monthly_salary_data(csv_data)
+  // 源泉徴収票
+  } else if (operation_type === 5) {
+    var processed_data = processing_tax_withoutholding_data(csv_data)
+  } else {
+    console.log('エラー')
+  }
+
+  return processed_data
+}
+
+/*
   //　業務種別ごとにCSVを出力する
 
   // array data
@@ -58,6 +114,22 @@ function export_csv(data, operation_type = 5) {
   folder.createFile(blob);
 }
 
+// 発令_インポートデータを出力用データ構造配列に加工
+function processing_announcement_data(csv_data) {
+  // csv_dataをループ、出力用データ構造配列に加工し返却
+  // return processed_data
+}
+// 標準報酬月額_インポートデータを出力用データ構造配列に加工
+function processing_monthly_salary_data(csv_data) {
+  // csv_dataをループ、出力用データ構造配列に加工し返却
+  // return processed_data
+}
+// 源泉徴収票_インポートデータを出力用データ構造配列に加工
+function processing_tax_withoutholding_data(csv_data) {
+  // csv_dataをループ、出力用データ構造配列に加工し返却
+  // return processed_data
+}
+
 // 源泉徴収票CSV_列名
 function title_tax_withoutholding() {
   // 見出し行
@@ -85,33 +157,6 @@ function title_tax_withoutholding() {
     ]
   ]
   return title_row
-}
-
-// 業務_入社
-function define_store_employee() {
-  const define = { 
-    'export_folder_id': '10crsOPzxejSLJOpQ5A0GxAnx3domPzcL',
-    'export_file_name': 'store_employee.csv',
-  }
-  return define
-}
-// 業務_変更申請
-function define_update_employee() {
-  const define = { 
-    'export_folder_id': '123eV-QH9u-kUL-1G1JyZpz0DRIfVjGw2',
-    'export_file_name': 'update_employee.csv',
-  }
-  return define
-}
-// 業務_源泉徴収票
-function define_tax_withoutholding() {
-  const define = { 
-    'import_folder_id': '1mHOAguSfu1_uge6tGDvbZOBpR9iTCYSI',
-    'export_folder_id': '123iX_sh-2_h9HZ-iEPiIy159f0XxQKjL',
-    'import_file_name': 'test-tax_withoutholding.csv',
-    'export_file_name': 'tax_withoutholding.csv',
-  }
-  return define
 }
 
 /*
@@ -169,4 +214,47 @@ function stub_tax_withoutholding() {
   ]
 
   return data
+}
+
+// 業務_入社
+function define_store_employee() {
+  const define = { 
+    'export_folder_id': '',
+    'export_file_name': 'store_employee.csv',
+  }
+  return define
+}
+// 業務_変更申請
+function define_update_employee() {
+  const define = { 
+    'export_folder_id': '',
+    'export_file_name': 'update_employee.csv',
+  }
+  return define
+}
+// 業務_発令
+function define_announcement() {
+  const define = { 
+    'import_folder_id': '',
+    'import_file_name': 'announcement.csv',
+  }
+  return define
+}
+// 業務_標準報酬月額
+function define_monthly_salary() {
+  const define = { 
+    'import_folder_id': '',
+    'import_file_name': 'monthly_salary.csv',
+  }
+  return define
+}
+// 業務_源泉徴収票
+function define_tax_withoutholding() {
+  const define = { 
+    'import_folder_id': '',
+    'export_folder_id': '',
+    'import_file_name': 'test-tax_withoutholding.csv',
+    'export_file_name': 'tax_withoutholding.csv',
+  }
+  return define
 }
