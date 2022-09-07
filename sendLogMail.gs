@@ -11,6 +11,7 @@ function sendMail() {
   var address = 'daiki.kushibiki.ef@ambl.co.jp';
 
   // 処理が失敗していたらログを取得
+  // テスト
   if(isSuccess == false){
     var log = 'スタブ失敗ログ';　// 2022/09/06現在はスタブログ対応ToDo ファイルをログ出力orエラーログを取得しJSON？
   
