@@ -1,12 +1,17 @@
-/*
+
 　// 指定のドライブフォルダから対象のCSVファイルを参照する
+  function checkExistFile(folder_id,file_name) {
+    // ファイルがあるかどうか確認
+    var files = DriveApp.getFolderById(folder_id).getFilesByName(file_name);
+    console.log(files);
+    if(files.hasNext()) {
+      var is_exist = true;
+    }else{
+      var is_exist = false;
+    }
+    return is_exist;
+  }
 
-  // integer operation_type
-    // 3: 発令
-    // 4: 標準報酬月額
-    // 5: 源泉徴収票
-
-*/
 // CSV取り込み
 function import_csv(operation_type = 5) {
   /* CSV設定 */
