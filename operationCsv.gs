@@ -2,6 +2,7 @@
 　/**
    * @param {string} folder_id  指定ドライブフォルダID
    * @param {string} file_name  指定ファイル名
+   * return {bool} is_exist ファイルがあるかないか
    */
   // 指定のドライブフォルダから対象のCSVファイルを参照する
   function checkExistFile(folder_id,file_name) {
