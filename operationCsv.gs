@@ -1,5 +1,9 @@
 
-　// 指定のドライブフォルダから対象のCSVファイルを参照する
+　/**
+   * @param {string} folder_id  指定ドライブフォルダID
+   * @param {string} file_name  指定ファイル名
+   */
+  // 指定のドライブフォルダから対象のCSVファイルを参照する
   function checkExistFile(folder_id,file_name) {
     // ファイルがあるかどうか確認
     var files = DriveApp.getFolderById(folder_id).getFilesByName(file_name);
