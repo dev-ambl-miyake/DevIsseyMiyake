@@ -3,7 +3,6 @@
   function checkExistFile(folder_id,file_name) {
     // ファイルがあるかどうか確認
     var files = DriveApp.getFolderById(folder_id).getFilesByName(file_name);
-    console.log(files);
     if(files.hasNext()) {
       var is_exist = true;
     }else{
