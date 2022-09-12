@@ -43,7 +43,7 @@ function import_csv(operation_type = 5) {
 
   // Blob を作成する
   const blob = DriveApp.getFileById(fileId).getBlob();
-  const csv = blob.getDataAsString();
+  const csv = blob.getDataAsString("Shift_JIS");
   const csv_data = Utilities.parseCsv(csv);
 
   // インポートした取得データを出力用データに加工
@@ -89,7 +89,7 @@ function export_csv(data, operation_type = 5) {
     // 見出し行
     var title_row = title_tax_withoutholding()
     // OBIC_CSVよりデータ取得
-    var import_data = stub_tax_withoutholding()
+    var import_data = data;
   } else {
     console.log('エラー')
   }
@@ -136,7 +136,25 @@ function processing_monthly_salary_data(csv_data) {
 // 源泉徴収票_インポートデータを出力用データ構造配列に加工
 function processing_tax_withoutholding_data(csv_data) {
   // csv_dataをループ、出力用データ構造配列に加工し返却
-  // return processed_data
+    // 取得データ行が1行以下ならファイル不備エラーメッセージ（※1行目は見出し）
+    if(csv_data.length <= 1){
+      var csv_error_message = '該当ファイルのデータは正しいデータ形式ではありません。';
+      alert(csv_error_message);
+      
+      // 終了ログ
+      log('源泉徴収票', 'e');
+      return;
+    }
+    // csvの見出1行目を削除
+    csv_data.shift();
+    // csvの不要列の削除
+    for (let i = 0; i < csv_data.length; i++) {
+      // 1行ずつ取り出して、インデックス0（1番目）から2個削除する。
+      // TO do 最新の年末調整データ連携資料が来てから削除列の削除
+      csv_data[i].splice(0,2);
+    }
+
+  return csv_data
 }
 
 // 源泉徴収票CSV_列名
@@ -260,10 +278,11 @@ function define_monthly_salary() {
 // 業務_源泉徴収票
 function define_tax_withoutholding() {
   const define = { 
+    // 環境毎に記載
     'import_folder_id': '',
     'export_folder_id': '',
-    'import_file_name': 'test-tax_withoutholding.csv',
-    'export_file_name': 'tax_withoutholding.csv',
+    'import_file_name': '',
+    'export_file_name': '',
   }
   return define
 }
