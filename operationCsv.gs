@@ -260,9 +260,9 @@ function define_monthly_salary() {
 // 業務_源泉徴収票
 function define_tax_withoutholding() {
   const define = { 
-    'import_folder_id': '',
-    'export_folder_id': '',
-    'import_file_name': 'test-tax_withoutholding.csv',
+    'import_folder_id': '1Plhj8HpJIrSVosMUI16CJz-AOPc52Ki3',
+    'export_folder_id': '1jFcIoOSs8dma-athtCuG8cJtbWOF99Ls',
+    'import_file_name': 'OBIC_源泉徴収票_サンプル.csv',
     'export_file_name': 'tax_withoutholding.csv',
   }
   return define
