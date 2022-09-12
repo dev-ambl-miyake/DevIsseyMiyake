@@ -10,7 +10,7 @@ function taxWithholding() {
 
 
   // 1-1指定のドライブファイル内にファイルがあるか確認
-    // フォルダIDの取得とファイル名の取得
+    // フォルダIDの取得とファイル名の取得a
     var is_exist = checkExistFile(folder_id,file_name);
 
   // 1-2 存在しない場合スプレッドシート上に「ファイル無し」のアラートメッセージを表示
