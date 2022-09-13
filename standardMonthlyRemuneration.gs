@@ -27,7 +27,8 @@ function standardMonthlyRemuneration() {
     // 2-2 行データを配列に格納し、加工
     // csv取込
     // 取得したCSVの配列を加工する
-    var processed_data = import_csv();
+    var processed_data = import_csv(4);
+    console.log(processed_data[0][1]);
 
 
   // 3. SmartHRへのデータ更新

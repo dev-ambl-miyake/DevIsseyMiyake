@@ -78,7 +78,12 @@ function export_csv(data, operation_type = 5) {
   /* CSV設定 */
   // 入社
   if (operation_type === 1) {
+    //定義値
     var define = define_store_employee()
+    // 見出し行
+    var title_row = title_store_employee()
+    // smartHRAPIよりデータ取得
+    var import_data = data;
   // 変更申請
   } else if (operation_type === 2) {
     var define = define_update_employee()
@@ -123,6 +128,17 @@ function export_csv(data, operation_type = 5) {
   folder.createFile(blob);
 }
 
+// 入社CSV_列名
+function title_store_employee() {
+  // 見出し行
+  const title_row = [
+    [
+      "データ区分", "社員コード", "氏名", "氏名ｶﾅ", "呼称適用", "旧氏名", "旧氏名ｶﾅ", "性別区分", "生年月日", "入社年月日", "携帯電話番号", "メールアドレス"
+    ]
+  ]
+  return title_row
+}
+
 // 発令_インポートデータを出力用データ構造配列に加工
 function processing_announcement_data(csv_data) {
   // csv_dataをループ、出力用データ構造配列に加工し返却
@@ -131,7 +147,65 @@ function processing_announcement_data(csv_data) {
 // 標準報酬月額_インポートデータを出力用データ構造配列に加工
 function processing_monthly_salary_data(csv_data) {
   // csv_dataをループ、出力用データ構造配列に加工し返却
-  // return processed_data
+    // 取得データ行が1行以下ならファイル不備エラーメッセージ（※1行目は見出し）
+    if(csv_data.length <= 1){
+      var csv_error_message = '該当ファイルのデータは正しいデータ形式ではありません。';
+      alert(csv_error_message);
+      
+      // 終了ログ
+      log('源泉徴収票', 'e');
+      return;
+    }
+    // csvの見出1行目を削除
+    csv_data.shift();
+
+    // csvの不要列の削除 ※spliceをループして不要列を順番に削除（必要列までは一括削除出来る）
+      // データ区分の削除
+      for (let i = 0; i < csv_data.length; i++) {
+        csv_data[i].splice(0,1);
+      }
+
+      // 健保標準報酬月額までの列削除
+      for (let i = 0; i < csv_data.length; i++) {
+        csv_data[i].splice(1,4);
+      }
+
+      // 健保整理番号までの列削除
+      for (let i = 0; i < csv_data.length; i++) {
+        csv_data[i].splice(2,6);
+      }
+
+      // 厚年標準報酬月額までの列削除
+      for (let i = 0; i < csv_data.length; i++) {
+        csv_data[i].splice(3,1);
+      }
+
+      // 厚年整理番号までの列削除
+      for (let i = 0; i < csv_data.length; i++) {
+        csv_data[i].splice(4,5);
+      }
+
+      // 残りの列削除
+      for (let i = 0; i < csv_data.length; i++) {
+        csv_data[i].splice(7,46);
+      }
+    
+    // 二次元配列で空になっている箇所を削除
+    var array = csv_data.filter(v => v[0])
+    
+    // 文字加工
+      // 社員コード（4桁→5桁）
+      for (let i = 0; i < array.length; i++) {
+         array[i][0] = '0'+ array[i][0];
+      }
+
+      // 基礎年金番号1-基礎年金番号2
+      for (let i = 0; i < array.length; i++) {
+        array[i][5] = array[i][5] + '-'+ array[i][6];
+        // 不要になった列を削除
+        array[i].splice(6,1);
+      } 
+  return array
 }
 // 源泉徴収票_インポートデータを出力用データ構造配列に加工
 function processing_tax_withoutholding_data(csv_data) {
@@ -246,7 +320,7 @@ function stub_tax_withoutholding() {
 // 業務_入社
 function define_store_employee() {
   const define = { 
-    'export_folder_id': '',
+    'export_folder_id': '1wTNnVXEQsBbYLzXFpFHJagQ-83PSbKo_',
     'export_file_name': 'store_employee.csv',
   }
   return define
@@ -270,8 +344,8 @@ function define_announcement() {
 // 業務_標準報酬月額
 function define_monthly_salary() {
   const define = { 
-    'import_folder_id': '',
-    'import_file_name': 'monthly_salary.csv',
+    'import_folder_id': '12iHSNa9Y_nwGZhZmcRQyVfuSsjItBRlW',
+    'import_file_name': '標準報酬月額.csv',
   }
   return define
 }
