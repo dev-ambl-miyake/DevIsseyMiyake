@@ -147,7 +147,65 @@ function processing_announcement_data(csv_data) {
 // 標準報酬月額_インポートデータを出力用データ構造配列に加工
 function processing_monthly_salary_data(csv_data) {
   // csv_dataをループ、出力用データ構造配列に加工し返却
-  // return processed_data
+    // 取得データ行が1行以下ならファイル不備エラーメッセージ（※1行目は見出し）
+    if(csv_data.length <= 1){
+      var csv_error_message = '該当ファイルのデータは正しいデータ形式ではありません。';
+      alert(csv_error_message);
+      
+      // 終了ログ
+      log('源泉徴収票', 'e');
+      return;
+    }
+    // csvの見出1行目を削除
+    csv_data.shift();
+
+    // csvの不要列の削除 ※spliceをループして不要列を順番に削除（必要列までは一括削除出来る）
+      // データ区分の削除
+      for (let i = 0; i < csv_data.length; i++) {
+        csv_data[i].splice(0,1);
+      }
+
+      // 健保標準報酬月額までの列削除
+      for (let i = 0; i < csv_data.length; i++) {
+        csv_data[i].splice(1,4);
+      }
+
+      // 健保整理番号までの列削除
+      for (let i = 0; i < csv_data.length; i++) {
+        csv_data[i].splice(2,6);
+      }
+
+      // 厚年標準報酬月額までの列削除
+      for (let i = 0; i < csv_data.length; i++) {
+        csv_data[i].splice(3,1);
+      }
+
+      // 厚年整理番号までの列削除
+      for (let i = 0; i < csv_data.length; i++) {
+        csv_data[i].splice(4,5);
+      }
+
+      // 残りの列削除
+      for (let i = 0; i < csv_data.length; i++) {
+        csv_data[i].splice(7,46);
+      }
+    
+    // 二次元配列で空になっている箇所を削除
+    var array = csv_data.filter(v => v[0])
+    
+    // 文字加工
+      // 社員コード（4桁→5桁）
+      for (let i = 0; i < array.length; i++) {
+         array[i][0] = '0'+ array[i][0];
+      }
+
+      // 基礎年金番号1-基礎年金番号2
+      for (let i = 0; i < array.length; i++) {
+        array[i][5] = array[i][5] + '-'+ array[i][6];
+        // 不要になった列を削除
+        array[i].splice(6,1);
+      } 
+  return array
 }
 // 源泉徴収票_インポートデータを出力用データ構造配列に加工
 function processing_tax_withoutholding_data(csv_data) {
