@@ -78,7 +78,12 @@ function export_csv(data, operation_type = 5) {
   /* CSV設定 */
   // 入社
   if (operation_type === 1) {
+    //定義値
     var define = define_store_employee()
+    // 見出し行
+    var title_row = title_store_employee()
+    // smartHRAPIよりデータ取得
+    var import_data = data;
   // 変更申請
   } else if (operation_type === 2) {
     var define = define_update_employee()
@@ -121,6 +126,17 @@ function export_csv(data, operation_type = 5) {
 
   // ファイルに保存
   folder.createFile(blob);
+}
+
+// 入社CSV_列名
+function title_store_employee() {
+  // 見出し行
+  const title_row = [
+    [
+      "データ区分", "社員コード", "氏名", "氏名ｶﾅ", "呼称適用", "旧氏名", "旧氏名ｶﾅ", "性別区分", "生年月日", "入社年月日", "携帯電話番号", "メールアドレス"
+    ]
+  ]
+  return title_row
 }
 
 // 発令_インポートデータを出力用データ構造配列に加工
@@ -246,7 +262,7 @@ function stub_tax_withoutholding() {
 // 業務_入社
 function define_store_employee() {
   const define = { 
-    'export_folder_id': '',
+    'export_folder_id': '1wTNnVXEQsBbYLzXFpFHJagQ-83PSbKo_',
     'export_file_name': 'store_employee.csv',
   }
   return define
