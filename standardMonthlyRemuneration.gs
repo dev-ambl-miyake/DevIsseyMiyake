@@ -5,7 +5,6 @@ function standardMonthlyRemuneration() {
     var work = '標準報酬月額';
     // 開始ログ
     log('標準報酬月額', 's');
-    console.log(num);
 
     // スクリプトプロパティの宣言（各スクリプトのプロジェクト設定でプロパティを設定する必要有）
     var folder_id = getProperties("obicCsvFolderId");
