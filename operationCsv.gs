@@ -1,14 +1,3 @@
-  function getValues() {
-    const ss = SpreadsheetApp.getActiveSpreadsheet();
-    const sheet = ss.getSheetByName('シート1');
-
-    // A2～C2セルを選択
-    var range = sheet.getRange('A7:A123');
-    var emp_codes = range.getValues();
-
-    return emp_codes;
-  }
-
 
 　/**
    * @param {string} folder_id  指定ドライブフォルダID
@@ -17,9 +6,8 @@
    */
   // 指定のドライブフォルダから対象のCSVファイルを参照する
   function checkExistFile(folder_id,file_name) {
-    console.log(folder_id,file_name);
     // ファイルがあるかどうか確認
-    var files = DriveApp.getFolderById("12iHSNa9Y_nwGZhZmcRQyVfuSsjItBRlW").getFilesByName("標準報酬月額10件.csv");
+    var files = DriveApp.getFolderById(folder_id).getFilesByName(file_name);
     if(files.hasNext()) {
       var is_exist = true;
     }else{
@@ -446,8 +434,8 @@ function define_announcement() {
 // 業務_標準報酬月額
 function define_monthly_salary() {
   const define = { 
-    'import_folder_id': '',
-    'import_file_name': 'monthly_salary.csv',
+    'import_folder_id': '12iHSNa9Y_nwGZhZmcRQyVfuSsjItBRlW',
+    'import_file_name': '標準報酬月額10件.csv',
   }
   return define
 }
@@ -468,9 +456,9 @@ function define_year_end_adjustment() {
   const define = { 
     // 環境毎に記載
     'import_folder_id': '1ZMVqgIfkFxsExpq7fk9UVOoRQdnHMB3E',
-    'export_folder_id': '',
+    'export_folder_id': '1knHaYVdxwDF6V4-1HaC2_1FOM4qJAu7k',
     'import_file_name': 'SHR_源泉徴収票_サンプル.csv',
-    'export_file_name': '',
+    'export_file_name': '年調変動入力OBIC取込.csv',
   }
   return define
 }
