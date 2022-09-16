@@ -37,12 +37,20 @@ function callShrApi(processed_data,operation_type) {
 
     // jsonをループして、社員番号に一致するものがあれば要素を追加して更新
     for (let i = 0; i < json.length; i++) {
-
-      // 加工データの社員番号
-      var emp_code = processed_data[0]; // [0]→標準報酬月額の社員番号列
+        // 加工データの社員番号
+        // 標準報酬月額
+        if(operation_type == 4){
+          var emp_code = processed_data[0]; // [0]→標準報酬月額の社員番号列
+        }
+        // 年調変動入力
+        else if(operation_type == 6){
+          var emp_code = processed_data;
+          console.log(emp_code[0]);
+        }
 
       // API取得した社員番号
       var api_emp_code = json[i]['emp_code'];
+      console.log(api_emp_code);
 
       // 標準報酬月額
       if(operation_type == 4){
@@ -51,6 +59,13 @@ function callShrApi(processed_data,operation_type) {
           // SHR固有ID
           var id = json[i]['id'];
           updateShrEmployee(id,processed_data,operation_type);
+        }
+      }
+      // 年調変動入力
+      else if(operation_type == 6){
+      // 社員が一致していればその配列番号を返却
+        if(emp_code == api_emp_code){
+          return json[i]
         }
       }
     }
