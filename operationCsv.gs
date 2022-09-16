@@ -1,3 +1,14 @@
+  function getValues() {
+    const ss = SpreadsheetApp.getActiveSpreadsheet();
+    const sheet = ss.getSheetByName('シート1');
+
+    // A2～C2セルを選択
+    var range = sheet.getRange('A7:A123');
+    var emp_codes = range.getValues();
+
+    return emp_codes;
+  }
+
 
 　/**
    * @param {string} folder_id  指定ドライブフォルダID
@@ -6,8 +17,9 @@
    */
   // 指定のドライブフォルダから対象のCSVファイルを参照する
   function checkExistFile(folder_id,file_name) {
+    console.log(folder_id,file_name);
     // ファイルがあるかどうか確認
-    var files = DriveApp.getFolderById(folder_id).getFilesByName(file_name);
+    var files = DriveApp.getFolderById("12iHSNa9Y_nwGZhZmcRQyVfuSsjItBRlW").getFilesByName("標準報酬月額10件.csv");
     if(files.hasNext()) {
       var is_exist = true;
     }else{
@@ -28,6 +40,9 @@ function import_csv(operation_type = 5) {
   // 源泉徴収票
   } else if (operation_type === 5) {
     var define = define_tax_withoutholding()
+  // 年調・変動入力
+  } else if (operation_type === 6) {
+    var define = define_year_end_adjustment()
   } else {
     console.log('エラー')
   }
@@ -56,6 +71,9 @@ function import_csv(operation_type = 5) {
   // 源泉徴収票
   } else if (operation_type === 5) {
     var processed_data = processing_tax_withoutholding_data(csv_data)
+  // 年調変動入力
+  } else if (operation_type === 6) {
+    var processed_data = processing_year_end_adjustment(csv_data)
   } else {
     console.log('エラー')
   }
@@ -93,6 +111,14 @@ function export_csv(data, operation_type = 5) {
     var define = define_tax_withoutholding()
     // 見出し行
     var title_row = title_tax_withoutholding()
+    // OBIC_CSVよりデータ取得
+    var import_data = data;
+  // 年調・変動入力
+  } else if (operation_type === 6) {
+    // 定義値
+    var define = define_year_end_adjustment()
+    // 見出し行
+    var title_row = title_year_end_adjustment()
     // OBIC_CSVよりデータ取得
     var import_data = data;
   } else {
@@ -231,6 +257,71 @@ function processing_tax_withoutholding_data(csv_data) {
   return csv_data
 }
 
+// 年調変動_インポートデータを出力用データ構造配列に加工
+function processing_year_end_adjustment(csv_data) {
+  // csv_dataをループ、出力用データ構造配列に加工し返却
+    // 取得データ行が1行以下ならファイル不備エラーメッセージ（※1行目は見出し）
+    if(csv_data.length <= 1){
+      var csv_error_message = '該当ファイルのデータは正しいデータ形式ではありません。';
+      alert(csv_error_message);
+      
+      // 終了ログ
+      log('年調・変動入力', 'e');
+      return;
+    }
+    // csvの見出1行目を削除
+    csv_data.shift();
+
+    // csvの不要列の削除 ※spliceをループして不要列を順番に削除（必要列までは一括削除出来る）
+      // データ区分の削除
+      for (let i = 0; i < csv_data.length; i++) {
+        csv_data[i].splice(0,1);
+      }
+
+      // 健保標準報酬月額までの列削除
+      for (let i = 0; i < csv_data.length; i++) {
+        csv_data[i].splice(1,4);
+      }
+
+      // 健保整理番号までの列削除
+      for (let i = 0; i < csv_data.length; i++) {
+        csv_data[i].splice(2,6);
+      }
+
+      // 厚年標準報酬月額までの列削除
+      for (let i = 0; i < csv_data.length; i++) {
+        csv_data[i].splice(3,1);
+      }
+
+      // 厚年整理番号までの列削除
+      for (let i = 0; i < csv_data.length; i++) {
+        csv_data[i].splice(4,5);
+      }
+
+      // 残りの列削除
+      for (let i = 0; i < csv_data.length; i++) {
+        csv_data[i].splice(7,46);
+      }
+    
+    // 二次元配列で空になっている箇所を削除
+    var array = csv_data.filter(v => v[0])
+    
+    // 文字加工
+      // 社員コード（4桁→5桁）
+      for (let i = 0; i < array.length; i++) {
+         array[i][0] = '0'+ array[i][0];
+      }
+
+      // 基礎年金番号1-基礎年金番号2
+      for (let i = 0; i < array.length; i++) {
+        array[i][5] = array[i][5] + '-'+ array[i][6];
+        // 不要になった列を削除
+        array[i].splice(6,1);
+      } 
+      console.log('アレイ'+array);
+  return array
+}
+
 // 源泉徴収票CSV_列名
 function title_tax_withoutholding() {
   // 見出し行
@@ -255,6 +346,17 @@ function title_tax_withoutholding() {
       "16歳未満の扶養親族（フリガナ）4", "16歳未満の扶養親族（氏名）4", "16歳未満の扶養親族（区分）4",
       "未成年者", "外国人", "死亡退職", "災害者", "乙欄", "本人が障害者（特別）", "本人が障害者（その他）", "寡婦", "ひとり親", "勤労学生",
       "中途就職・退職（就職）", "中途就職・退職（退職）", "中途就職・退職日", "退職日", "受給者生年月日", "支払者（住所）", "支払者（氏名）", "支払者（電話番号）"
+    ]
+  ]
+  return title_row
+}
+
+// 年調・変動入力CSV_列名
+function title_year_end_adjustment() {
+  // 見出し行
+  const title_row = [
+    [
+      "データ区分","対象年月","コード","税額表区分","対象者区分","種別","確定フラグ","過不足精算区分","申社保年金","申社保年金外","小規模共済","一般生保支払","個人年金支払","新一般生保支払","介護医療支払","新個人年金支払","長期損保支払","地震保険支払","配偶控除提出","その他所得","配偶合計所得","住宅控除申告","住宅控除適用数","家屋居住日_1","住宅控除区分_1","特定取得区分_1","住宅借入金等_1","基礎控除提出","所得控除提出"
     ]
   ]
   return title_row
@@ -356,6 +458,18 @@ function define_tax_withoutholding() {
     'import_folder_id': '',
     'export_folder_id': '',
     'import_file_name': '',
+    'export_file_name': '',
+  }
+  return define
+}
+
+// 業務_年調・変動入力
+function define_year_end_adjustment() {
+  const define = { 
+    // 環境毎に記載
+    'import_folder_id': '1ZMVqgIfkFxsExpq7fk9UVOoRQdnHMB3E',
+    'export_folder_id': '',
+    'import_file_name': 'SHR_源泉徴収票_サンプル.csv',
     'export_file_name': '',
   }
   return define
