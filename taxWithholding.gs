@@ -10,7 +10,7 @@ function taxWithholding() {
 
 
   // 1-1指定のドライブファイル内にファイルがあるか確認
-    // フォルダIDの取得とファイル名の取得a
+    // フォルダIDの取得とファイル名の取得
     var is_exist = checkExistFile(folder_id,file_name);
 
   // 1-2 存在しない場合スプレッドシート上に「ファイル無し」のアラートメッセージを表示
@@ -27,7 +27,8 @@ function taxWithholding() {
   // 2-2 行データを配列に格納し、加工
     // csv取込
     // 取得したCSVの配列を加工する
-    var processed_data = import_csv();
+    var processed_data = import_csv(5);
+    console.log(processed_data);
 
   // 3-1 SHRへのデータ連携更新(SHR取り込み形式のCSVファイルとして出力)
   // 3-2 指定のドライブファイルへ保存

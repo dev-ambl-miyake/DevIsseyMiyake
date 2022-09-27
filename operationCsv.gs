@@ -28,6 +28,9 @@ function import_csv(operation_type = 5) {
   // 源泉徴収票
   } else if (operation_type === 5) {
     var define = define_tax_withoutholding()
+  // 年調・変動入力
+  } else if (operation_type === 6) {
+    var define = define_year_end_adjustment()
   } else {
     console.log('エラー')
   }
@@ -56,6 +59,9 @@ function import_csv(operation_type = 5) {
   // 源泉徴収票
   } else if (operation_type === 5) {
     var processed_data = processing_tax_withoutholding_data(csv_data)
+  // 年調変動入力
+  } else if (operation_type === 6) {
+    var processed_data = processing_year_end_adjustment(csv_data)
   } else {
     console.log('エラー')
   }
@@ -78,7 +84,12 @@ function export_csv(data, operation_type = 5) {
   /* CSV設定 */
   // 入社
   if (operation_type === 1) {
+    //定義値
     var define = define_store_employee()
+    // 見出し行
+    var title_row = title_store_employee()
+    // smartHRAPIよりデータ取得
+    var import_data = data;
   // 変更申請
   } else if (operation_type === 2) {
     var define = define_update_employee()
@@ -88,6 +99,14 @@ function export_csv(data, operation_type = 5) {
     var define = define_tax_withoutholding()
     // 見出し行
     var title_row = title_tax_withoutholding()
+    // OBIC_CSVよりデータ取得
+    var import_data = data;
+  // 年調・変動入力
+  } else if (operation_type === 6) {
+    // 定義値
+    var define = define_year_end_adjustment()
+    // 見出し行
+    var title_row = title_year_end_adjustment()
     // OBIC_CSVよりデータ取得
     var import_data = data;
   } else {
@@ -123,6 +142,17 @@ function export_csv(data, operation_type = 5) {
   folder.createFile(blob);
 }
 
+// 入社CSV_列名
+function title_store_employee() {
+  // 見出し行
+  const title_row = [
+    [
+      "データ区分", "社員コード", "氏名", "氏名ｶﾅ", "呼称適用", "旧氏名", "旧氏名ｶﾅ", "性別区分", "生年月日", "入社年月日", "携帯電話番号", "メールアドレス"
+    ]
+  ]
+  return title_row
+}
+
 // 発令_インポートデータを出力用データ構造配列に加工
 function processing_announcement_data(csv_data) {
   // csv_dataをループ、出力用データ構造配列に加工し返却
@@ -131,7 +161,65 @@ function processing_announcement_data(csv_data) {
 // 標準報酬月額_インポートデータを出力用データ構造配列に加工
 function processing_monthly_salary_data(csv_data) {
   // csv_dataをループ、出力用データ構造配列に加工し返却
-  // return processed_data
+    // 取得データ行が1行以下ならファイル不備エラーメッセージ（※1行目は見出し）
+    if(csv_data.length <= 1){
+      var csv_error_message = '該当ファイルのデータは正しいデータ形式ではありません。';
+      alert(csv_error_message);
+      
+      // 終了ログ
+      log('源泉徴収票', 'e');
+      return;
+    }
+    // csvの見出1行目を削除
+    csv_data.shift();
+
+    // csvの不要列の削除 ※spliceをループして不要列を順番に削除（必要列までは一括削除出来る）
+      // データ区分の削除
+      for (let i = 0; i < csv_data.length; i++) {
+        csv_data[i].splice(0,1);
+      }
+
+      // 健保標準報酬月額までの列削除
+      for (let i = 0; i < csv_data.length; i++) {
+        csv_data[i].splice(1,4);
+      }
+
+      // 健保整理番号までの列削除
+      for (let i = 0; i < csv_data.length; i++) {
+        csv_data[i].splice(2,6);
+      }
+
+      // 厚年標準報酬月額までの列削除
+      for (let i = 0; i < csv_data.length; i++) {
+        csv_data[i].splice(3,1);
+      }
+
+      // 厚年整理番号までの列削除
+      for (let i = 0; i < csv_data.length; i++) {
+        csv_data[i].splice(4,5);
+      }
+
+      // 残りの列削除
+      for (let i = 0; i < csv_data.length; i++) {
+        csv_data[i].splice(7,46);
+      }
+    
+    // 二次元配列で空になっている箇所を削除
+    var array = csv_data.filter(v => v[0])
+    
+    // 文字加工
+      // 社員コード（4桁→5桁）
+      for (let i = 0; i < array.length; i++) {
+         array[i][0] = '0'+ array[i][0];
+      }
+
+      // 基礎年金番号1-基礎年金番号2
+      for (let i = 0; i < array.length; i++) {
+        array[i][5] = array[i][5] + '-'+ array[i][6];
+        // 不要になった列を削除
+        array[i].splice(6,1);
+      } 
+  return array
 }
 // 源泉徴収票_インポートデータを出力用データ構造配列に加工
 function processing_tax_withoutholding_data(csv_data) {
@@ -146,15 +234,202 @@ function processing_tax_withoutholding_data(csv_data) {
       return;
     }
     // csvの見出1行目を削除
-    csv_data.shift();
+    // csv_data.shift();
     // csvの不要列の削除
     for (let i = 0; i < csv_data.length; i++) {
       // 1行ずつ取り出して、インデックス0（1番目）から2個削除する。
-      // TO do 最新の年末調整データ連携資料が来てから削除列の削除
-      csv_data[i].splice(0,2);
+      csv_data[i].splice(0,2); // OBIC項目順 0,1
+      csv_data[i].splice(1,3); // 3,4,5
+      csv_data[i].splice(4,1); // 9
+      csv_data[i].splice(5,3); // 11,12,13
+      csv_data[i].splice(6,1); // 15
+      csv_data[i].splice(40,1); // 50
+      csv_data[i].splice(44,1); // 55
+      csv_data[i].splice(54,2); // 66,67
+      csv_data[i].splice(58,4); // 72-75
+      csv_data[i].splice(61,4); // 79-82
+      csv_data[i].splice(62,24); // 84-107
+      csv_data[i].splice(76,3); // 122-124
+      csv_data[i].splice(78,2); // 127-128
+      csv_data[i].splice(81,1); // 132
+      csv_data[i].splice(84,1); // 136
+      csv_data[i].splice(87,1); // 140
+      csv_data[i].splice(90,1); // 144
+      csv_data[i].splice(93,1); // 148
+      csv_data[i].splice(96,1); // 152
+      csv_data[i].splice(99,1); // 156
+      csv_data[i].splice(102,1); // 160
+      csv_data[i].splice(105,21); // 164-184
     }
 
-  return csv_data
+  // SmartHR取り込み用の順番に配列を並び替える
+  map_csv_data= csv_data.map(elm => [
+    elm[0], // 社員コード
+    elm[5], // 本人住所
+    elm[7], // 役職名
+    elm[61], // カナ氏名
+    elm[6], // 氏名
+    elm[8], // 種別
+    elm[9], // 支払金額
+    elm[10], // 未払金額
+    elm[11], // 給与所得控除後金額
+    elm[12], // 所得控除の合計
+    elm[13], // 源泉徴収税額
+    elm[14], // 未徴収税額
+    elm[15], // (源泉)控除対象配偶者の有無
+    elm[0], // ※OBICではなし（源泉）控除対象配偶者（従有）
+    elm[16], // 老人控除対象配偶者
+    elm[17], // 配偶者(特別)控除額
+    elm[18], // 特定扶養人数 主
+    elm[19], // 特定扶養人数 従
+    elm[21], // 同 内訳 主
+    elm[20], // 老人扶養人数 主
+    elm[22], // 老人扶養人数 従
+    elm[23], // その他人数 主
+    elm[24], // その他人数 従
+    elm[26], // 同 内訳
+    elm[25], // 特別障害者人数
+    elm[27], // その他障害者人数
+    elm[76], // 非居住者である親族の数
+    elm[28], // 社会保険料等金額
+    elm[29], // 同 内訳
+    elm[30], // 生命保険料控除
+    elm[31], // 地震保険料控除
+    elm[32], // 住宅特別控除額
+    elm[53], // 摘要
+    elm[71], // 新生命保険料
+    elm[72], // 旧生命保険料
+    elm[73], // 介護医療保険料
+    elm[74], // 新個人年金保険料
+    elm[33], // 旧個人年金保険料
+    elm[61], // 住宅控除適用数
+    elm[57], // 居住開始年月日(1回目)
+    elm[63], // 住宅控除区分(1回目)
+    elm[64], // 住宅借入金等(1回目)
+    elm[62], // 住宅控除可能額
+    elm[65], // 住宅控除居住年(2回目)
+    elm[68], // 住宅控除区分(2回目)
+    elm[69], // 住宅借入金等(2回目)
+    elm[75], // 国民年金保険料等の金額
+    elm[34], // 長期損保保険料
+    elm[104], // 基礎控除の額
+    elm[105], // 所得金額調整控除額
+    elm[77], // 配偶者カナ氏名
+    elm[78], // 配偶者氏名
+    elm[79], // 配偶者非居住区分
+    elm[34], // 配偶者合計所得
+    elm[81], // 扶養者1カナ氏名
+    elm[82], // 扶養者1氏名
+    elm[83], // 扶養者1非居住区分
+    elm[84], // 扶養者2カナ氏名
+    elm[85], // 扶養者2氏名
+    elm[86], // 扶養者2非居住区分
+    elm[87], // 扶養者3カナ氏名
+    elm[88], // 扶養者3氏名
+    elm[89], // 扶養者3非居住区分
+    elm[90], // 扶養者4カナ氏名
+    elm[91], // 扶養者4氏名
+    elm[92], // 扶養者4非居住区分
+    elm[93], // 16歳未満扶養者1カナ氏名
+    elm[94], // 16歳未満扶養者1氏名
+    elm[95], // 16歳未満扶養者1非居住区分
+    elm[96], // 16歳未満扶養者2カナ氏名
+    elm[97], // 16歳未満扶養者2氏名
+    elm[98], // 16歳未満扶養者2非居住区分
+    elm[99], // 16歳未満扶養者3カナ氏名
+    elm[100], // 16歳未満扶養者3氏名
+    elm[101], // 16歳未満扶養者3非居住区分
+    elm[102], // 16歳未満扶養者4カナ氏名
+    elm[103], // 16歳未満扶養者4氏名
+    elm[104], // 16歳未満扶養者4非居住区分
+    elm[40], // 未成年者
+    elm[49], // 外国人
+    elm[47], // 死亡退職
+    elm[48], // 災害者
+    elm[41], // 乙欄適用
+    elm[42], // 本人特別障害者
+    elm[43], // 本人その他障害者
+    elm[44], // 寡婦
+    elm[107], // ひとり親
+    elm[46], // 本人勤労学生
+    elm[50], // 中途就職・退職（就職）
+    elm[50], // 中途就職・退職（退職）
+    elm[51], // 中途就職・退職日
+    elm[0], // 退職日
+    elm[0], // 生年月日
+    elm[1], // 支払者住所
+    elm[2], // 支払者名
+    elm[3], // 支払者電話番号
+    // TODO [0]←はこれから加工して直す
+  ]);
+
+  return map_csv_data
+}
+
+// 年調変動_インポートデータを出力用データ構造配列に加工
+function processing_year_end_adjustment(csv_data) {
+  // csv_dataをループ、出力用データ構造配列に加工し返却
+    // 取得データ行が1行以下ならファイル不備エラーメッセージ（※1行目は見出し）
+    if(csv_data.length <= 1){
+      var csv_error_message = '該当ファイルのデータは正しいデータ形式ではありません。';
+      alert(csv_error_message);
+      
+      // 終了ログ
+      log('年調・変動入力', 'e');
+      return;
+    }
+    // csvの見出1行目を削除
+    csv_data.shift();
+
+
+    // csvの不要列の削除 ※spliceをループして不要列を順番に削除（必要列までは一括削除出来る）
+      // データ区分の削除
+      for (let i = 0; i < csv_data.length; i++) {
+        csv_data[i].splice(0,1);
+      }
+
+      // 健保標準報酬月額までの列削除
+      for (let i = 0; i < csv_data.length; i++) {
+        csv_data[i].splice(1,4);
+      }
+
+      // 健保整理番号までの列削除
+      for (let i = 0; i < csv_data.length; i++) {
+        csv_data[i].splice(2,6);
+      }
+
+      // 厚年標準報酬月額までの列削除
+      for (let i = 0; i < csv_data.length; i++) {
+        csv_data[i].splice(3,1);
+      }
+
+      // 厚年整理番号までの列削除
+      for (let i = 0; i < csv_data.length; i++) {
+        csv_data[i].splice(4,5);
+      }
+
+      // 残りの列削除
+      for (let i = 0; i < csv_data.length; i++) {
+        csv_data[i].splice(7,46);
+      }
+    
+    // 二次元配列で空になっている箇所を削除
+    var array = csv_data.filter(v => v[0])
+    
+    // 文字加工
+      // 社員コード（4桁→5桁）
+      for (let i = 0; i < array.length; i++) {
+         array[i][0] = '0'+ array[i][0];
+      }
+
+      // 基礎年金番号1-基礎年金番号2
+      for (let i = 0; i < array.length; i++) {
+        array[i][5] = array[i][5] + '-'+ array[i][6];
+        // 不要になった列を削除
+        array[i].splice(6,1);
+      } 
+      console.log('アレイ'+array);
+  return array
 }
 
 // 源泉徴収票CSV_列名
@@ -162,25 +437,114 @@ function title_tax_withoutholding() {
   // 見出し行
   const title_row = [
     [
-      "受給者番号（社員番号）", "住所", "役職名", "氏名のフリガナ", "氏名", "種別", "支払金額", "支払金額（内）", "給与所得控除後の金額（調整控除後）",
-      "所得控除の額の合計額", "源泉徴収税額", "源泉徴収税額（内）", "（源泉）控除対象配偶者（有）", "（源泉）控除対象配偶者（従有）", "（源泉）控除対象配偶者（老人）", "配偶者（特別）控除の額",
-      "控除対象扶養（特定：人）", "控除対象扶養（特定：従人）", "控除対象扶養（老人：内）", "控除対象扶養（老人：人）", "控除対象扶養（老人：従人）", "控除対象扶養（その他：人）", "控除対象扶養（その他：従人）", 
-      "16歳未満扶養親族の数", "障害者の数（特別：内）", "障害者の数（特別：人）", "障害者の数（その他）", "非居住者である親族の数",
-      "社会保険料等の金額", "社会保険料等の金額（内）", "生命保険料の控除額", "地震保険料の控除額", "住宅借入金等特別控除の額", "摘要",
-      "新生保保険料の金額", "旧生保保険料の金額", "介護医療保険の金額", "新個人年金の金額", "旧個人年金の金額",
-      "住宅借入等適用数", "居住開始年月日(1回目)", "住宅借入金特別控除区分(1回目)", "住宅借入金等年末残高(1回目)", "住宅借入金等特別控除可能額",
-      "居住開始年月日(2回目)", "住宅借入金特別控除区分(2回目)", "住宅借入金等年末残高(2回目)", "国民年金保険料等の金額", "旧長期損害保険料の金額", "基礎控除の額",
-      "所得金額調整控除額", "（源泉・特別）控除対象配偶者（フリガナ）", "（源泉・特別）控除対象配偶者（氏名）", "（源泉・特別）控除対象配偶者（区分）", "配偶者の合計所得",
-      "控除対象扶養親族（フリガナ）1", "控除対象扶養親族（氏名）1", "控除対象扶養親族（区分）1",
-      "控除対象扶養親族（フリガナ）2", "控除対象扶養親族（氏名）2", "控除対象扶養親族（区分）2",
-      "控除対象扶養親族（フリガナ）3", "控除対象扶養親族（氏名）3", "控除対象扶養親族（区分）3",
-      "控除対象扶養親族（フリガナ）4", "控除対象扶養親族（氏名）4", "控除対象扶養親族（区分）4",
-      "16歳未満の扶養親族（フリガナ）1", "16歳未満の扶養親族（氏名）1", "16歳未満の扶養親族（区分）1",
-      "16歳未満の扶養親族（フリガナ）2", "16歳未満の扶養親族（氏名）2", "16歳未満の扶養親族（区分）2",
-      "16歳未満の扶養親族（フリガナ）3", "16歳未満の扶養親族（氏名）3", "16歳未満の扶養親族（区分）3",
-      "16歳未満の扶養親族（フリガナ）4", "16歳未満の扶養親族（氏名）4", "16歳未満の扶養親族（区分）4",
-      "未成年者", "外国人", "死亡退職", "災害者", "乙欄", "本人が障害者（特別）", "本人が障害者（その他）", "寡婦", "ひとり親", "勤労学生",
-      "中途就職・退職（就職）", "中途就職・退職（退職）", "中途就職・退職日", "退職日", "受給者生年月日", "支払者（住所）", "支払者（氏名）", "支払者（電話番号）"
+      "受給者番号（社員番号）", 
+      "住所",
+      "役職名",
+      "氏名のフリガナ",
+      "氏名",
+      "種別",
+      "支払金額",
+      "支払金額（内）",
+      "給与所得控除後の金額（調整控除後）",
+      "所得控除の額の合計額",
+      "源泉徴収税額",
+      "源泉徴収税額（内）",
+      "（源泉）控除対象配偶者（有）",
+      "（源泉）控除対象配偶者（従有）",
+      "（源泉）控除対象配偶者（老人）",
+      "配偶者（特別）控除の額",
+      "控除対象扶養（特定：人）",
+      "控除対象扶養（特定：従人）",
+      "控除対象扶養（老人：内）",
+      "控除対象扶養（老人：人）",
+      "控除対象扶養（老人：従人）",
+      "控除対象扶養（その他：人）",
+      "控除対象扶養（その他：従人）", 
+      "16歳未満扶養親族の数",
+      "障害者の数（特別：内）",
+      "障害者の数（特別：人）",
+      "障害者の数（その他）",
+      "非居住者である親族の数",
+      "社会保険料等の金額",
+      "社会保険料等の金額（内）",
+      "生命保険料の控除額",
+      "地震保険料の控除額",
+      "住宅借入金等特別控除の額",
+      "摘要",
+      "新生保保険料の金額",
+      "旧生保保険料の金額",
+      "介護医療保険の金額",
+      "新個人年金の金額",
+      "旧個人年金の金額",
+      "住宅借入等適用数",
+      "居住開始年月日(1回目)",
+      "住宅借入金特別控除区分(1回目)",
+      "住宅借入金等年末残高(1回目)",
+      "住宅借入金等特別控除可能額",
+      "居住開始年月日(2回目)",
+      "住宅借入金特別控除区分(2回目)",
+      "住宅借入金等年末残高(2回目)",
+      "国民年金保険料等の金額",
+      "旧長期損害保険料の金額",
+      "基礎控除の額",
+      "所得金額調整控除額",
+      "（源泉・特別）控除対象配偶者（フリガナ）",
+      "（源泉・特別）控除対象配偶者（氏名）",
+      "（源泉・特別）控除対象配偶者（区分）",
+      "配偶者の合計所得",
+      "控除対象扶養親族（フリガナ）1",
+      "控除対象扶養親族（氏名）1",
+      "控除対象扶養親族（区分）1",
+      "控除対象扶養親族（フリガナ）2",
+      "控除対象扶養親族（氏名）2",
+      "控除対象扶養親族（区分）2",
+      "控除対象扶養親族（フリガナ）3",
+      "控除対象扶養親族（氏名）3",
+      "控除対象扶養親族（区分）3",
+      "控除対象扶養親族（フリガナ）4",
+      "控除対象扶養親族（氏名）4",
+      "控除対象扶養親族（区分）4",
+      "16歳未満の扶養親族（フリガナ）1",
+      "16歳未満の扶養親族（氏名）1",
+      "16歳未満の扶養親族（区分）1",
+      "16歳未満の扶養親族（フリガナ）2",
+      "16歳未満の扶養親族（氏名）2",
+      "16歳未満の扶養親族（区分）2",
+      "16歳未満の扶養親族（フリガナ）3",
+      "16歳未満の扶養親族（氏名）3",
+      "16歳未満の扶養親族（区分）3",
+      "16歳未満の扶養親族（フリガナ）4",
+      "16歳未満の扶養親族（氏名）4",
+      "16歳未満の扶養親族（区分）4",
+      "未成年者",
+      "外国人",
+      "死亡退職",
+      "災害者",
+      "乙欄",
+      "本人が障害者（特別）",
+      "本人が障害者（その他）",
+      "寡婦",
+      "ひとり親",
+      "勤労学生",
+      "中途就職・退職（就職）",
+      "中途就職・退職（退職）",
+      "中途就職・退職日",
+      "退職日",
+      "受給者生年月日",
+      "支払者（住所）",
+      "支払者（氏名）",
+      "支払者（電話番号）"
+    ]
+  ]
+  return title_row
+}
+
+// 年調・変動入力CSV_列名
+function title_year_end_adjustment() {
+  // 見出し行
+  const title_row = [
+    [
+      "データ区分","対象年月","コード","税額表区分","対象者区分","種別","確定フラグ","過不足精算区分","申社保年金","申社保年金外","小規模共済","一般生保支払","個人年金支払","新一般生保支払","介護医療支払","新個人年金支払","長期損保支払","地震保険支払","配偶控除提出","その他所得","配偶合計所得","住宅控除申告","住宅控除適用数","家屋居住日_1","住宅控除区分_1","特定取得区分_1","住宅借入金等_1","基礎控除提出","所得控除提出"
     ]
   ]
   return title_row
@@ -246,7 +610,7 @@ function stub_tax_withoutholding() {
 // 業務_入社
 function define_store_employee() {
   const define = { 
-    'export_folder_id': '',
+    'export_folder_id': '1wTNnVXEQsBbYLzXFpFHJagQ-83PSbKo_',
     'export_file_name': 'store_employee.csv',
   }
   return define
@@ -270,8 +634,8 @@ function define_announcement() {
 // 業務_標準報酬月額
 function define_monthly_salary() {
   const define = { 
-    'import_folder_id': '',
-    'import_file_name': 'monthly_salary.csv',
+    'import_folder_id': '12iHSNa9Y_nwGZhZmcRQyVfuSsjItBRlW',
+    'import_file_name': '標準報酬月額10件.csv',
   }
   return define
 }
@@ -283,6 +647,18 @@ function define_tax_withoutholding() {
     'export_folder_id': '1jFcIoOSs8dma-athtCuG8cJtbWOF99Ls',
     'import_file_name': 'OBIC_源泉徴収票_サンプル.csv',
     'export_file_name': 'tax_withoutholding.csv',
+  }
+  return define
+}
+
+// 業務_年調・変動入力
+function define_year_end_adjustment() {
+  const define = { 
+    // 環境毎に記載
+    'import_folder_id': '1ZMVqgIfkFxsExpq7fk9UVOoRQdnHMB3E',
+    'export_folder_id': '1knHaYVdxwDF6V4-1HaC2_1FOM4qJAu7k',
+    'import_file_name': 'SHR_源泉徴収票_サンプル.csv',
+    'export_file_name': '年調変動入力OBIC取込.csv',
   }
   return define
 }
