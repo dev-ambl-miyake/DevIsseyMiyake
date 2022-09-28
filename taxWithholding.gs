@@ -8,6 +8,8 @@ function taxWithholding() {
   var folder_id = getProperties("obicCsvFolderId");
   var file_name = getProperties("obicCsvFileName"); // ※拡張子まで指定しないとfalseになる
 
+  var operation_type = 5;
+
 
   // 1-1指定のドライブファイル内にファイルがあるか確認
     // フォルダIDの取得とファイル名の取得
@@ -27,12 +29,11 @@ function taxWithholding() {
   // 2-2 行データを配列に格納し、加工
     // csv取込
     // 取得したCSVの配列を加工する
-    var processed_data = import_csv(5);
-    console.log(processed_data);
+    var processed_data = import_csv(operation_type);
 
   // 3-1 SHRへのデータ連携更新(SHR取り込み形式のCSVファイルとして出力)
   // 3-2 指定のドライブファイルへ保存
-  var processed_data = export_csv(processed_data,5);
+  var processed_data = export_csv(processed_data,operation_type);
   
   // 終了ログ
   log('源泉徴収票', 'e');

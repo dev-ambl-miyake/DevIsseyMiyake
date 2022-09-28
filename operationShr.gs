@@ -34,7 +34,6 @@ function callShrApi(processed_data,operation_type) {
 
     // jsonに変換
     var json = JSON.parse(response);
-    console.log(json);
 
     // jsonをループして、社員番号に一致するものがあれば要素を追加して更新
     for (let i = 0; i < json.length; i++) {
