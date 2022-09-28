@@ -19,9 +19,12 @@
 // CSV取り込み
 function import_csv(operation_type = 5) {
   /* CSV設定 */
-  // 発令
-  if (operation_type === 3) {
+  // 発令　現職本務データ
+  if (operation_type === 3.1) {
     var define = define_announcement()
+  // 発令　通勤手当
+  }else if (operation_type === 3.2) {
+    var define = define_travel_allowance()
   // 標準報酬月額
   } else if (operation_type === 4) {
     var define = define_monthly_salary()
@@ -50,9 +53,12 @@ function import_csv(operation_type = 5) {
   const csv_data = Utilities.parseCsv(csv);
 
   // インポートした取得データを出力用データに加工
-  // 発令
-  if (operation_type === 3) {
-    var processed_data = processing_announcement_data(csv_data)
+  // 発令　現職本務データ
+  if (operation_type === 3.1) {
+    var processed_data = processing_data(csv_data)
+  // 発令　通勤手当
+  } else if (operation_type === 3.2) {
+    var processed_data = processing_data(csv_data)
   // 標準報酬月額
   } else if (operation_type === 4) {
     var processed_data = processing_monthly_salary_data(csv_data)
@@ -93,6 +99,10 @@ function export_csv(data, operation_type = 5) {
   // 変更申請
   } else if (operation_type === 2) {
     var define = define_update_employee()
+    // 見出し行
+    var title_row = title_update_employee()
+    // smartHRAPIよりデータ取得
+    var import_data = data;
   // 源泉徴収票
   } else if (operation_type === 5) {
     // 定義値
@@ -153,10 +163,32 @@ function title_store_employee() {
   return title_row
 }
 
+// 更新CSV_列名
+function title_update_employee() {
+  // 見出し行
+  const title_row = [
+    [
+      "データ区分", "社員コード", "氏名", "氏名ｶﾅ", "呼称適用", "旧氏名", "旧氏名ｶﾅ"
+    ]
+  ]
+  return title_row
+}
+
 // 発令_インポートデータを出力用データ構造配列に加工
-function processing_announcement_data(csv_data) {
+function processing_data(csv_data) {
   // csv_dataをループ、出力用データ構造配列に加工し返却
-  // return processed_data
+  // 取得データ行が1行以下ならファイル不備エラーメッセージ（※1行目は見出し）
+  if(csv_data.length <= 1){
+    var csv_error_message = '該当ファイルのデータは正しいデータ形式ではありません。';
+    alert(csv_error_message);
+      
+    // 終了ログ
+    log('発令', 'e');
+    return;
+  }
+  // csvの見出1行目を削除
+  csv_data.shift();
+  return csv_data
 }
 // 標準報酬月額_インポートデータを出力用データ構造配列に加工
 function processing_monthly_salary_data(csv_data) {
@@ -373,7 +405,7 @@ function processing_tax_withoutholding_data(csv_data) {
          array[i][0] = '="0'+ array[i][0] + '"';
       }
 
-  return map_csv_data
+  return array
 }
 
 // 年調変動_インポートデータを出力用データ構造配列に加工
@@ -628,16 +660,24 @@ function define_store_employee() {
 // 業務_変更申請
 function define_update_employee() {
   const define = { 
-    'export_folder_id': '',
+    'export_folder_id': '1Oc9Y6_nic-0Iuje0PCfpzZ_fHb7OYH93',
     'export_file_name': 'update_employee.csv',
   }
   return define
 }
-// 業務_発令
+// 業務_発令_現職本務データ
 function define_announcement() {
   const define = { 
-    'import_folder_id': '',
+    'import_folder_id': '1_Yc3q1b8ClYNbOW-orwejJTrfSlczhI8',
     'import_file_name': 'announcement.csv',
+  }
+  return define
+}
+// 業務_発令_通勤手当
+function define_travel_allowance() {
+  const define = { 
+    'import_folder_id': '1_Yc3q1b8ClYNbOW-orwejJTrfSlczhI8',
+    'import_file_name': '通勤手当データ.csv',
   }
   return define
 }
