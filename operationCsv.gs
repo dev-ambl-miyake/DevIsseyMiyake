@@ -216,24 +216,29 @@ function processing_monthly_salary_data(csv_data) {
         csv_data[i].splice(1,4);
       }
 
+      // 健保改定年月までの列削除
+      for (let i = 0; i < csv_data.length; i++) {
+        csv_data[i].splice(2,2);
+      }
+
       // 健保整理番号までの列削除
       for (let i = 0; i < csv_data.length; i++) {
-        csv_data[i].splice(2,6);
+        csv_data[i].splice(3,3);
       }
 
       // 厚年標準報酬月額までの列削除
       for (let i = 0; i < csv_data.length; i++) {
-        csv_data[i].splice(3,1);
+        csv_data[i].splice(4,1);
       }
 
       // 厚年整理番号までの列削除
       for (let i = 0; i < csv_data.length; i++) {
-        csv_data[i].splice(4,5);
+        csv_data[i].splice(5,5);
       }
 
       // 残りの列削除
       for (let i = 0; i < csv_data.length; i++) {
-        csv_data[i].splice(7,46);
+        csv_data[i].splice(6,48);
       }
     
     // 二次元配列で空になっている箇所を削除
@@ -245,12 +250,12 @@ function processing_monthly_salary_data(csv_data) {
          array[i][0] = '0'+ array[i][0];
       }
 
-      // 基礎年金番号1-基礎年金番号2
-      for (let i = 0; i < array.length; i++) {
-        array[i][5] = array[i][5] + '-'+ array[i][6];
-        // 不要になった列を削除
-        array[i].splice(6,1);
-      } 
+      // // 基礎年金番号1-基礎年金番号2
+      // for (let i = 0; i < array.length; i++) {
+      //   array[i][5] = array[i][5] + '-'+ array[i][6];
+      //   // 不要になった列を削除
+      //   array[i].splice(6,1);
+      // } 
   return array
 }
 // 源泉徴収票_インポートデータを出力用データ構造配列に加工
