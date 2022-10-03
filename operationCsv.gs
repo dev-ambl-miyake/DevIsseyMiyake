@@ -25,6 +25,9 @@ function import_csv(operation_type = 5) {
   // 発令　通勤手当
   }else if (operation_type === 3.2) {
     var define = define_travel_allowance()
+    // 発令　現職兼務データ
+  }else if (operation_type === 3.3) {
+    var define = define_sub_business()
   // 標準報酬月額
   } else if (operation_type === 4) {
     var define = define_monthly_salary()
@@ -58,6 +61,9 @@ function import_csv(operation_type = 5) {
     var processed_data = processing_data(csv_data)
   // 発令　通勤手当
   } else if (operation_type === 3.2) {
+    var processed_data = processing_data(csv_data)
+    // 発令　現職兼務データ
+  } else if (operation_type === 3.3) {
     var processed_data = processing_data(csv_data)
   // 標準報酬月額
   } else if (operation_type === 4) {
@@ -96,11 +102,32 @@ function export_csv(data, operation_type = 5) {
     var title_row = title_store_employee()
     // smartHRAPIよりデータ取得
     var import_data = data;
-  // 変更申請
-  } else if (operation_type === 2) {
-    var define = define_update_employee()
+  // 変更申請住所
+  } else if (operation_type === 2.1) {
+    var define = define_update_address()
     // 見出し行
-    var title_row = title_update_employee()
+    var title_row = title_update_address()
+    // smartHRAPIよりデータ取得
+    var import_data = data;
+    // 変更申請口座
+  } else if (operation_type === 2.2) {
+    var define = define_update_bank()
+    // 見出し行
+    var title_row = title_update_bank()
+    // smartHRAPIよりデータ取得
+    var import_data = data;
+    // 変更申請氏名
+  } else if (operation_type === 2.3) {
+    var define = define_update_name()
+    // 見出し行
+    var title_row = title_update_name()
+    // smartHRAPIよりデータ取得
+    var import_data = data;
+    // 変更申請家族
+  } else if (operation_type === 2.4) {
+    var define = define_update_family()
+    // 見出し行
+    var title_row = title_update_family()
     // smartHRAPIよりデータ取得
     var import_data = data;
   // 源泉徴収票
@@ -163,12 +190,45 @@ function title_store_employee() {
   return title_row
 }
 
-// 更新CSV_列名
-function title_update_employee() {
+// 更新住所CSV_列名
+function title_update_address() {
   // 見出し行
   const title_row = [
     [
-      "データ区分", "社員コード", "氏名", "氏名ｶﾅ", "呼称適用", "旧氏名", "旧氏名ｶﾅ"
+      "データ区分", "社員コード", "入居年月日", "住民票区分", "郵便番号", "住所1", "住所2", "住所1カナ", "住所2カナ", "電話番号", "社員SEQ", "現住所区分"
+    ]
+  ]
+  return title_row
+}
+
+// 更新口座CSV_列名
+function title_update_bank() {
+  // 見出し行
+  const title_row = [
+    [
+      "データ区分", "コード", "振込銀行区分", "口座SEQ", "振込依頼銀行コード", "振込銀行コード", "振込支店コード", "口座種別", "口座番号", "名義人漢字", "名義人ｶﾅ", "新規コード", "定値"
+    ]
+  ]
+  return title_row
+}
+
+// 更新氏名CSV_列名
+function title_update_name() {
+  // 見出し行
+  const title_row = [
+    [
+      "データ区分", "社員コード", "氏名", "氏名ｶﾅ", "呼称適用", "旧氏名", "旧氏名ｶﾅ", "性別区分", "生年月日", "入社年月日", "携帯電話番号", "メールアドレス"
+    ]
+  ]
+  return title_row
+}
+
+// 更新家族CSV_列名
+function title_update_family() {
+  // 見出し行
+  const title_row = [
+    [
+      "データ区分", "社員コード", "続柄", "家族姓", "家族名", "家族姓カナ", "家族名カナ", "性別区分", "生年月日", "税扶養区分", "配偶者区分", "同居区分", "障害区分", "健康保険区分", "郵便番号", "住所1", "住所2", "電話番号", "社員SEQ"
     ]
   ]
   return title_row
@@ -666,11 +726,35 @@ function define_store_employee() {
   }
   return define
 }
-// 業務_変更申請
-function define_update_employee() {
+// 業務_変更申請_住所
+function define_update_address() {
   const define = { 
     'export_folder_id': '1Oc9Y6_nic-0Iuje0PCfpzZ_fHb7OYH93',
-    'export_file_name': 'update_employee.csv',
+    'export_file_name': 'update_employee_adress.csv',
+  }
+  return define
+}
+// 業務_変更申請_口座
+function define_update_bank() {
+  const define = { 
+    'export_folder_id': '1Oc9Y6_nic-0Iuje0PCfpzZ_fHb7OYH93',
+    'export_file_name': 'update_employee_bank.csv',
+  }
+  return define
+}
+// 業務_変更申請_氏名
+function define_update_name() {
+  const define = { 
+    'export_folder_id': '1Oc9Y6_nic-0Iuje0PCfpzZ_fHb7OYH93',
+    'export_file_name': 'update_employee_name.csv',
+  }
+  return define
+}
+// 業務_変更申請_家族
+function define_update_family() {
+  const define = { 
+    'export_folder_id': '1Oc9Y6_nic-0Iuje0PCfpzZ_fHb7OYH93',
+    'export_file_name': 'update_employee_family.csv',
   }
   return define
 }
