@@ -35,6 +35,7 @@ function callShrApi(processed_data,operation_type) {
     // jsonに変換
     var json = JSON.parse(response);
 
+
     // jsonをループして、社員番号に一致するものがあれば要素を追加して更新
     for (let i = 0; i < json.length; i++) {
         // 加工データの社員番号
@@ -89,14 +90,17 @@ function updateShrEmployee(id,processed_data,operation_type) {
       'monthly_standard_income_pns': processed_data[4], // 厚生年金の標準報酬月額
       'soc_ins_insured_person_number': processed_data[5], // 厚生年金保険の被保険者整理番号
     }
+    var payload = JSON.stringify(payload);
   }
 
   // HTTPリクエストのオプションを設定
   const params = {
     'method': 'PATCH', // PATCHメソッドでリクスト
+    "contentType" : "application/json",
     'headers': headers, // HTTPリクエストヘッダー
     'payload': payload // HTTPリクエストボディ(JSONパラメータ)
   }
+
 
   // 従業員部分更新APIにリクエストを送信
   const response = UrlFetchApp.fetch(baseUrl + '/api/v1/crews/' + id, params)
