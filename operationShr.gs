@@ -35,6 +35,7 @@ function callShrApi(processed_data,operation_type) {
     // jsonに変換
     var json = JSON.parse(response);
 
+
     // jsonをループして、社員番号に一致するものがあれば要素を追加して更新
     for (let i = 0; i < json.length; i++) {
         // 加工データの社員番号
@@ -42,15 +43,9 @@ function callShrApi(processed_data,operation_type) {
         if(operation_type == 4){
           var emp_code = processed_data[0]; // [0]→標準報酬月額の社員番号列
         }
-        // 年調変動入力
-        else if(operation_type == 6){
-          var emp_code = processed_data;
-          console.log(emp_code[0]);
-        }
 
       // API取得した社員番号
       var api_emp_code = json[i]['emp_code'];
-      console.log(api_emp_code);
 
       // 標準報酬月額
       if(operation_type == 4){
@@ -59,13 +54,6 @@ function callShrApi(processed_data,operation_type) {
           // SHR固有ID
           var id = json[i]['id'];
           updateShrEmployee(id,processed_data,operation_type);
-        }
-      }
-      // 年調変動入力
-      else if(operation_type == 6){
-      // 社員が一致していればその配列番号を返却
-        if(emp_code == api_emp_code){
-          return json[i]
         }
       }
     }
@@ -95,25 +83,24 @@ function updateShrEmployee(id,processed_data,operation_type) {
   if(operation_type == 4){
     var payload = {
       'emp_code': processed_data[0], // 社員コード
+
       'monthly_standard_income_hel': processed_data[1], // 健康保険の標準報酬月額
-      'hel_ins_insured_person_number': processed_data[2], // 健康保険の被保険者整理番号
-      'monthly_standard_income_pns': processed_data[3], // 厚生年金の標準報酬月額
-      'soc_ins_insured_person_number': processed_data[4], // 厚生年金保険の被保険者整理番号
-      'basic_pension_number': processed_data[5], // 基礎年金番号
-      'soc_ins_qualified_at': '2017/10/29', // 社会保険の資格取得年月日
-      'soc_ins_disqualified_at': '2017/10/29', // 社会保険の資格喪失年月日
-      'monthly_standard_income_updated_at': '2017/10/29', // 標準報酬月額の改定年月
-      'monthly_income_currency': '10000', // 報酬月額（通貨）
-      'monthly_income_goods': '20000', // 報酬月額（現物）
+      'monthly_standard_income_updated_at': processed_data[2], // 標準報酬月額の改定年月
+      'hel_ins_insured_person_number': processed_data[3], // 健康保険の被保険者整理番号
+      'monthly_standard_income_pns': processed_data[4], // 厚生年金の標準報酬月額
+      'soc_ins_insured_person_number': processed_data[5], // 厚生年金保険の被保険者整理番号
     }
+    var payload = JSON.stringify(payload);
   }
 
   // HTTPリクエストのオプションを設定
   const params = {
     'method': 'PATCH', // PATCHメソッドでリクスト
+    "contentType" : "application/json",
     'headers': headers, // HTTPリクエストヘッダー
     'payload': payload // HTTPリクエストボディ(JSONパラメータ)
   }
+
 
   // 従業員部分更新APIにリクエストを送信
   const response = UrlFetchApp.fetch(baseUrl + '/api/v1/crews/' + id, params)
