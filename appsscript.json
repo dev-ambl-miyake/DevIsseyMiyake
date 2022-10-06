@@ -1,0 +1,24 @@
+{
+  "timeZone": "Asia/Tokyo",
+  "exceptionLogging": "STACKDRIVER",
+  "runtimeVersion": "V8",
+  "dependencies": {
+    "libraries": [
+      {
+        "userSymbol": "storeEmployeeHistory",
+        "libraryId": "1tAe8N7OcctwftuAxzICU5BQt-r-AZM-DP7r1j4g_dzzIG_wJrpdQ0v3X",
+        "version": "0",
+        "developmentMode": true
+      },
+      {
+        "userSymbol": "commonFunction",
+        "libraryId": "1Vhv731S4qSxmOUHCVM6dg6IK1fhBuLjalrr3tqtUcQr0eSjUFrYpFGNp",
+        "version": "9"
+      }
+    ]
+  },
+  "webapp": {
+    "executeAs": "USER_DEPLOYING",
+    "access": "ANYONE_ANONYMOUS"
+  }
+}
