@@ -12,10 +12,8 @@ function sendMail(work,error_message = null) {
     var isSuccess = true;
   }
 
-  console.log(isSuccess);
-
   // 送信先(本番では管理者のメールアドレス)
-  var address = 'daiki.kushibiki.ef@ambl.co.jp';
+  var address = getProperties("sendLogMailAddress");
 
   // 処理が失敗していたらログを取得
   if(isSuccess == false){
