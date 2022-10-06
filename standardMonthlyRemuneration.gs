@@ -19,12 +19,7 @@ function standardMonthlyRemuneration() {
 
       // 1-2 存在しない場合スプレッドシート上に「ファイル無し」のアラートメッセージを表示
       if(is_exist == false){
-        var no_file_message = '該当ファイルがありませんでした。';
-        alert(no_file_message);
-        
-        // 終了ログ
-        log('標準報酬月額', 'e');
-        return;
+        throw new Error("該当ファイルが見つかりませんでした。") 
       }
     log('1. OBIC_CSVファイル存在チェック', 'e');
     
@@ -51,6 +46,6 @@ function standardMonthlyRemuneration() {
     // 失敗メールを送信
     sendMail(work,error_message);
     // 終了ログ
-    log('標準報酬月額', 'e');
+    log('標準報酬月額' + 'エラー内容：'+e.message, 'e');
   }
 }
