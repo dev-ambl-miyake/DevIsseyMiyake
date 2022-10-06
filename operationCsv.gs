@@ -300,6 +300,13 @@ function processing_monthly_salary_data(csv_data) {
         array[i][0] = '0'+ array[i][0];
     }
 
+    // 改訂年月日（yyyymm → yyyy//mm/01）
+    for (let i = 0; i < array.length; i++) {
+      var year = array[i][2].slice(0,4); // 年の抽出
+      var month = array[i][2].slice(-2); // 月の抽出
+        array[i][2] = year + '/' + month + '/' + '01';
+    }
+
     // 社保FD用氏名（姓,名）
     for (let i = 0; i < array.length; i++) {
       if(array[i][4] != ''){
@@ -307,7 +314,6 @@ function processing_monthly_salary_data(csv_data) {
         array[i][6] = array[i][4].split('　')[1]; // 名
       }
     }
- 
   return array
 }
 // 源泉徴収票_インポートデータを出力用データ構造配列に加工
