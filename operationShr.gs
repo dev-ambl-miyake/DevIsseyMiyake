@@ -81,14 +81,23 @@ function updateShrEmployee(id,processed_data,operation_type) {
 
   // 標準報酬月額のobject
   if(operation_type == 4){
-    var payload = {
-      'emp_code': processed_data[0], // 社員コード
-
-      'monthly_standard_income_hel': processed_data[1], // 健康保険の標準報酬月額
-      'monthly_standard_income_updated_at': processed_data[2], // 標準報酬月額の改定年月
-      'hel_ins_insured_person_number': processed_data[3], // 健康保険の被保険者整理番号
-      'monthly_standard_income_pns': processed_data[4], // 厚生年金の標準報酬月額
-      'soc_ins_insured_person_number': processed_data[5], // 厚生年金保険の被保険者整理番号
+    if(processed_data[4] != ''){
+      // 氏名が空じゃないのであれば姓、名も送る
+      var payload = {
+        'emp_code': processed_data[0], // 社員コード
+        'monthly_standard_income_hel': processed_data[1], // 健康保険の標準報酬月額
+        'monthly_standard_income_updated_at': processed_data[2], // 標準報酬月額の改定年月
+        'monthly_standard_income_pns': processed_data[3], // 厚生年金の標準報酬月額
+        'last_name': processed_data[5], // 姓
+        'first_name': processed_data[6], // 名
+      }
+    }else{
+      var payload = {
+        'emp_code': processed_data[0], // 社員コード
+        'monthly_standard_income_hel': processed_data[1], // 健康保険の標準報酬月額
+        'monthly_standard_income_updated_at': processed_data[2], // 標準報酬月額の改定年月
+        'monthly_standard_income_pns': processed_data[3], // 厚生年金の標準報酬月額
+      }
     }
     var payload = JSON.stringify(payload);
   }

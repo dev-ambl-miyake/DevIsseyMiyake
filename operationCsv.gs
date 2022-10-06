@@ -261,7 +261,7 @@ function processing_monthly_salary_data(csv_data) {
     csv_data.shift();
 
     // csvの不要列の削除 ※spliceをループして不要列を順番に削除（必要列までは一括削除出来る）
-    // データ区分の削除
+    // データ区分列削除
     for (let i = 0; i < csv_data.length; i++) {
       csv_data[i].splice(0,1);
     }
@@ -276,24 +276,19 @@ function processing_monthly_salary_data(csv_data) {
       csv_data[i].splice(2,2);
     }
 
-    // 健保整理番号までの列削除
-    for (let i = 0; i < csv_data.length; i++) {
-      csv_data[i].splice(3,3);
-    }
-
     // 厚年標準報酬月額までの列削除
     for (let i = 0; i < csv_data.length; i++) {
-      csv_data[i].splice(4,1);
+      csv_data[i].splice(3,5);
     }
 
-    // 厚年整理番号までの列削除
+    // 社保FD用氏名までの列削除
     for (let i = 0; i < csv_data.length; i++) {
-      csv_data[i].splice(5,5);
+      csv_data[i].splice(4,17);
     }
 
     // 残りの列削除
     for (let i = 0; i < csv_data.length; i++) {
-      csv_data[i].splice(6,48);
+      csv_data[i].splice(5,36);
     }
     
     // 二次元配列で空になっている箇所を削除
@@ -303,6 +298,14 @@ function processing_monthly_salary_data(csv_data) {
     // 社員コード（4桁→5桁）
     for (let i = 0; i < array.length; i++) {
         array[i][0] = '0'+ array[i][0];
+    }
+
+    // 社保FD用氏名（姓,名）
+    for (let i = 0; i < array.length; i++) {
+      if(array[i][4] != ''){
+        array[i][5] = array[i][4].split('　')[0]; // 姓
+        array[i][6] = array[i][4].split('　')[1]; // 名
+      }
     }
  
   return array
