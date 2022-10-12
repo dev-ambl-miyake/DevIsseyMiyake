@@ -121,3 +121,38 @@ function updateShrEmployee(id,processed_data,operation_type) {
   const responseBody = response.getContentText()
   const json = JSON.parse(responseBody)
 }
+
+/**
+ * @param {strint}   id  従業員ID
+ * @param {string}   operation_type  業種
+*/
+// 対象の従業員に登録されている家族情報を取得する
+function callShrFamilyApi(id) {
+  const ACCESS_TOKEN = getProperties("ACCESS_TOKEN");
+  const SUB_DOMAIN = getProperties("SUB_DOMAIN");
+  const baseUrl = 'https://'+SUB_DOMAIN+'.daruma.space' // 環境に合わせて書き換えてください
+
+  // 認証のためにアクセストークンの指定
+  const headers = {
+    'Authorization': 'Bearer ' + ACCESS_TOKEN // アクセストークンの設定
+  }
+
+  // HTTPリクエストのオプションを設定
+  const params = {
+    'method': 'GET', // PATCHメソッドでリクスト
+    "contentType" : "application/json",
+    'headers': headers, // HTTPリクエストヘッダー
+  }
+
+  // 家族情報APIにリクエストを送信
+  const response = UrlFetchApp.fetch(baseUrl + '/api/v1/crews/' + id + '/dependents?page=1&per_page=10', params)
+
+  // fetch()からはHTTPResponseオブジェクト型の値が返却される
+  // ここではresponseという変数に格納しています
+
+  // レスポンスボディを取得
+  const responseBody = response.getContentText()
+  const json = JSON.parse(responseBody)
+
+  return json
+}
