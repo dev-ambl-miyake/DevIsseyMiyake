@@ -22,12 +22,18 @@ function import_csv(operation_type = 5) {
   // 発令　現職本務データ
   if (operation_type === 3.1) {
     var define = define_announcement()
-  // 発令　通勤手当
+  // 発令　通勤手当（公共）
   }else if (operation_type === 3.2) {
     var define = define_travel_allowance()
-    // 発令　現職兼務データ
+  // 発令　現職兼務
   }else if (operation_type === 3.3) {
     var define = define_sub_business()
+    // 発令　発令履歴兼務
+  }else if (operation_type === 3.4) {
+    var define = define_proclamation_history()
+    // 発令　本務経歴
+  }else if (operation_type === 3.4) {
+    var define = define_main_hstory()
   // 標準報酬月額
   } else if (operation_type === 4) {
     var define = define_monthly_salary()
@@ -762,16 +768,40 @@ function define_update_family() {
 // 業務_発令_現職本務データ
 function define_announcement() {
   const define = { 
-    'import_folder_id': '1_Yc3q1b8ClYNbOW-orwejJTrfSlczhI8',
-    'import_file_name': 'announcement.csv',
+    'import_folder_id': getProperties("obicCsvFolderId"),
+    'import_file_name': getProperties("gensyokuHonmuCsv"),
   }
   return define
 }
-// 業務_発令_通勤手当
+// 業務_発令_通勤手当（公共）
 function define_travel_allowance() {
   const define = { 
-    'import_folder_id': '1_Yc3q1b8ClYNbOW-orwejJTrfSlczhI8',
-    'import_file_name': '通勤手当データ.csv',
+    'import_folder_id': getProperties("obicCsvFolderId"),
+    'import_file_name': getProperties("tsukinTeateCsv"),
+  }
+  return define
+}
+// 業務_発令_現職兼務
+function define_sub_business() {
+  const define = { 
+    'import_folder_id': getProperties("obicCsvFolderId"),
+    'import_file_name': getProperties("gensyokuKenmuCsv"),
+  }
+  return define
+}
+// 業務_発令_発令履歴兼務
+function define_proclamation_history() {
+  const define = { 
+    'import_folder_id': getProperties("obicCsvFolderId"),
+    'import_file_name': getProperties("hatsureiRirekiKenmuCsv"),
+  }
+  return define
+}
+// 業務_発令_本務経歴
+function define_main_hstory() {
+  const define = { 
+    'import_folder_id': getProperties("obicCsvFolderId"),
+    'import_file_name': getProperties("honmuKeirekiCsv"),
   }
   return define
 }
