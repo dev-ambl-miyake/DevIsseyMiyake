@@ -32,7 +32,7 @@ function import_csv(operation_type = 5) {
   }else if (operation_type === 3.4) {
     var define = define_proclamation_history()
     // 発令　本務経歴
-  }else if (operation_type === 3.4) {
+  }else if (operation_type === 3.5) {
     var define = define_main_hstory()
   // 標準報酬月額
   } else if (operation_type === 4) {
@@ -67,6 +67,10 @@ function import_csv(operation_type = 5) {
     var processed_data = processing_data(csv_data)
     // 発令　現職兼務データ
   } else if (operation_type === 3.3) {
+    var processed_data = processing_data(csv_data)
+  } else if (operation_type === 3.4) {
+    var processed_data = processing_data(csv_data)
+  } else if (operation_type === 3.5) {
     var processed_data = processing_data(csv_data)
   // 標準報酬月額
   } else if (operation_type === 4) {
@@ -231,16 +235,12 @@ function processing_data(csv_data) {
   // csv_dataをループ、出力用データ構造配列に加工し返却
   // 取得データ行が1行以下ならファイル不備エラーメッセージ（※1行目は見出し）
   if(csv_data.length <= 1){
-    var csv_error_message = '該当ファイルのデータは正しいデータ形式ではありません。';
-    alert(csv_error_message);
-      
-    // 終了ログ
-    log('発令', 'e');
-    return;
+    throw new Error("該当ファイルのデータは正しいデータ形式ではありません。")
   }
   // csvの見出1行目を削除
   csv_data.shift();
-  return csv_data
+  var array = csv_data.filter(v => v[0])
+  return array
 }
 // 標準報酬月額_インポートデータを出力用データ構造配列に加工
 function processing_monthly_salary_data(csv_data) {
