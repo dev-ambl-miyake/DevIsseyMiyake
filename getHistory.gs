@@ -1,10 +1,12 @@
 function storeHistory(json) {
   //スプレッドシートオブジェクトを取得
-  let ss = SpreadsheetApp.openById("1LAy0pR8m9wbdBB5E2dYj9FBBMmx2CQj56u9euVPKax0");
+  //　履歴データ[登録用]_スプレッドシート
+  let ss = SpreadsheetApp.openById(commonFunction.getProperties("storeHistorySpreadsheetsId"));
   let sheet = ss.getSheets()[0];
   let lastRow = sheet.getLastRow();  //最終行を取得
 
-  let ssUpdate = SpreadsheetApp.openById("1Zrc7roMwhYIz4a5yp8uR60jDsKIr2Gffr7Rgd-648L0");
+  //　履歴データ[更新用]_スプレッドシート
+  let ssUpdate = SpreadsheetApp.openById(commonFunction.getProperties("updateHistorySpreadsheetsId"));
   let sheetUpdate = ssUpdate.getSheets()[0];
   let data = [];
   let updatedDate;
@@ -12,7 +14,8 @@ function storeHistory(json) {
   let lastUpdatedDate = sheet.getRange("H1").getValue();  //前回の更新日時を取得
   let lastUpdatedDateUpdate = sheetUpdate.getRange("H1").getValue();  //前回の更新日時を取得
 
-  let ssUpdateEmployee = SpreadsheetApp.openById("1fOAz9iVZcLrIHxOW0hGkuPwnlvZXKVNyv9USsbW5Z9Y");
+  // 更新従業員選択_スプレッドシート
+  let ssUpdateEmployee = SpreadsheetApp.openById(commonFunction.getProperties("operationUpdateSpreadsheetsId"));
   let sheetUpdateEmployee = ssUpdateEmployee.getSheets()[0];
   let employeeDate = [];
 
