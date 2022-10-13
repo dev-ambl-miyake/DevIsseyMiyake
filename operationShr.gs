@@ -1,17 +1,34 @@
+
+// 取得APIをグローバル変数で管理
+//何ページ分取得するか（登録されている社員数に依存する）
+var LAST_PAGE = 2;
+//1ページ最大100件まで
+var PER_PAGE = 100;
+
+// SmartHRのアクセストークンとサブドメインの宣言
+const ACCESS_TOKEN = getProperties("ACCESS_TOKEN");
+const SUB_DOMAIN = getProperties("SUB_DOMAIN");
+
+// 雇用形態のリストをAPIで取得
+var emp_response = 
+"https://"+SUB_DOMAIN+".daruma.space/api/v1/employment_types?page="+"1"+"&per_page="+"100"+"&access_token="+ACCESS_TOKEN;
+var emp_responseBody = UrlFetchApp.fetch(emp_response).getContentText();
+// 雇用形態のJsonリスト
+var emp_json = JSON.parse(emp_responseBody);
+
+// カスタム項目のリストをAPIで取得
+var custom_response = 
+"https://"+SUB_DOMAIN+".daruma.space/api/v1/crew_custom_field_templates?page="+"1"+"&per_page="+"100"+"&access_token="+ACCESS_TOKEN;
+var custom_responseBody = UrlFetchApp.fetch(custom_response).getContentText();
+// 雇用形態のJsonリスト
+var custom_json = JSON.parse(custom_responseBody);
+
 /**
  * @param {array}   processed_data  加工配列データ
  * @param {string}   operation_type  業種
 */
 // SHR従業員の取得し、更新
 function callShrApi(processed_data,operation_type) {
-
-  //何ページ分取得するか（登録されている社員数に依存する）
-  const LAST_PAGE = 2;
-  //1ページ最大100件まで
-  const PER_PAGE = 100;
-
-  const ACCESS_TOKEN = getProperties("ACCESS_TOKEN");
-  const SUB_DOMAIN = getProperties("SUB_DOMAIN");
 
   // 認証のためにアクセストークンの指定
   // HTTPリクエストヘッダー
@@ -94,11 +111,12 @@ function updateShrEmployee(id,processed_data,operation_type) {
 
   // 標準報酬月額のobject
   if(operation_type == 3.1){
-    // 雇用形態のリストをAPIで取得
-    const emp_response = "https://"+SUB_DOMAIN+".daruma.space/api/v1/employment_types?page="+"1"+"&per_page="+"100"+"&access_token="+ACCESS_TOKEN;
+    // // 雇用形態のリストをAPIで取得
+    // const emp_response = "https://"+SUB_DOMAIN+".daruma.space/api/v1/employment_types?page="+"1"+"&per_page="+"100"+"&access_token="+ACCESS_TOKEN;
 
-    var emp_responseBody = UrlFetchApp.fetch(emp_response).getContentText();
-    const emp_json = JSON.parse(emp_responseBody)
+    // var emp_responseBody = UrlFetchApp.fetch(emp_response).getContentText();
+    // const emp_json = JSON.parse(emp_responseBody)
+    console.log(custom_json);
 
     // 雇用形態のnameが一致するまでループし、employment_type_idを取得する
     for (let i = 0; i < emp_json.length; i++) {
