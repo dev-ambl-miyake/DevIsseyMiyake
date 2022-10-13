@@ -64,6 +64,58 @@ function changeDataToSHR(csv_data,operation_type) {
         csv_data[i][0] = '0'+ csv_data[i][0];
     }
 
+    // 職種（選択肢名→物理名）
+    for (let i = 0; i < csv_data.length; i++) {
+      if(csv_data[i][8] == '専門職'){
+        csv_data[i][8] = 'specialist';
+      } else if(csv_data[i][8] == '総合職'){
+        csv_data[i][8] = 'general';
+      } else if(csv_data[i][8] == '販売職'){
+        csv_data[i][8] = 'sales';
+      }
+    }
+
+    // グレード（選択肢名→物理名）
+    for (let i = 0; i < csv_data.length; i++) {
+      if(csv_data[i][6] == '0'){
+        csv_data[i][6] = 'zero';
+      } else if(csv_data[i][6] == '1'){
+        csv_data[i][6] = 'one';
+      } else if(csv_data[i][6] == '2'){
+        csv_data[i][6] = 'two';
+      } else if(csv_data[i][6] == '3'){
+        csv_data[i][6] = 'three';
+      } else if(csv_data[i][6] == '4'){
+        csv_data[i][6] = 'four';
+      } else if(csv_data[i][6] == '5'){
+        csv_data[i][6] = 'five';
+      } else if(csv_data[i][6] == '6'){
+        csv_data[i][6] = 'six';
+      } else if(csv_data[i][6] == '7'){
+        csv_data[i][6] = 'seven';
+      } else if(csv_data[i][6] == '8'){
+        csv_data[i][6] = 'eight';
+      }
+    }
+
+    // 勤務地（選択肢名→物理名）
+    for (let i = 0; i < csv_data.length; i++) {
+      if(csv_data[i][6] == '首都圏'){
+        csv_data[i][6] = 'capital';
+      } else if(csv_data[i][6] == '京阪神'){
+        csv_data[i][6] = 'keihan';
+      } else if(csv_data[i][6] == '札幌'){
+        csv_data[i][6] = 'sapporo';
+      } else if(csv_data[i][6] == '仙台'){
+        csv_data[i][6] = 'sendai';
+      } else if(csv_data[i][6] == '名古屋'){
+        csv_data[i][6] = 'nagoya';
+      } else if(csv_data[i][6] == '福岡'){
+        csv_data[i][6] = 'fukuoka';
+      }
+    }
+    
+
     // for(let i = 0; i < csv_announcement.length; i++) {
 
     //   let data = [
