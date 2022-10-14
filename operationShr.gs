@@ -106,12 +106,9 @@ function updateShrEmployee(id,processed_data,operation_type) {
     'Authorization': 'Bearer ' + ACCESS_TOKEN // アクセストークンの設定
   }
 
-  // HTTPリクエストボディを作ります
-  // API仕様ではJSON形式で送ってね、ということでしたが、objectで作って送る。
-
   // 標準報酬月額のobject
   if(operation_type == 3.1){
-    // 雇用形態のnameが一致するまでループし、employment_type_idを取得する
+    // 雇用形態のnameが一致するまでループし、employment_type_idを取得
     if(processed_data[16] != ""){
       for (let i = 0; i < emp_json.length; i++) {
         if(processed_data[16] == emp_json[i]['name']){
@@ -121,35 +118,52 @@ function updateShrEmployee(id,processed_data,operation_type) {
       }
     }
 
-    // log(JSON.stringify(custom_json),'s');
-    // カスタム（職種）のnameが一致するまでループし、template_idを取得する
+    // カスタム（職種）のnameが一致するまでループし、項目名IDと選択肢IDを取得
     // カスタムJsonからグループ「職種」の配列を格納する
     for (let i = 0; i < custom_json.length; i++) {
       if(custom_json[i]['name'] == '職種'){
-        var bussiness_type_id = custom_json[i]['id'];
+        var bussiness_type_id = custom_json[i]['id']; // 項目名ID
+        var bussiness_type_list = custom_json[i]['elements']; // 選択肢リスト
         break;
       }
     }
-    
+    // 項目（職種）の選択肢リストをループして選択肢IDを取得
+    for (let i = 0; i <= bussiness_type_list.length; i++) {
+      if(bussiness_type_list[i]['name'] == processed_data[8]){
+        var bussiness_type_value_id = bussiness_type_list[i]['id']; // 選択肢ID
+        break;
+      }
+    }
+    if(typeof bussiness_type_value_id == "undefined"){
+      var bussiness_type_value_id = '';
+    }
+        
     // カスタム（グレード）のnameが一致するまでループし、template_idを取得する
     // カスタムJsonからグループ「グレード」の配列を格納する
     for (let i = 0; i < custom_json.length; i++) {
       if(custom_json[i]['name'] == 'グレード'){
         var grade_id = custom_json[i]['id'];
+        var grade_list = custom_json[i]['elements']; // 選択肢リスト
         break;
       }
     }
+    // 項目（グレード）の選択肢リストをループして選択肢IDを取得
+    for (let i = 0; i < grade_list.length; i++) {
+      if(grade_list[i]['name'] == processed_data[6]){
+        var grade_value_id = grade_list[i]['id']; // 選択肢ID
+        break;
+      }
+    }
+    if(typeof bussiness_type_value_id == "undefined"){
+      var grade_value_id = '';
+    }
 
     // カスタム（レベル）のnameが一致するまでループし、template_idを取得する
-    if(processed_data[10] != ""){
-      for (let i = 0; i < custom_json.length; i++) {
-        if(custom_json[i]['name'] == 'レベル'){
-          var level_id = custom_json[i]['id'];
-          break;
-        }
+    for (let i = 0; i < custom_json.length; i++) {
+      if(custom_json[i]['name'] == 'レベル'){
+        var level_id = custom_json[i]['id'];
+        break;
       }
-    } else {
-      var level_id = "";
     }
     
 
@@ -158,12 +172,20 @@ function updateShrEmployee(id,processed_data,operation_type) {
     for (let i = 0; i < custom_json.length; i++) {
       if(custom_json[i]['name'] == '勤務地'){
         var bussiness_locate_id = custom_json[i]['id'];
+        var bussiness_locate_list = custom_json[i]['elements']; // 選択肢リスト
         break;
       }
     }
-   
-    console.log(bussiness_type_id,grade_id,level_id,bussiness_locate_id);
-
+    // 項目（勤務地）の選択肢リストをループして選択肢IDを取得
+    for (let i = 0; i < bussiness_locate_list.length; i++) {
+      if(bussiness_locate_list[i]['name'] == processed_data[14]){
+        var bussiness_locate_value_id = bussiness_locate_list[i]['id']; // 選択肢ID
+        break;
+      }
+    }
+    if(typeof bussiness_locate_value_id == "undefined"){
+      var bussiness_locate_value_id = '';
+    }
     // 更新Json作成
     var payload = {
       'emp_code': processed_data[0], // 社員コード
@@ -174,23 +196,23 @@ function updateShrEmployee(id,processed_data,operation_type) {
         // 職種
         {
           "template_id": bussiness_type_id,
-          "value": processed_data[8],
+          "value": bussiness_type_value_id,
         },
         // グレード
         {
           "template_id": grade_id,
-          "value": processed_data[6],
+          "value": grade_value_id,
         },
         // レベル
         {
           "template_id": level_id,
           "value": processed_data[10],
         },
-        // // 勤務地
-        // {
-        //   "template_id": bussiness_locate_id,
-        //   "value": processed_data[14],
-        // },
+        // 勤務地
+        {
+          "template_id": bussiness_locate_id,
+          "value": bussiness_locate_value_id,
+        },
       ]
     }
     var payload = JSON.stringify(payload);
