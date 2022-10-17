@@ -20,14 +20,13 @@ function createCSV() {
     let baseDataList = [];
     let addressDataList = [];
     let familyDataList = [];
+    let taxDataList = [];
 
     // 連携登録対象の人数分、各CSVファイルを出力
     for(var l = 0; l < memberData.length; l++) {
 
       // SmartHR_API 家族情報_"リストの取得"にリクエストを送信しレスポンスを取得
-      console.log(memberData[l]['id']);
       let familyApiData = callShrFamilyApi(memberData[l]['id']);
-      console.log(familyApiData);
 
       // 加工が必要な項目
       /* 社員基本 */
@@ -77,38 +76,48 @@ function createCSV() {
       }
 
       /* 家族 */
-      // // 家族姓カナ
-      // var familyLastNameKana = zenkana2Hankana(familyApiData[0]['last_name_yomi']);
-      // // 家族名カナ
-      // var familyFirstNameKana = zenkana2Hankana(familyApiData[0]['first_name_yomi']);
-      // // 性別区分
-      // if (familyApiData[0]['gender'] == "male") {
-      //   var familySex = 1;
-      // } else if (familyApiData[0]['gender'] == "female") {
-      //   var familySex = 2;
-      // } else {
-      //   var familySex = 0;
-      // }
-      // // 生年月日
-      // var familyBirthDate = familyApiData[0]['birth_at'].replace(/-/g, '-');
-      // // 配偶者区分
-      // if (familyApiData[0]['is_spouse']) {
-      //   var familyIsSpouse = 1;
-      // } else {
-      //   var familyIsSpouse = 0;
-      // }
-      // // 同居区分、及び判定に伴う郵便番号・住所1・住所2
-      // if (familyApiData[0]['live_together_type'] == "living_together ") {
-      //   var familyLiveTogetherType = 1;
-      //   var familyZipCode = memberData[l]['address']['zip_code'];
-      //   var familyAddress1 = memberData[l]['address']['pref'] + memberData[l]['address']['city'] + memberData[l]['address']['street'];
-      //   var familyAddress2 = memberData[l]['address']['building'];
-      // } else {
-      //   var familyLiveTogetherType = 0;
-      //   var familyZipCode = familyApiData[0]['address']['zip_code'];
-      //   var familyAddress1 = familyApiData[0]['address']['pref'] + familyApiData[0]['address']['city'] + familyApiData[0]['address']['street'];
-      //   var familyAddress2 = familyApiData[0]['address']['building'];
-      // }
+      // 家族姓カナ
+      var familyLastNameKana = zenkana2Hankana(familyApiData[0]['last_name_yomi']);
+      // 家族名カナ
+      var familyFirstNameKana = zenkana2Hankana(familyApiData[0]['first_name_yomi']);
+      // 性別区分
+      if (familyApiData[0]['gender'] == "male") {
+        var familySex = 1;
+      } else if (familyApiData[0]['gender'] == "female") {
+        var familySex = 2;
+      } else {
+        var familySex = 0;
+      }
+      // 生年月日
+      var familyBirthDate = familyApiData[0]['birth_at'].replace(/-/g, '-');
+      // 配偶者区分
+      if (familyApiData[0]['is_spouse']) {
+        var familyIsSpouse = 1;
+      } else {
+        var familyIsSpouse = 0;
+      }
+      // 同居区分、及び判定に伴う郵便番号・住所1・住所2
+      if (familyApiData[0]['live_together_type'] == "living_together") {
+        var familyLiveTogetherType = 1;
+        var familyZipCode = memberData[l]['address']['zip_code'];
+        var familyAddress1 = memberData[l]['address']['pref'] + memberData[l]['address']['city'] + memberData[l]['address']['street'];
+        var familyAddress2 = memberData[l]['address']['building'];
+      } else {
+        var familyLiveTogetherType = 0;
+        var familyZipCode = familyApiData[0]['address']['zip_code'];
+        var familyAddress1 = familyApiData[0]['address']['pref'] + familyApiData[0]['address']['city'] + familyApiData[0]['address']['street'];
+        var familyAddress2 = familyApiData[0]['address']['building'];
+      }
+
+      /* 税表区分 */
+      // 課税区分
+      if (memberData[l]['tax_cd'] == "kou") {
+        var taxCategory = 1;
+      } else if (memberData[l]['tax_cd'] == "otsu") {
+        var taxCategory = 2;
+      } else if (memberData[l]['tax_cd'] == "no_taxation_required") {
+        var taxCategory = 5;
+      }
 
 
       
@@ -147,38 +156,39 @@ function createCSV() {
       addressDataList.push(addressData);
 
       // 家族_配列に値をセット
-      // let familyData = [
-      //   "107",  // データ区分(固定値)
-      //   memberData[l]['emp_code'],  // 社員コード
-      //   // 続柄
-      //   familyApiData[0]['last_name'],  // 家族姓
-      //   familyApiData[0]['first_name'],  // 家族名
-      //   familyLastNameKana,  // 家族姓カナ
-      //   familyFirstNameKana,  // 家族名カナ
-      //   familySex,  // 性別区分 0:不明, 1：男, 2：女
-      //   familyBirthDate,  // 生年月日
-      //   1,  // 税扶養区分 0:対象外, 1:対象(一時的ダミー)
-      //   familyIsSpouse,  // 配偶者区分 0:配偶者以外, 1:配偶者
-      //   familyLiveTogetherType,  // 同居区分 0:別居, 1:同居
-      //   1,  // 障害区分 0:対象外, 1：一般, 2：特別(一時的ダミー)
-      //   1,  // 健康保険区分 0:対象外, 1:対象(一時的ダミー)
-      //   familyZipCode,  // 郵便番号
-      //   familyAddress1,  // 住所1
-      //   familyAddress2,  // 住所2
-      //   familyApiData[0]['tel_number'],  // 電話番号
-      //   ""  // 社員SEQ(値の入力は不要)
-      // ]
-      // familyDataList.push(familyData);
+      let familyData = [
+        "107",  // データ区分(固定値)
+        memberData[l]['emp_code'],  // 社員コード
+        // 続柄
+        familyApiData[0]['last_name'],  // 家族姓
+        familyApiData[0]['first_name'],  // 家族名
+        familyLastNameKana,  // 家族姓カナ
+        familyFirstNameKana,  // 家族名カナ
+        familySex,  // 性別区分 0:不明, 1：男, 2：女
+        familyBirthDate,  // 生年月日
+        1,  // 税扶養区分 0:対象外, 1:対象(一時的ダミー)
+        familyIsSpouse,  // 配偶者区分 0:配偶者以外, 1:配偶者
+        familyLiveTogetherType,  // 同居区分 0:別居, 1:同居
+        1,  // 障害区分 0:対象外, 1：一般, 2：特別(一時的ダミー)
+        1,  // 健康保険区分 0:対象外, 1:対象(一時的ダミー)
+        familyZipCode,  // 郵便番号
+        familyAddress1,  // 住所1
+        familyAddress2,  // 住所2
+        familyApiData[0]['tel_number'],  // 電話番号
+        ""  // 社員SEQ(値の入力は不要)
+      ]
+      familyDataList.push(familyData);
 
       // 税表区分
-      // let taxData = [
-      //   "100", memberData[l].emp_code, memberData[l].last_name + " " + memberData[l].first_name, "ﾊﾝｶｸｶﾀｶﾅﾆﾍﾝｶﾝｶﾞﾋﾂﾖｳ", "0",
-      //   memberData[l].business_last_name + " " + memberData[l].business_first_name, "ﾋﾞｼﾞﾈｽﾈｰﾑ", "2", memberData[l].birth_at,
-      //   "2022-09-13", memberData[l].tel_number, memberData[l].email
-      // ]
-      // taxDataList.push(taxData);
+      let taxData = [
+        "103",  // データ区分(固定値)
+        memberData[l]['emp_code'],  // 社員コード
+        taxCategory,  // 税表区分 1:甲, 2:乙, 3:定率, 4:定額, 5:税なし
+        1,  // 障害区分 0:対象外, 1：一般, 2：特別(一時的ダミー)
+      ]
+      taxDataList.push(taxData);
 
-      // 初回保険
+      // 社会保険
       // let insuranceData = [
       //   "100", memberData[l].emp_code, memberData[l].last_name + " " + memberData[l].first_name, "ﾊﾝｶｸｶﾀｶﾅﾆﾍﾝｶﾝｶﾞﾋﾂﾖｳ", "0",
       //   memberData[l].business_last_name + " " + memberData[l].business_first_name, "ﾋﾞｼﾞﾈｽﾈｰﾑ", "2", memberData[l].birth_at,
@@ -186,21 +196,21 @@ function createCSV() {
       // ]
       // insuranceDataList.push(insuranceData);
     }
-    // console.log(familyDataList);
 
-    // export_csv(baseDataList, operation_type = 1.1);
-    // export_csv(addressDataList, operation_type = 1.2);
-    // export_csv(familyDataList, operation_type = 1.3);
-    // export_csv(taxDataList, operation_type = 1.4);
+
+    export_csv(baseDataList, operation_type = 1.1);
+    export_csv(addressDataList, operation_type = 1.2);
+    export_csv(familyDataList, operation_type = 1.3);
+    export_csv(taxDataList, operation_type = 1.4);
     // export_csv(insuranceDataList, operation_type = 1.5);
 
     // 終了ログ
   　log('入社_OBIC連携登録', 'e');
-    // SpreadsheetApp.getUi().alert("OBIC用CSVの出力が終了しました。");
+    SpreadsheetApp.getUi().alert("OBIC用CSVの出力が終了しました。");
 
   } catch(e) {
-    console.log(e.message);
-    // SpreadsheetApp.getUi().alert("OBIC用CSVの出力に失敗しました。");
+    SpreadsheetApp.getUi().alert("OBIC用CSVの出力に失敗しました。");
+    SpreadsheetApp.getUi().alert(e.message);
   }
 }
 
