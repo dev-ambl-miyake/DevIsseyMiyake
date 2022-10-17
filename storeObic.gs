@@ -1,14 +1,94 @@
+/**
+ * 入社_SmartHRからOBICへの社員情報連携登録処理
+ * 
+ * 社員番号入力_スプレッドシートに入力された社員番号と、
+ * 履歴データ[登録用]_スプレッドシートに記載されている社員番号を照合し、
+ * 一致した社員情報をSmartHR_APIより取得しOBIC取り込み用CSVファイルとして出力する
+ */
+function createCSV() {
+  try {
+    // 開始ログ
+    log('入社_OBIC連携登録', 's');
+
+    const employeeIdList = createIdList();
+    if(!employeeIdList) {
+      return
+    }
+
+    const memberData = createEmployeeList(employeeIdList);
+    let dataList = [];
+
+    // 連携登録対象の人数分、各CSVファイルを出力
+    for(var l = 0; l < memberData.length; l++) {
+      // 社員基本
+      let baseData = [
+        "100", memberData[l].emp_code, memberData[l].last_name + " " + memberData[l].first_name, "ﾊﾝｶｸｶﾀｶﾅﾆﾍﾝｶﾝｶﾞﾋﾂﾖｳ", "0",
+        memberData[l].business_last_name + " " + memberData[l].business_first_name, "ﾋﾞｼﾞﾈｽﾈｰﾑ", "2", memberData[l].birth_at,
+        "2022-09-13", memberData[l].tel_number, memberData[l].email
+      ]
+      baseDataList.push(baseData);
+
+      // 住所
+      let addressData = [
+        "100", memberData[l].emp_code, memberData[l].last_name + " " + memberData[l].first_name, "ﾊﾝｶｸｶﾀｶﾅﾆﾍﾝｶﾝｶﾞﾋﾂﾖｳ", "0",
+        memberData[l].business_last_name + " " + memberData[l].business_first_name, "ﾋﾞｼﾞﾈｽﾈｰﾑ", "2", memberData[l].birth_at,
+        "2022-09-13", memberData[l].tel_number, memberData[l].email
+      ]
+      addressDataList.push(addressData);
+
+      // 家族
+      let familyData = [
+        "100", memberData[l].emp_code, memberData[l].last_name + " " + memberData[l].first_name, "ﾊﾝｶｸｶﾀｶﾅﾆﾍﾝｶﾝｶﾞﾋﾂﾖｳ", "0",
+        memberData[l].business_last_name + " " + memberData[l].business_first_name, "ﾋﾞｼﾞﾈｽﾈｰﾑ", "2", memberData[l].birth_at,
+        "2022-09-13", memberData[l].tel_number, memberData[l].email
+      ]
+      familyDataList.push(familyData);
+
+      // 税表区分
+      let taxData = [
+        "100", memberData[l].emp_code, memberData[l].last_name + " " + memberData[l].first_name, "ﾊﾝｶｸｶﾀｶﾅﾆﾍﾝｶﾝｶﾞﾋﾂﾖｳ", "0",
+        memberData[l].business_last_name + " " + memberData[l].business_first_name, "ﾋﾞｼﾞﾈｽﾈｰﾑ", "2", memberData[l].birth_at,
+        "2022-09-13", memberData[l].tel_number, memberData[l].email
+      ]
+      taxDataList.push(taxData);
+
+      // 初回保険
+      let insuranceData = [
+        "100", memberData[l].emp_code, memberData[l].last_name + " " + memberData[l].first_name, "ﾊﾝｶｸｶﾀｶﾅﾆﾍﾝｶﾝｶﾞﾋﾂﾖｳ", "0",
+        memberData[l].business_last_name + " " + memberData[l].business_first_name, "ﾋﾞｼﾞﾈｽﾈｰﾑ", "2", memberData[l].birth_at,
+        "2022-09-13", memberData[l].tel_number, memberData[l].email
+      ]
+      insuranceDataList.push(insuranceData);
+    }
+
+    export_csv(baseDataList, operation_type = 1.1);
+    export_csv(addressDataList, operation_type = 1.2);
+    export_csv(familyDataList, operation_type = 1.3);
+    export_csv(taxDataList, operation_type = 1.4);
+    export_csv(insuranceDataList, operation_type = 1.5);
+
+    // 終了ログ
+  　log('入社_OBIC連携登録', 'e');
+
+    SpreadsheetApp.getUi().alert("OBIC用CSVの出力が終了しました。");
+
+  } catch(e) {
+    SpreadsheetApp.getUi().alert("OBIC用CSVの出力に失敗しました。");
+  }
+}
+
+// 社員番号を照合し、連携登録対象の社員ID一覧データ配列を生成する
 function createIdList() {
   try{
-    //社員番号入力シートに入力された従業員番号を取得する
+    // 社員番号入力シートに入力された従業員番号を取得する
     let ss = SpreadsheetApp.getActive();
     let sheet = ss.getActiveSheet();
     let lastRow = sheet.getLastRow();  //最終行を取得
     const inputHeaderLine = 8; //社員番号入力するまでの見出しの行数
   
-    //履歴データ新規から入力された従業員番号のidを取得する
+    // 履歴データ[登録用]から入力された従業員番号のidを取得する
     let idList = [];  //空のリストを作成
-    let logss = SpreadsheetApp.openById("1LAy0pR8m9wbdBB5E2dYj9FBBMmx2CQj56u9euVPKax0");
+    let logss = SpreadsheetApp.openById(getProperties("storeHistorySpreadsheetsId"));
     let logSheet = logss.getSheets()[0];
     let logSheetLastRow = logSheet.getLastRow();
     const logDate = logSheet.getRange(2,1,logSheetLastRow -1,4).getValues();  //履歴データ新規からデータを取得
@@ -44,9 +124,11 @@ function createIdList() {
   }
 }
 
+// SmartHR_APIより社員IDを用いて社員情報を取得し、社員情報一覧配列データを生成する
 function createEmployeeList(idList) {
-  const AccessToken = 'R4CrXND4R4xkpcv6WMPQJNxzg7ke4YhP'  //smartHRのアクセストークン
-  const SubDomain = 'a6207dec84a2577ef2a94ee1'  //smartHRのサブドメイン
+    // SmartHR_API 環境値
+    const AccessToken = getProperties("ACCESS_TOKEN")  //smartHRのアクセストークン
+    const SubDomain = getProperties("SUB_DOMAIN")  //smartHRのサブドメイン
 
   //HTTPリクエストヘッダーの作成
   const headers = {
@@ -63,11 +145,11 @@ function createEmployeeList(idList) {
 
   try{
     for(var k = 0; k < idList.length; k++) {
-      //従業員リスト取得APIにリクエストを送信
+      // SmartHR_API 従業員_"取得"にリクエストを送信しレスポンスを取得
       const response = UrlFetchApp.fetch('https://'+SubDomain+'.daruma.space/api/v1/crews/' + idList[k], params)
-      //レスポンスを文字列で取得
+      // レスポンスを文字列で取得
       const responseBody = response.getContentText()
-      //jsonオブジェクトに変換
+      // jsonオブジェクトに変換
       const json = JSON.parse(responseBody)
 
       responseList.push(json);
@@ -75,41 +157,7 @@ function createEmployeeList(idList) {
 
     return responseList;
 
-  }catch(e) {
+  } catch(e) {
     SpreadsheetApp.getUi().alert("smartHRからのデータ取得に失敗しました。");
-  }
-}
-
-function createCSV() {
-
-  // 開始ログ
-  commonFunction.log('入社OBIC用CSV作成', 's');
-
-  const employeeIdList = createIdList();
-  if(!employeeIdList) {
-    return
-  }
-
-  const memberData = createEmployeeList(employeeIdList);
-  let dataList = [];
-
-  try{
-    for(var l = 0; l < memberData.length; l++) {
-      let data = [
-        "100", memberData[l].emp_code, memberData[l].last_name + " " + memberData[l].first_name, "ﾊﾝｶｸｶﾀｶﾅﾆﾍﾝｶﾝｶﾞﾋﾂﾖｳ", "0",
-        memberData[l].business_last_name + " " + memberData[l].business_first_name, "ﾋﾞｼﾞﾈｽﾈｰﾑ", "2", memberData[l].birth_at,
-        "2022-09-13", memberData[l].tel_number, memberData[l].email
-      ]
-      dataList.push(data);
-    }
-
-    commonFunction.export_csv(dataList, operation_type = 1);
-
-    // 終了ログ
-  　commonFunction.log('入社OBIC用CSV作成', 'e');
-
-    SpreadsheetApp.getUi().alert("OBIC用CSVの出力が終了しました。");
-  }catch(e) {
-    SpreadsheetApp.getUi().alert("OBIC用CSVの出力に失敗しました。");
   }
 }
