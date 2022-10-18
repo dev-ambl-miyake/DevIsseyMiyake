@@ -21,6 +21,7 @@ function createCSV() {
     let addressDataList = [];
     let familyDataList = [];
     let taxDataList = [];
+    let insuranceDataList = [];
 
     // 連携登録対象の人数分、各CSVファイルを出力
     for(var l = 0; l < memberData.length; l++) {
@@ -29,6 +30,10 @@ function createCSV() {
       let familyApiData = callShrFamilyApi(memberData[l]['id']);
 
       // 加工が必要な項目
+      /* 共通 */
+      // 社員番号
+      var employeeCode = memberData[l]['emp_code'].substr(1, 4);
+
       /* 社員基本 */
       // 氏名カナ
       var nameKana = zenkana2Hankana(memberData[l]['last_name_yomi'] + " " + memberData[l]['first_name_yomi']);
@@ -74,6 +79,7 @@ function createCSV() {
       } else {
         var residentCardType = 0;
       }
+      // 現住所区分
 
       /* 家族 */
       // 家族姓カナ
@@ -90,6 +96,26 @@ function createCSV() {
       }
       // 生年月日
       var familyBirthDate = familyApiData[0]['birth_at'].replace(/-/g, '-');
+      // 税扶養区分
+      if (familyApiData[0]['tax_law_support_type'] == "unsupported") {
+        var familyTaxLawSupportType = 1;
+      } else {
+        var familyTaxLawSupportType = 0;
+      }
+      // 障害区分
+      if (!familyApiData[0]['handicapped_type']) {
+        var familyHandicappedType = 0;
+      } else if (familyApiData[0]['handicapped_type'] == "ordinary_handicapped") {
+        var familyHandicappedType = 1;
+      } else {
+        var familyHandicappedType = 2;
+      }
+      // 健康保険区分　
+      if (familyApiData[0]['social_insurance_support_type'] == "unsupported") {
+        var familySocialInsuranceSupportType = 1;
+      } else {
+        var familySocialInsuranceSupportType = 0;
+      }
       // 配偶者区分
       if (familyApiData[0]['is_spouse']) {
         var familyIsSpouse = 1;
@@ -115,16 +141,38 @@ function createCSV() {
         var taxCategory = 1;
       } else if (memberData[l]['tax_cd'] == "otsu") {
         var taxCategory = 2;
-      } else if (memberData[l]['tax_cd'] == "no_taxation_required") {
-        var taxCategory = 5;
+      } else {
+        var taxCategory = 1;  // 1,2の値のみ扱うため、それら以外の値は一律1(甲)となるよう値をセット
+      }
+      // 障害区分  
+      if (!memberData[l]['handicapped_type']) {
+        var handicappedType = 0;
+      } else if (memberData[l]['handicapped_type'] == "ordinary_handicapped ") {
+        var handicappedType = 1;
+      } else {
+        var handicappedType = 2;
       }
 
+      /* 社会保険 */
+      // 基礎年金番号1
+      var basicPensionNumber1 = memberData[l]['basic_pension_number'].substr(0, 4);
+      // 基礎年金番号2
+      var basicPensionNumber2 = memberData[l]['basic_pension_number'].substr(5, 6);
+      // 雇用保険番号1
+      var insuredPersonNumber1 = memberData[l]['emp_ins_insured_person_number'].substr(0, 4);
+      // 雇用保険番号2
+      var insuredPersonNumber2 = memberData[l]['emp_ins_insured_person_number'].substr(5, 6);
+      // 雇用保険番号3
+      var insuredPersonNumber3 = memberData[l]['emp_ins_insured_person_number'].substr(12, 1);
+
+      /* 婚姻・解明 */
+      // 婚姻届出日
 
       
       // 社員基本_配列に値をセット
       let baseData = [
         "100",  // データ区分(固定値)
-        memberData[l]['emp_code'],  // 社員コード
+        employeeCode,  // 社員番号
         memberData[l]['last_name'] + " " + memberData[l]['first_name'],  // 氏名
         nameKana,  // 氏名カナ(半角)
         naming,  // 呼称適用 0:氏名を呼称として使用, 1:旧氏名を呼称として使用, 2:外国人氏名を呼称として使用
@@ -139,9 +187,16 @@ function createCSV() {
       baseDataList.push(baseData);
 
       // 住所_配列に値をセット
+      // ToDo:: 現住所と住民票住所の登録があり、双方の住所情報が異なる場合、
+      //   ・住民票区分が1:住民票住所、現住所区分が0:現住所でない
+      //   ・住民票区分が0:住民票住所でない、現住所区分が1:現住所
+      // の2件分のレコード情報をCSVファイルに出力する
+      // 現住所と住民票住所が一致していた場合、
+      //   住民票区分が1:住民票住所、現住所区分が1:現住所
+      // の1件分のレコード情報をＣＳＶファイルに出力する
       let addressData = [
         "111",  // データ区分(固定値)
-        memberData[l]['emp_code'],  // 社員コード
+        employeeCode,  // 社員番号
         "2000-01-01",  // 入居年月日(一時的ダミー)
         residentCardType,  // 住民票区分 0:住民票住所でない, 1:住民票住所
         memberData[l]['address']['zip_code'],  // 郵便番号
@@ -156,21 +211,22 @@ function createCSV() {
       addressDataList.push(addressData);
 
       // 家族_配列に値をセット
+      // Todo:: 続柄のリストを作っておいて、登録されている値と照合する仕組みを実装する
       let familyData = [
         "107",  // データ区分(固定値)
-        memberData[l]['emp_code'],  // 社員コード
-        // 続柄
+        employeeCode,  // 社員番号
+        "",  // 続柄
         familyApiData[0]['last_name'],  // 家族姓
         familyApiData[0]['first_name'],  // 家族名
         familyLastNameKana,  // 家族姓カナ
         familyFirstNameKana,  // 家族名カナ
         familySex,  // 性別区分 0:不明, 1：男, 2：女
         familyBirthDate,  // 生年月日
-        1,  // 税扶養区分 0:対象外, 1:対象(一時的ダミー)
+        familyTaxLawSupportType,  // 税扶養区分 0:対象外, 1:対象
         familyIsSpouse,  // 配偶者区分 0:配偶者以外, 1:配偶者
         familyLiveTogetherType,  // 同居区分 0:別居, 1:同居
-        1,  // 障害区分 0:対象外, 1：一般, 2：特別(一時的ダミー)
-        1,  // 健康保険区分 0:対象外, 1:対象(一時的ダミー)
+        familyHandicappedType,  // 障害区分 0:対象外, 1：一般, 2：特別
+        familySocialInsuranceSupportType,  // 健康保険区分 0:対象外, 1:対象
         familyZipCode,  // 郵便番号
         familyAddress1,  // 住所1
         familyAddress2,  // 住所2
@@ -179,38 +235,42 @@ function createCSV() {
       ]
       familyDataList.push(familyData);
 
-      // 税表区分
+      // 税表区分_配列に値をセット
       let taxData = [
         "103",  // データ区分(固定値)
-        memberData[l]['emp_code'],  // 社員コード
+        employeeCode,  // 社員番号
         taxCategory,  // 税表区分 1:甲, 2:乙, 3:定率, 4:定額, 5:税なし
-        1,  // 障害区分 0:対象外, 1：一般, 2：特別(一時的ダミー)
+        handicappedType,  // 障害区分 0:対象外, 1：一般, 2：特別
       ]
       taxDataList.push(taxData);
 
-      // 社会保険
-      // let insuranceData = [
-      //   "100", memberData[l].emp_code, memberData[l].last_name + " " + memberData[l].first_name, "ﾊﾝｶｸｶﾀｶﾅﾆﾍﾝｶﾝｶﾞﾋﾂﾖｳ", "0",
-      //   memberData[l].business_last_name + " " + memberData[l].business_first_name, "ﾋﾞｼﾞﾈｽﾈｰﾑ", "2", memberData[l].birth_at,
-      //   "2022-09-13", memberData[l].tel_number, memberData[l].email
-      // ]
-      // insuranceDataList.push(insuranceData);
+      // 社会保険_配列に値をセット
+      let insuranceData = [
+        "102",  // データ区分(固定値)
+        employeeCode,  // 社員番号
+        basicPensionNumber1,  // 基礎年金番号1
+        basicPensionNumber2,  // 基礎年金番号2
+        insuredPersonNumber1,  // 雇用保険番号1
+        insuredPersonNumber2,  // 雇用保険番号2
+        insuredPersonNumber3,  // 雇用保険番号3
+      ]
+      insuranceDataList.push(insuranceData);
     }
-
 
     export_csv(baseDataList, operation_type = 1.1);
     export_csv(addressDataList, operation_type = 1.2);
     export_csv(familyDataList, operation_type = 1.3);
     export_csv(taxDataList, operation_type = 1.4);
-    // export_csv(insuranceDataList, operation_type = 1.5);
+    export_csv(insuranceDataList, operation_type = 1.5);
 
     // 終了ログ
   　log('入社_OBIC連携登録', 'e');
     SpreadsheetApp.getUi().alert("OBIC用CSVの出力が終了しました。");
 
   } catch(e) {
-    SpreadsheetApp.getUi().alert("OBIC用CSVの出力に失敗しました。");
-    SpreadsheetApp.getUi().alert(e.message);
+    // SpreadsheetApp.getUi().alert("OBIC用CSVの出力に失敗しました。");
+    // SpreadsheetApp.getUi().alert(e.message);
+    console.log(e.message)
   }
 }
 
