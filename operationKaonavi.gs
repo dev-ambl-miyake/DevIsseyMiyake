@@ -45,6 +45,5 @@ function kaonaviMemberApi() {
   let response = UrlFetchApp.fetch(apiUrl, apiOptions).getContentText();
 
   let json = JSON.parse(response);
-  log(response,'s');
   return json;
 }
