@@ -1,3 +1,4 @@
+// カオナビから取得したアクセストークン情報一式を返す
 function getToken() {
   const consumerKey = getProperties("localConsumerKey");;        //指定のconsumerKey
   const consumerSecret = getProperties("localConsumerSecret");;  //指定のcunsumerSecret
@@ -21,4 +22,30 @@ function getToken() {
 
   //カオナビから取得したトークン情報一式を返す
   return jsonData;
+}
+
+/**
+ * @param {string} status 0:基本情報 1:現住所 2:通勤経路
+ * カオナビの全従業員データの取得
+ */
+function kaonaviMemberApi() {
+
+  const token = getToken();
+  var apiUrl = 'https://api.kaonavi.jp/api/v2.0/members';
+
+  //APIに必要な情報(全従業員情報取得)
+  var apiOptions = {
+    headers : {
+      'Kaonavi-Token' : token["access_token"],
+      'Content-Type': 'application/json'
+    },
+    method : 'get'
+  };
+
+  //APIからの返答
+  let response = UrlFetchApp.fetch(apiUrl, apiOptions).getContentText();
+
+  let json = JSON.parse(response);
+  log(response,'s');
+  return json;
 }
