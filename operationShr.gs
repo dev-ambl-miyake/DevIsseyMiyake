@@ -226,16 +226,20 @@ function updateShrEmployee(id,processed_data,operation_type) {
     var payload = JSON.stringify(payload);
   // 通勤手当データの連携
   } else if(operation_type == 3.2){
+
     // カスタム（通勤経路1_交通機関）のnameが一致するまでループし、template_idを取得する
     for (let i = 0; i < custom_json.length; i++) {
+      // 取得APIリストのnameがカスタム項目名と一致するか
       if(custom_json[i]['name'] == '通勤経路1_交通機関'){
-        var traffic1_id = custom_json[i]['id'];
+        var traffic1_id = custom_json[i]['id']; // 項目名IDを宣言
         break;
       }
     }
+    // 項目名IDが未定義なら空で宣言
     if(typeof traffic1_id == "undefined"){
       var traffic1_id = '';
     }
+    // 選択肢が未定義なら空で宣言
     if(typeof processed_data[18] == "undefined"){
       processed_data[18] = '';
     }
@@ -292,6 +296,51 @@ function updateShrEmployee(id,processed_data,operation_type) {
     }
     if(typeof departure1_id == "undefined"){
       var departure1_id = '';
+    }
+    if(typeof processed_data[19] == "undefined"){
+      processed_data[19] = '';
+    }
+
+    // カスタム（通勤経路2_（発）利用駅）のnameが一致するまでループし、template_idを取得する
+    for (let i = 0; i < custom_json.length; i++) {
+      if(custom_json[i]['name'] == '通勤経路2_（発）利用駅'){
+        var departure2_id = custom_json[i]['id'];
+        break;
+      }
+    }
+    if(typeof departure2_id == "undefined"){
+      var departure2_id = '';
+    }
+    if(typeof processed_data[35] == "undefined"){
+      processed_data[35] = '';
+    }
+
+    // カスタム（通勤経路3_（発）利用駅）のnameが一致するまでループし、template_idを取得する
+    for (let i = 0; i < custom_json.length; i++) {
+      if(custom_json[i]['name'] == '通勤経路3_（発）利用駅'){
+        var departure3_id = custom_json[i]['id'];
+        break;
+      }
+    }
+    if(typeof departure3_id == "undefined"){
+      var departure3_id = '';
+    }
+    if(typeof processed_data[38] == "undefined"){
+      processed_data[38] = '';
+    }
+
+    // カスタム（通勤経路4_（発）利用駅）のnameが一致するまでループし、template_idを取得する
+    for (let i = 0; i < custom_json.length; i++) {
+      if(custom_json[i]['name'] == '通勤経路4_（発）利用駅'){
+        var departure4_id = custom_json[i]['id'];
+        break;
+      }
+    }
+    if(typeof departure4_id == "undefined"){
+      var departure4_id = '';
+    }
+    if(typeof processed_data[41] == "undefined"){
+      processed_data[41] = '';
     }
 
 
@@ -364,6 +413,48 @@ function updateShrEmployee(id,processed_data,operation_type) {
       var arrival1_id = '';
     }
 
+    // カスタム（通勤経路.通勤経路2_（着）利用駅）のnameが一致するまでループし、template_idを取得する
+    for (let i = 0; i < custom_json.length; i++) {
+      if(custom_json[i]['name'] == '通勤経路2_（着）利用駅'){
+        var arrival2_id = custom_json[i]['id'];
+        break;
+      }
+    }
+    if(typeof arrival2_id == "undefined"){
+      var arrival2_id = '';
+    }
+    if(typeof processed_data[36] == "undefined"){
+      processed_data[36] = '';
+    }
+
+    // カスタム（通勤経路.通勤経路3_（着）利用駅）のnameが一致するまでループし、template_idを取得する
+    for (let i = 0; i < custom_json.length; i++) {
+      if(custom_json[i]['name'] == '通勤経路3_（着）利用駅'){
+        var arrival3_id = custom_json[i]['id'];
+        break;
+      }
+    }
+    if(typeof arrival3_id == "undefined"){
+      var arrival3_id = '';
+    }
+    if(typeof processed_data[39] == "undefined"){
+      processed_data[39] = '';
+    }
+
+    // カスタム（通勤経路.通勤経路4_（着）利用駅）のnameが一致するまでループし、template_idを取得する
+    for (let i = 0; i < custom_json.length; i++) {
+      if(custom_json[i]['name'] == '通勤経路4_（着）利用駅'){
+        var arrival4_id = custom_json[i]['id'];
+        break;
+      }
+    }
+    if(typeof arrival4_id == "undefined"){
+      var arrival4_id = '';
+    }
+    if(typeof processed_data[42] == "undefined"){
+      processed_data[42] = '';
+    }
+
 
     // カスタム（通勤経路.通勤経路1_定期券金額）のnameが一致するまでループし、template_idを取得する
     for (let i = 0; i < custom_json.length; i++) {
@@ -374,6 +465,48 @@ function updateShrEmployee(id,processed_data,operation_type) {
     }
     if(typeof pass_amount1_id == "undefined"){
       var pass_amount1_id = '';
+    }
+
+    // カスタム（通勤経路.通勤経路2_定期券金額）のnameが一致するまでループし、template_idを取得する
+    for (let i = 0; i < custom_json.length; i++) {
+      if(custom_json[i]['name'] == '通勤経路2_定期券金額'){
+        var pass_amount2_id = custom_json[i]['id'];
+        break;
+      }
+    }
+    if(typeof pass_amount2_id == "undefined"){
+      var pass_amount2_id = '';
+    }
+    if(typeof processed_data[37] == "undefined"){
+      processed_data[37] = '';
+    }
+
+    // カスタム（通勤経路.通勤経路3_定期券金額）のnameが一致するまでループし、template_idを取得する
+    for (let i = 0; i < custom_json.length; i++) {
+      if(custom_json[i]['name'] == '通勤経路3_定期券金額'){
+        var pass_amount3_id = custom_json[i]['id'];
+        break;
+      }
+    }
+    if(typeof pass_amount3_id == "undefined"){
+      var pass_amount3_id = '';
+    }
+    if(typeof processed_data[40] == "undefined"){
+      processed_data[40] = '';
+    }
+
+    // カスタム（通勤経路.通勤経路4_定期券金額）のnameが一致するまでループし、template_idを取得する
+    for (let i = 0; i < custom_json.length; i++) {
+      if(custom_json[i]['name'] == '通勤経路4_定期券金額'){
+        var pass_amount4_id = custom_json[i]['id'];
+        break;
+      }
+    }
+    if(typeof pass_amount4_id == "undefined"){
+      var pass_amount4_id = '';
+    }
+    if(typeof processed_data[43] == "undefined"){
+      processed_data[43] = '';
     }
 
 
@@ -463,6 +596,21 @@ function updateShrEmployee(id,processed_data,operation_type) {
           "template_id": departure1_id,
           "value": processed_data[19],
         },
+        // 通勤経路2_（発）利用駅
+        {
+          "template_id": departure2_id,
+          "value": processed_data[35],
+        },
+        // 通勤経路3_（発）利用駅
+        {
+          "template_id": departure3_id,
+          "value": processed_data[38],
+        },
+        // 通勤経路4_（発）利用駅
+        {
+          "template_id": departure4_id,
+          "value": processed_data[41],
+        },
         // 通勤経路1_（経由）利用駅
         {
           "template_id": via1_id,
@@ -488,10 +636,40 @@ function updateShrEmployee(id,processed_data,operation_type) {
           "template_id": arrival1_id,
           "value": processed_data[21],
         },
+        // 通勤経路2_（着）利用駅
+        {
+          "template_id": arrival2_id,
+          "value": processed_data[36],
+        },
+        // 通勤経路3_（着）利用駅
+        {
+          "template_id": arrival3_id,
+          "value": processed_data[39],
+        },
+        // 通勤経路4_（着）利用駅
+        {
+          "template_id": arrival4_id,
+          "value": processed_data[42],
+        },
         // 通勤経路1_定期券金額
         {
           "template_id": pass_amount1_id,
           "value": processed_data[9],
+        },
+        // 通勤経路2_定期券金額
+        {
+          "template_id": pass_amount2_id,
+          "value": processed_data[37],
+        },
+        // 通勤経路3_定期券金額
+        {
+          "template_id": pass_amount3_id,
+          "value": processed_data[40],
+        },
+        // 通勤経路4_定期券金額
+        {
+          "template_id": pass_amount4_id,
+          "value": processed_data[43],
         },
         // 通勤経路1_備考
         {
