@@ -25,7 +25,6 @@ function getToken() {
 }
 
 /**
- * @param {string} status 0:基本情報 1:現住所 2:通勤経路
  * カオナビの全従業員データの取得
  */
 function kaonaviMemberApi() {
