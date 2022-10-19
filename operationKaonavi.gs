@@ -25,7 +25,6 @@ function getToken() {
 }
 
 /**
- * @param {string} status 0:基本情報 1:現住所 2:通勤経路
  * カオナビの全従業員データの取得
  */
 function kaonaviMemberApi() {
@@ -46,6 +45,124 @@ function kaonaviMemberApi() {
   let response = UrlFetchApp.fetch(apiUrl, apiOptions).getContentText();
 
   let json = JSON.parse(response);
-  log(response,'s');
+  return json;
+}
+
+/**
+ * カオナビの基本情報シート情報の取得
+ */
+function kaonaviMemberSheetsApi() {
+
+  const token = getToken();
+  var apiUrl = 'https://api.kaonavi.jp/api/v2.0/member_layouts';
+
+  //APIに必要な情報(全従業員情報取得)
+  var apiOptions = {
+    headers : {
+      'Kaonavi-Token' : token["access_token"],
+      'Content-Type': 'application/json'
+    },
+    method : 'get'
+  };
+
+  //APIからの返答
+  let response = UrlFetchApp.fetch(apiUrl, apiOptions).getContentText();
+
+  let json = JSON.parse(response);
+
+  return json;
+}
+
+/**
+ * カオナビの全シート情報の取得
+ */
+function kaonaviSheetsApi() {
+
+  const token = getToken();
+  var apiUrl = 'https://api.kaonavi.jp/api/v2.0/sheet_layouts';
+
+  //APIに必要な情報(全従業員情報取得)
+  var apiOptions = {
+    headers : {
+      'Kaonavi-Token' : token["access_token"],
+      'Content-Type': 'application/json'
+    },
+    method : 'get'
+  };
+
+  //APIからの返答
+  let response = UrlFetchApp.fetch(apiUrl, apiOptions).getContentText();
+
+  let json = JSON.parse(response);
+  return json;
+}
+
+/**
+ * カオナビのタスク状況の取得
+ */
+function kaonaviTaskApi() {
+
+  const token = getToken();
+  var apiUrl = 'https://api.kaonavi.jp/api/v2.0/tasks/8870';
+
+  //APIに必要な情報(全従業員情報取得)
+  var apiOptions = {
+    headers : {
+      'Kaonavi-Token' : token["access_token"],
+      'Content-Type': 'application/json'
+    },
+    method : 'get'
+  };
+
+  //APIからの返答
+  let response = UrlFetchApp.fetch(apiUrl, apiOptions).getContentText();
+  let json = JSON.parse(response);
+  return json;
+}
+
+/**
+ * カオナビの基本情報シートの更新
+ */
+function kaonaviUpdateApi(member_data) {
+
+  const token = getToken();
+  var apiUrl = 'https://api.kaonavi.jp/api/v2.0/members';
+
+
+  // 更新Json作成
+  // ToDo連想配列の中に連想配列を入れようとしているが、シングルクォートが入ってしまい、カオナビのリクエストボディにならない
+  var payload = {
+    "member_data": [{}]
+  }
+
+  payload["member_data"] = member_data;
+
+  payload = JSON.stringify(payload);
+  payload = JSON.parse(payload);
+
+  // console.log(typeof(payload));
+  // console.log(payload);
+
+  payload = JSON.parse(JSON.stringify(payload));
+  // payload = payload.replace("'", "");
+
+  // console.log(typeof(payload));
+
+  //APIに必要な情報(全従業員情報取得)
+  var apiOptions = {
+    headers : {
+      'Kaonavi-Token' : token["access_token"],
+      'Content-Type': 'application/json'
+    },
+    payload: payload,
+    method: 'patch',
+    muteHttpExceptions : true,
+  };
+
+  //APIからの返答
+  let response = UrlFetchApp.fetch(apiUrl, apiOptions).getContentText();
+
+  let json = JSON.parse(response);
+  console.log(json);
   return json;
 }

@@ -1,3 +1,4 @@
+// 発令（SmartHR）メイン処理
 function proclamationShrMain() {
   try{
     var work = '発令(SmartHR更新)';
