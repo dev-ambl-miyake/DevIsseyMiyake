@@ -1,8 +1,14 @@
 function myFunction() {
-  // let regex = /[。、・]/;
-  let regex = /[。、・]/;
-  var text = '京王線、小田急線。京王井の頭線・JR中央線';
-  var text2 = '京王線・小田急線、京王井の頭線・JR中央線';
-  var traffic_array = text2.split(regex);
-  console.log(traffic_array);
+  const member_sheets_api = kaonaviMemberSheetsApi(); // カオナビの基本情報シート情報
+const member_custom_list = member_sheets_api['custom_fields']; // カオナビの基本情報シートカスタム項目リスト
+
+const sheets_api = kaonaviSheetsApi(); // カオナビの全シート情報
+const sheets_list = sheets_api['sheets']; // カオナビの全シート情報
+
+for (let i = 0; i < sheets_list.length; i++) {
+  if(sheets_list[i]['name'] == '通勤経路'){
+    traffic_list = sheets_list[i]['custom_fields'];
+  }
+}
+  console.log(traffic_list);
 }

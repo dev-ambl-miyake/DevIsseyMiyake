@@ -99,8 +99,9 @@ function changeDataToSHR(csv_data,operation_type) {
           csv_data[i][29] = csv_data[n][20]; //通勤経路2_（経由）利用駅
           csv_data[i][32] = csv_data[n][22]; //通勤経路2備考
           
-          count = count++;
+          count = count + 1;
           csv_data.splice(n,1); // 結合した分の配列の要素番号を削除
+          n = n - 1; // 削除した要素文CSVデータの要素が前詰めするので-1する
 
           // 社員番号が一致しているレコード && 同じ要素番号を比較していない && カウント
         } else if(csv_data[i][1] == csv_data[n][1] && csv_data.indexOf(csv_data[i]) != csv_data.indexOf(csv_data[n]) && count == 1){
@@ -111,11 +112,12 @@ function changeDataToSHR(csv_data,operation_type) {
           csv_data[i][40] = csv_data[n][9]; //通勤経路3_定期券金額
           csv_data[i][30] = csv_data[n][20]; //通勤経路3_（経由）利用駅
           csv_data[i][33] = csv_data[n][22]; //通勤経路3_（経由）利用駅
-          count = count++;
+          count = count + 1;
           csv_data.splice(n,1); // 結合した分の配列の要素番号を削除
+          n = n - 1; // 削除した要素文CSVデータの要素が前詰めするので-1する
 
           // 社員番号が一致しているレコード && 同じ要素番号を比較していない && カウント
-        } else if(csv_data[i][1] == csv_data[n][1] && csv_data.indexOf(csv_data[i]) != csv_data.indexOf(csv_data[n]) && count == 1){
+        } else if(csv_data[i][1] == csv_data[n][1] && csv_data.indexOf(csv_data[i]) != csv_data.indexOf(csv_data[n]) && count == 2){
           // 3回目に一致した時に通勤経路4に値を格納
           csv_data[i][28] = csv_data[n][18]; //通勤経路4_交通機関
           csv_data[i][41] = csv_data[n][19]; //通勤経路4_（発）利用駅
@@ -123,7 +125,7 @@ function changeDataToSHR(csv_data,operation_type) {
           csv_data[i][43] = csv_data[n][9]; //通勤経路4_定期券金額
           csv_data[i][31] = csv_data[n][20]; //通勤経路4_（経由）利用駅
           csv_data[i][34] = csv_data[n][22]; //通勤経路4備考
-          count = count++;
+          count = count + 1;
           csv_data.splice(n,1); // 結合した分の配列の要素番号を削除
           break; // 4回一致した場合ループ終了
         }

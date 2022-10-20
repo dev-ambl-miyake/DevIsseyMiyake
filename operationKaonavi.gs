@@ -103,7 +103,7 @@ function kaonaviSheetsApi() {
 function kaonaviTaskApi() {
 
   const token = getToken();
-  var apiUrl = 'https://api.kaonavi.jp/api/v2.0/tasks/8870';
+  var apiUrl = 'https://api.kaonavi.jp/api/v2.0/tasks/9160';
 
   //APIに必要な情報(全従業員情報取得)
   var apiOptions = {
@@ -117,36 +117,28 @@ function kaonaviTaskApi() {
   //APIからの返答
   let response = UrlFetchApp.fetch(apiUrl, apiOptions).getContentText();
   let json = JSON.parse(response);
+  console.log(json);
   return json;
 }
 
 /**
- * カオナビの基本情報シートの更新
+ * カオナビメンバーの基本情報シートの更新
+ * @param {jsonstring} member_data 連想配列をjson文字列に変換した値
  */
 function kaonaviUpdateApi(member_data) {
 
   const token = getToken();
   var apiUrl = 'https://api.kaonavi.jp/api/v2.0/members';
-
-
+  
   // 更新Json作成
-  // ToDo連想配列の中に連想配列を入れようとしているが、シングルクォートが入ってしまい、カオナビのリクエストボディにならない
-  var payload = {
-    "member_data": [{}]
-  }
+  var payload = {}; // 連想配列宣言
+  var str_payload = `{"member_data":[${member_data}]}`;　// 連想配列に変数を代入すると変数が文字列として認識してしまう為、文字列型の連想配列を宣言
 
-  payload["member_data"] = member_data;
+  payload = str_payload;　// 連想配列にstr_payloadを代入
+  
 
   payload = JSON.stringify(payload);
   payload = JSON.parse(payload);
-
-  // console.log(typeof(payload));
-  // console.log(payload);
-
-  payload = JSON.parse(JSON.stringify(payload));
-  // payload = payload.replace("'", "");
-
-  // console.log(typeof(payload));
 
   //APIに必要な情報(全従業員情報取得)
   var apiOptions = {
@@ -155,14 +147,53 @@ function kaonaviUpdateApi(member_data) {
       'Content-Type': 'application/json'
     },
     payload: payload,
-    method: 'patch',
+    method: 'patch', // 部分更新
     muteHttpExceptions : true,
   };
 
   //APIからの返答
   let response = UrlFetchApp.fetch(apiUrl, apiOptions).getContentText();
 
-  let json = JSON.parse(response);
-  console.log(json);
-  return json;
+  log('response = '+ response, 'e'); // レスポンスをログに出力
+}
+
+/**
+ * カオナビメンバーのシート情報更新
+ * @param {string} sheet_id シートID
+ * @param {jsonstring} member_data 連想配列をjson文字列に変換した値
+ */
+function kaonaviSheetsUpdateApi(sheets_id,member_data) {
+
+  const token = getToken();
+  console.log(sheets_id);
+  var apiUrl = `https://api.kaonavi.jp/api/v2.0/sheets/${sheets_id}`;
+  
+  var payload = {}; // 連想配列宣言
+  // 更新Json作成
+  var payload = {}; // 連想配列宣言
+  var str_payload = `{"member_data":[${member_data}]}`;　// 連想配列に変数を代入すると変数が文字列として認識してしまう為、文字列型の連想配列を宣言
+
+  payload = str_payload;　// 連想配列にstr_payloadを代入
+  
+
+  payload = JSON.stringify(payload);
+  payload = JSON.parse(payload);
+
+  console.log(payload);
+
+  //APIに必要な情報(全従業員情報取得)
+  var apiOptions = {
+    headers : {
+      'Kaonavi-Token' : token["access_token"],
+      'Content-Type': 'application/json'
+    },
+    payload: payload,
+    method: 'patch', // 一括更新
+    muteHttpExceptions : true,
+  };
+
+  //APIからの返答
+  let response = UrlFetchApp.fetch(apiUrl, apiOptions).getContentText();
+  console.log('response = '+ response, 'e'); // レスポンスをログに出力
+  log('response = '+ response, 'e'); // レスポンスをログに出力
 }
