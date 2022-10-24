@@ -134,7 +134,7 @@ function updateShrEmployee(id,processed_data,operation_type) {
     }
     // 項目（職種）の選択肢リストをループして選択肢IDを取得
     for (let i = 0; i <= bussiness_type_list.length; i++) {
-      if(bussiness_type_list[i]['name'] == processed_data[8]){
+      if(bussiness_type_list[i]['name'] == processed_data[9]){
         var bussiness_type_value_id = bussiness_type_list[i]['id']; // 選択肢ID
         break;
       }
@@ -154,7 +154,7 @@ function updateShrEmployee(id,processed_data,operation_type) {
     }
     // 項目（グレード）の選択肢リストをループして選択肢IDを取得
     for (let i = 0; i < grade_list.length; i++) {
-      if(grade_list[i]['name'] == processed_data[6]){
+      if(grade_list[i]['name'] == processed_data[7]){
         var grade_value_id = grade_list[i]['id']; // 選択肢ID
         break;
       }
@@ -186,7 +186,7 @@ function updateShrEmployee(id,processed_data,operation_type) {
     }
     // 項目（勤務地）の選択肢リストをループして選択肢IDを取得
     for (let i = 0; i < bussiness_locate_list.length; i++) {
-      if(bussiness_locate_list[i]['name'] == processed_data[14]){
+      if(bussiness_locate_list[i]['name'] == processed_data[15]){
         var bussiness_locate_value_id = bussiness_locate_list[i]['id']; // 選択肢ID
         break;
       }
@@ -197,8 +197,8 @@ function updateShrEmployee(id,processed_data,operation_type) {
     // 更新Json作成
     var payload = {
       'emp_code': processed_data[0], // 社員コード
-      "employment_type_id": processed_data[16], // 雇用形態 社員区分
-      'position': processed_data[12], // 役職
+      "employment_type_id": processed_data[17], // 雇用形態 社員区分
+      'position': processed_data[13], // 役職
       // 部署
       "custom_fields": [
         // 職種
@@ -214,7 +214,7 @@ function updateShrEmployee(id,processed_data,operation_type) {
         // レベル
         {
           "template_id": level_id,
-          "value": processed_data[10],
+          "value": processed_data[11],
         },
         // 勤務地
         {
