@@ -31,6 +31,7 @@ function standardMonthlyRemuneration() {
       // 取得したCSVの配列を加工する
       var processed_data = import_csv(operation_type);
 
+
       // 3. SmartHRへのデータ更新
       for (let i = 0; i < processed_data.length; i++) {
         callShrApi(processed_data[i],operation_type);

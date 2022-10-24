@@ -22,23 +22,26 @@ function import_csv(operation_type = 5) {
   // 発令　現職本務データ
   if (operation_type === 3.1) {
     var define = define_announcement()
-  // 発令　通勤手当
+  // 発令　通勤手当（公共）
   }else if (operation_type === 3.2) {
     var define = define_travel_allowance()
-    // 発令　現職兼務データ
+  // 発令　現職兼務
   }else if (operation_type === 3.3) {
     var define = define_sub_business()
+    // 発令　発令履歴兼務
+  }else if (operation_type === 3.4) {
+    var define = define_proclamation_history()
+    // 発令　本務経歴
+  }else if (operation_type === 3.5) {
+    var define = define_main_hstory()
   // 標準報酬月額
   } else if (operation_type === 4) {
     var define = define_monthly_salary()
   // 源泉徴収票
   } else if (operation_type === 5) {
     var define = define_tax_withoutholding()
-  // 年調・変動入力
-  } else if (operation_type === 6) {
-    var define = define_year_end_adjustment()
   } else {
-    console.log('エラー')
+    throw new Error("正しい業務定数が設定されていません。");
   }
 
   // ドライブフォルダ, ファイル情報定義
@@ -65,17 +68,18 @@ function import_csv(operation_type = 5) {
     // 発令　現職兼務データ
   } else if (operation_type === 3.3) {
     var processed_data = processing_data(csv_data)
+  } else if (operation_type === 3.4) {
+    var processed_data = processing_data(csv_data)
+  } else if (operation_type === 3.5) {
+    var processed_data = processing_data(csv_data)
   // 標準報酬月額
   } else if (operation_type === 4) {
     var processed_data = processing_monthly_salary_data(csv_data)
   // 源泉徴収票
   } else if (operation_type === 5) {
     var processed_data = processing_tax_withoutholding_data(csv_data)
-  // 年調変動入力
-  } else if (operation_type === 6) {
-    var processed_data = processing_year_end_adjustment(csv_data)
   } else {
-    console.log('エラー')
+    throw new Error("正しい業務定数が設定されていません。");
   }
 
   return processed_data
@@ -95,39 +99,77 @@ function import_csv(operation_type = 5) {
 function export_csv(data, operation_type = 5) {
   /* CSV設定 */
   // 入社
-  if (operation_type === 1) {
+  // 社員基本
+  if (operation_type === 1.1) {
     //定義値
-    var define = define_store_employee()
+    var define = define_store_employee_base()
     // 見出し行
-    var title_row = title_store_employee()
+    var title_row = title_store_employee_base()
     // smartHRAPIよりデータ取得
     var import_data = data;
-  // 変更申請住所
+  // 住所
+  } else if (operation_type === 1.2) {
+    var define = define_store_employee_address()
+    // 見出し行
+    var title_row = title_store_employee_address()
+    // smartHRAPIよりデータ取得
+    var import_data = data;
+  // 家族
+  } else if (operation_type === 1.3) {
+    var define = define_store_employee_family()
+    // 見出し行
+    var title_row = title_store_employee_family()
+    // smartHRAPIよりデータ取得
+    var import_data = data;
+  // 税表区分
+  } else if (operation_type === 1.4) {
+    var define = define_store_employee_tax()
+    // 見出し行
+    var title_row = title_store_employee_tax()
+    // smartHRAPIよりデータ取得
+    var import_data = data;
+  // 社会保険
+  } else if (operation_type === 1.5) {
+    var define = define_store_employee_insurance()
+    // 見出し行
+    var title_row = title_store_employee_insurance()
+    // smartHRAPIよりデータ取得
+    var import_data = data;
+  // 変更申請
+  // 社員基本
   } else if (operation_type === 2.1) {
-    var define = define_update_address()
+    //定義値
+    var define = define_update_employee_base()
     // 見出し行
-    var title_row = title_update_address()
+    var title_row = title_update_employee_base()
     // smartHRAPIよりデータ取得
     var import_data = data;
-    // 変更申請口座
+  // 住所
   } else if (operation_type === 2.2) {
-    var define = define_update_bank()
+    var define = define_update_employee_address()
     // 見出し行
-    var title_row = title_update_bank()
+    var title_row = title_update_employee_address()
     // smartHRAPIよりデータ取得
     var import_data = data;
-    // 変更申請氏名
+  // 家族
   } else if (operation_type === 2.3) {
-    var define = define_update_name()
+    var define = define_update_employee_family()
     // 見出し行
-    var title_row = title_update_name()
+    var title_row = title_update_employee_family()
     // smartHRAPIよりデータ取得
     var import_data = data;
-    // 変更申請家族
+  // 税表区分
   } else if (operation_type === 2.4) {
-    var define = define_update_family()
+    var define = define_update_employee_tax()
     // 見出し行
-    var title_row = title_update_family()
+    var title_row = title_update_employee_tax()
+    // smartHRAPIよりデータ取得
+    var import_data = data;
+  // 社会保険
+  } else if (operation_type === 2.5) {
+    var define = define_update_employee_insurance()
+    // 見出し行
+    var title_row = title_update_employee_insurance()
     // smartHRAPIよりデータ取得
     var import_data = data;
   // 源泉徴収票
@@ -138,16 +180,8 @@ function export_csv(data, operation_type = 5) {
     var title_row = title_tax_withoutholding()
     // OBIC_CSVよりデータ取得
     var import_data = data;
-  // 年調・変動入力
-  } else if (operation_type === 6) {
-    // 定義値
-    var define = define_year_end_adjustment()
-    // 見出し行
-    var title_row = title_year_end_adjustment()
-    // OBIC_CSVよりデータ取得
-    var import_data = data;
   } else {
-    console.log('エラー')
+    throw new Error("正しい業務定数が設定されていません。");
   }
 
   // コンテンツタイプ
@@ -179,8 +213,8 @@ function export_csv(data, operation_type = 5) {
   folder.createFile(blob);
 }
 
-// 入社CSV_列名
-function title_store_employee() {
+// 入社_社員基本CSV_列名
+function title_store_employee_base() {
   // 見出し行
   const title_row = [
     [
@@ -190,30 +224,53 @@ function title_store_employee() {
   return title_row
 }
 
-// 更新住所CSV_列名
-function title_update_address() {
+// 入社_住所CSV_列名
+function title_store_employee_address() {
   // 見出し行
   const title_row = [
     [
-      "データ区分", "社員コード", "入居年月日", "住民票区分", "郵便番号", "住所1", "住所2", "住所1カナ", "住所2カナ", "電話番号", "社員SEQ", "現住所区分"
+      "データ区分", "社員コード", "入居年月日", "住民票区分", "郵便番号", "住所1", "住所2", "住所1カナ", "住所2カナ", "電話番号", "社員SEQ", "現住所区分" 
     ]
   ]
   return title_row
 }
 
-// 更新口座CSV_列名
-function title_update_bank() {
+// 入社_家族CSV_列名
+function title_store_employee_family() {
   // 見出し行
   const title_row = [
     [
-      "データ区分", "コード", "振込銀行区分", "口座SEQ", "振込依頼銀行コード", "振込銀行コード", "振込支店コード", "口座種別", "口座番号", "名義人漢字", "名義人ｶﾅ", "新規コード", "定値"
+      "データ区分", "社員コード", "続柄", "家族姓", "家族名", "家族姓カナ", "家族名カナ", "性別区分", "生年月日", "税扶養区分", "配偶者区分",
+      "同居区分", "障害区分", "健康保険区分", "郵便番号", "住所1", "住所2", "電話番号", "社員SEQ"
     ]
   ]
   return title_row
 }
 
-// 更新氏名CSV_列名
-function title_update_name() {
+// 入社_税表区分CSV_列名
+function title_store_employee_tax() {
+  // 見出し行
+  const title_row = [
+    [
+      "データ区分", "社員コード", "税表区分", "障害区分"
+    ]
+  ]
+  return title_row
+}
+
+// 入社_社会保険CSV_列名
+function title_store_employee_insurance() {
+  // 見出し行
+  const title_row = [
+    [
+      "データ区分", "社員コード", "基礎年金番号1", "基礎年金番号2", "雇用保険番号1", "雇用保険番号2", "雇用保険番号3"
+    ]
+  ]
+  return title_row
+}
+
+// 変更申請_社員基本CSV_列名
+function title_update_employee_base() {
   // 見出し行
   const title_row = [
     [
@@ -223,12 +280,46 @@ function title_update_name() {
   return title_row
 }
 
-// 更新家族CSV_列名
-function title_update_family() {
+// 変更申請_住所CSV_列名
+function title_update_employee_address() {
   // 見出し行
   const title_row = [
     [
-      "データ区分", "社員コード", "続柄", "家族姓", "家族名", "家族姓カナ", "家族名カナ", "性別区分", "生年月日", "税扶養区分", "配偶者区分", "同居区分", "障害区分", "健康保険区分", "郵便番号", "住所1", "住所2", "電話番号", "社員SEQ"
+      "データ区分", "社員コード", "入居年月日", "住民票区分", "郵便番号", "住所1", "住所2", "住所1カナ", "住所2カナ", "電話番号", "社員SEQ", "現住所区分" 
+    ]
+  ]
+  return title_row
+}
+
+// 変更申請_家族CSV_列名
+function title_update_employee_family() {
+  // 見出し行
+  const title_row = [
+    [
+      "データ区分", "社員コード", "続柄", "家族姓", "家族名", "家族姓カナ", "家族名カナ", "性別区分", "生年月日", "税扶養区分", "配偶者区分",
+      "同居区分", "障害区分", "健康保険区分", "郵便番号", "住所1", "住所2", "電話番号", "社員SEQ"
+    ]
+  ]
+  return title_row
+}
+
+// 変更申請_税表区分CSV_列名
+function title_update_employee_tax() {
+  // 見出し行
+  const title_row = [
+    [
+      "データ区分", "社員コード", "税表区分", "障害区分"
+    ]
+  ]
+  return title_row
+}
+
+// 変更申請_社会保険CSV_列名
+function title_update_employee_insurance() {
+  // 見出し行
+  const title_row = [
+    [
+      "データ区分", "社員コード", "基礎年金番号1", "基礎年金番号2", "雇用保険番号1", "雇用保険番号2", "雇用保険番号3"
     ]
   ]
   return title_row
@@ -239,16 +330,12 @@ function processing_data(csv_data) {
   // csv_dataをループ、出力用データ構造配列に加工し返却
   // 取得データ行が1行以下ならファイル不備エラーメッセージ（※1行目は見出し）
   if(csv_data.length <= 1){
-    var csv_error_message = '該当ファイルのデータは正しいデータ形式ではありません。';
-    alert(csv_error_message);
-      
-    // 終了ログ
-    log('発令', 'e');
-    return;
+    throw new Error("該当ファイルのデータは正しいデータ形式ではありません。")
   }
   // csvの見出1行目を削除
   csv_data.shift();
-  return csv_data
+  var array = csv_data.filter(v => v[0])
+  return array
 }
 // 標準報酬月額_インポートデータを出力用データ構造配列に加工
 function processing_monthly_salary_data(csv_data) {
@@ -306,14 +393,6 @@ function processing_monthly_salary_data(csv_data) {
       var month = array[i][2].slice(-2); // 月の抽出
         array[i][2] = year + '/' + month + '/' + '01';
     }
-
-    // 社保FD用氏名（姓,名）
-    for (let i = 0; i < array.length; i++) {
-      if(array[i][4] != ''){
-        array[i][5] = array[i][4].split('　')[0]; // 姓
-        array[i][6] = array[i][4].split('　')[1]; // 名
-      }
-    }
   return array
 }
 // 源泉徴収票_インポートデータを出力用データ構造配列に加工
@@ -324,9 +403,7 @@ function processing_tax_withoutholding_data(csv_data) {
       var csv_error_message = '該当ファイルのデータは正しいデータ形式ではありません。';
       alert(csv_error_message);
       
-      // 終了ログ
-      log('源泉徴収票', 'e');
-      return;
+      throw new Error("該当ファイルのデータは正しいデータ形式ではありません。");
     }
 
     // csvの見出行を削除
@@ -346,7 +423,7 @@ function processing_tax_withoutholding_data(csv_data) {
     // 文字加工
       // 社員コード（4桁→5桁）
       for (let i = 0; i < array.length; i++) {
-         array[i][0] = '="0'+ array[i][0] + '"';
+         array[i][0] = '0'+ array[i][0];
       }
 
       // 住所 (〒111-1111 東京都xxxxxxマンション名)
@@ -397,6 +474,20 @@ function processing_tax_withoutholding_data(csv_data) {
         }
       }
 
+      // 支払金額（SmartHRでは必須項目の為、空である場合、０を宣言）
+      for (let i = 0; i < array.length; i++) {
+        if(array[i][9] === ""){
+          array[i][9] = 0;
+        }
+      }
+
+      // 源泉徴収税額（SmartHRでは必須項目の為、空である場合、０を宣言）
+      for (let i = 0; i < array.length; i++) {
+        if(array[i][13] === ""){
+          array[i][13] = 0;
+        }
+      }
+
       // 中途区分(2:退職 1:就職)
       for (let i = 0; i < array.length; i++) {
         if(array[i][99] === '2'){
@@ -421,6 +512,82 @@ function processing_tax_withoutholding_data(csv_data) {
         }
       }
 
+      //（源泉）控除対象配偶者（有）
+      //（源泉）控除対象配偶者（従有）
+      // OBIC出力(源泉)控除対象配偶者の有無が3の場合SmartHRでは1、3以外の場合0
+      for (let i = 0; i < array.length; i++) {
+        if(array[i][15] == 3){
+          array[i][15] = 1;
+          array[i][111] = 1;
+        }else{
+          array[i][15] = 0;
+          array[i][111] = 0;
+        }
+      }
+
+      // （源泉・特別）控除対象配偶者（区分）
+      for (let i = 0; i < array.length; i++) {
+        if(array[i][62] == "00"){
+          array[i][62] = 0;
+        }
+      }
+
+      // 控除対象扶養親族（区分）1
+      for (let i = 0; i < array.length; i++) {
+        if(array[i][66] == "00"){
+          array[i][66] = 0;
+        }
+      }
+
+      // 控除対象扶養親族（区分）2
+      for (let i = 0; i < array.length; i++) {
+        if(array[i][69] == "00"){
+          array[i][69] = 0;
+        }
+      }
+
+      // 控除対象扶養親族（区分）3
+      for (let i = 0; i < array.length; i++) {
+        if(array[i][72] == "00"){
+          array[i][672] = 0;
+        }
+      }
+
+      // 控除対象扶養親族（区分）4
+      for (let i = 0; i < array.length; i++) {
+        if(array[i][75] == "00"){
+          array[i][75] = 0;
+        }
+      }
+
+      // 16歳未満の扶養親族（区分）1
+      for (let i = 0; i < array.length; i++) {
+        if(array[i][78] == "00"){
+          array[i][78] = 0;
+        }
+      }
+
+      // 16歳未満の扶養親族（区分）2
+      for (let i = 0; i < array.length; i++) {
+        if(array[i][81] == "00"){
+          array[i][81] = 0;
+        }
+      }
+
+      // 16歳未満の扶養親族（区分）3
+      for (let i = 0; i < array.length; i++) {
+        if(array[i][84] == "00"){
+          array[i][84] = 0;
+        }
+      }
+
+      // 16歳未満の扶養親族（区分）4
+      for (let i = 0; i < array.length; i++) {
+        if(array[i][87] == "00"){
+          array[i][87] = 0;
+        }
+      }
+
 
 
   // SmartHR取り込み用の順番に配列を並び替える
@@ -438,7 +605,7 @@ function processing_tax_withoutholding_data(csv_data) {
     elm[13], // 源泉徴収税額
     elm[14], // 未徴収税額
     elm[15], // (源泉)控除対象配偶者の有無
-    elm[0], // ※OBICではなし（源泉）控除対象配偶者（従有）
+    elm[111],  // ※OBICではなし（源泉）控除対象配偶者（従有）
     elm[16], // 老人控除対象配偶者
     elm[17], // 配偶者(特別)控除額
     elm[18], // 特定扶養人数 主
@@ -525,71 +692,6 @@ function processing_tax_withoutholding_data(csv_data) {
   ]);
 
   return map_csv_data
-}
-
-// 年調変動_インポートデータを出力用データ構造配列に加工
-function processing_year_end_adjustment(csv_data) {
-  // csv_dataをループ、出力用データ構造配列に加工し返却
-    // 取得データ行が1行以下ならファイル不備エラーメッセージ（※1行目は見出し）
-    if(csv_data.length <= 1){
-      var csv_error_message = '該当ファイルのデータは正しいデータ形式ではありません。';
-      alert(csv_error_message);
-      
-      // 終了ログ
-      log('年調・変動入力', 'e');
-      return;
-    }
-    // csvの見出1行目を削除
-    csv_data.shift();
-
-
-    // csvの不要列の削除 ※spliceをループして不要列を順番に削除（必要列までは一括削除出来る）
-      // データ区分の削除
-      for (let i = 0; i < csv_data.length; i++) {
-        csv_data[i].splice(0,1);
-      }
-
-      // 健保標準報酬月額までの列削除
-      for (let i = 0; i < csv_data.length; i++) {
-        csv_data[i].splice(1,4);
-      }
-
-      // 健保整理番号までの列削除
-      for (let i = 0; i < csv_data.length; i++) {
-        csv_data[i].splice(2,6);
-      }
-
-      // 厚年標準報酬月額までの列削除
-      for (let i = 0; i < csv_data.length; i++) {
-        csv_data[i].splice(3,1);
-      }
-
-      // 厚年整理番号までの列削除
-      for (let i = 0; i < csv_data.length; i++) {
-        csv_data[i].splice(4,5);
-      }
-
-      // 残りの列削除
-      for (let i = 0; i < csv_data.length; i++) {
-        csv_data[i].splice(7,46);
-      }
-    
-    // 二次元配列で空になっている箇所を削除
-    var array = csv_data.filter(v => v[0])
-    
-    // 文字加工
-      // 社員コード（4桁→5桁）
-      for (let i = 0; i < array.length; i++) {
-         array[i][0] = '0'+ array[i][0];
-      }
-
-      // 基礎年金番号1-基礎年金番号2
-      for (let i = 0; i < array.length; i++) {
-        array[i][5] = array[i][5] + '-'+ array[i][6];
-        // 不要になった列を削除
-        array[i].splice(6,1);
-      } 
-  return array
 }
 
 // 源泉徴収票CSV_列名
@@ -699,18 +801,6 @@ function title_tax_withoutholding() {
   return title_row
 }
 
-// 年調・変動入力CSV_列名
-function title_year_end_adjustment() {
-  // 見出し行
-  const title_row = [
-    [
-      "データ区分","対象年月","コード","税額表区分","対象者区分","種別","確定フラグ","過不足精算区分","申社保年金","申社保年金外","小規模共済","一般生保支払","個人年金支払","新一般生保支払","介護医療支払","新個人年金支払","長期損保支払","地震保険支払","配偶控除提出","その他所得","配偶合計所得","住宅控除申告","住宅控除適用数","家屋居住日_1","住宅控除区分_1","特定取得区分_1","住宅借入金等_1","基礎控除提出","所得控除提出"
-    ]
-  ]
-  return title_row
-}
-
-
 /**
  *  二桁の数字から和暦を抽出
  * @param {string} year  二桁の数字（'01'）
@@ -726,7 +816,7 @@ function shiftToSeireki(year) {
   date = Utilities.formatDate(date,"Asia/Tokyo","yyyy");
   
   // 住宅控除の適用年数(西暦)
-  thirteenYearsAgoSeireki = date - 13;
+  thirteenYearsAgoSeireki = date - 15; // 住宅控除適用期間年数
 
   //住宅控除の適用年数(和暦)
   thirteenYearsAgoWareki = seirekiToWareki(thirteenYearsAgoSeireki);
@@ -738,7 +828,7 @@ function shiftToSeireki(year) {
   intThirteenYearsAgoWareki = parseInt(intThirteenYearsAgoWareki);
 
 
-  // この計算だと13年後に平成の選択肢が変わるので対応する必要有
+  // この計算だと15年後に平成の選択肢が変わるので対応する必要有?
   if(year < intThirteenYearsAgoWareki){
     var isReiwa = true;
     var reki = "令和";
@@ -812,59 +902,123 @@ var warekiToYear =  function(reki, year)
     else{return 0}
 };
 
-// 業務_入社
-function define_store_employee() {
+// 業務_入社_社員基本
+function define_store_employee_base() {
   const define = { 
-    'export_folder_id': '1wTNnVXEQsBbYLzXFpFHJagQ-83PSbKo_',
-    'export_file_name': 'store_employee.csv',
+    'export_folder_id': getProperties("obicExportCsvFolderId"), // OBIC出力CSV格納ディレクトリ
+    'export_file_name': getProperties("obicBaseCsvFileName"), // OBIC出力CSV格納ディレクトリファイル名
+  }
+  return define
+}
+// 業務_入社_住所
+function define_store_employee_address() {
+  const define = { 
+    'export_folder_id': getProperties("obicExportCsvFolderId"), // OBIC出力CSV格納ディレクトリ
+    'export_file_name': getProperties("obicAddressCsvFileName"), // OBIC出力CSV格納ディレクトリファイル名
+  }
+  return define
+}
+// 業務_入社_家族
+function define_store_employee_family() {
+  const define = { 
+    'export_folder_id': getProperties("obicExportCsvFolderId"), // OBIC出力CSV格納ディレクトリ
+    'export_file_name': getProperties("obicFamilyCsvFileName"), // OBIC出力CSV格納ディレクトリファイル名
+  }
+  return define
+}
+// 業務_入社_税表区分
+function define_store_employee_tax() {
+  const define = { 
+    'export_folder_id': getProperties("obicExportCsvFolderId"), // OBIC出力CSV格納ディレクトリ
+    'export_file_name': getProperties("obicTaxCsvFileName"), // OBIC出力CSV格納ディレクトリファイル名
+  }
+  return define
+}
+// 業務_入社_社会保険
+function define_store_employee_insurance() {
+  const define = { 
+    'export_folder_id': getProperties("obicExportCsvFolderId"), // OBIC出力CSV格納ディレクトリ
+    'export_file_name': getProperties("obicInsuranceCsvFileName"), // OBIC出力CSV格納ディレクトリファイル名
+  }
+  return define
+}
+// 業務_変更申請_社員基本
+function define_update_employee_base() {
+  const define = { 
+    'export_folder_id': getProperties("obicExportCsvFolderId"), // OBIC出力CSV格納ディレクトリ
+    'export_file_name': getProperties("obicBaseCsvFileName"), // OBIC出力CSV格納ディレクトリファイル名
   }
   return define
 }
 // 業務_変更申請_住所
-function define_update_address() {
+function define_update_employee_address() {
   const define = { 
-    'export_folder_id': '1Oc9Y6_nic-0Iuje0PCfpzZ_fHb7OYH93',
-    'export_file_name': 'update_employee_adress.csv',
-  }
-  return define
-}
-// 業務_変更申請_口座
-function define_update_bank() {
-  const define = { 
-    'export_folder_id': '1Oc9Y6_nic-0Iuje0PCfpzZ_fHb7OYH93',
-    'export_file_name': 'update_employee_bank.csv',
-  }
-  return define
-}
-// 業務_変更申請_氏名
-function define_update_name() {
-  const define = { 
-    'export_folder_id': '1Oc9Y6_nic-0Iuje0PCfpzZ_fHb7OYH93',
-    'export_file_name': 'update_employee_name.csv',
+    'export_folder_id': getProperties("obicExportCsvFolderId"), // OBIC出力CSV格納ディレクトリ
+    'export_file_name': getProperties("obicAddressCsvFileName"), // OBIC出力CSV格納ディレクトリファイル名
   }
   return define
 }
 // 業務_変更申請_家族
-function define_update_family() {
+function define_update_employee_family() {
   const define = { 
-    'export_folder_id': '1Oc9Y6_nic-0Iuje0PCfpzZ_fHb7OYH93',
-    'export_file_name': 'update_employee_family.csv',
+    'export_folder_id': getProperties("obicExportCsvFolderId"), // OBIC出力CSV格納ディレクトリ
+    'export_file_name': getProperties("obicFamilyCsvFileName"), // OBIC出力CSV格納ディレクトリファイル名
+  }
+  return define
+}
+// 業務_変更申請_税表区分
+function define_update_employee_tax() {
+  const define = { 
+    'export_folder_id': getProperties("obicExportCsvFolderId"), // OBIC出力CSV格納ディレクトリ
+    'export_file_name': getProperties("obicTaxCsvFileName"), // OBIC出力CSV格納ディレクトリファイル名
+  }
+  return define
+}
+// 業務_変更申請_社会保険
+function define_update_employee_insurance() {
+  const define = { 
+    'export_folder_id': getProperties("obicExportCsvFolderId"), // OBIC出力CSV格納ディレクトリ
+    'export_file_name': getProperties("obicInsuranceCsvFileName"), // OBIC出力CSV格納ディレクトリファイル名
   }
   return define
 }
 // 業務_発令_現職本務データ
 function define_announcement() {
   const define = { 
-    'import_folder_id': '1_Yc3q1b8ClYNbOW-orwejJTrfSlczhI8',
-    'import_file_name': 'announcement.csv',
+    'import_folder_id': getProperties("obicCsvFolderId"),
+    'import_file_name': getProperties("gensyokuHonmuCsv"),
   }
   return define
 }
-// 業務_発令_通勤手当
+// 業務_発令_通勤手当（公共）
 function define_travel_allowance() {
   const define = { 
-    'import_folder_id': '1_Yc3q1b8ClYNbOW-orwejJTrfSlczhI8',
-    'import_file_name': '通勤手当データ.csv',
+    'import_folder_id': getProperties("obicCsvFolderId"),
+    'import_file_name': getProperties("tsukinTeateCsv"),
+  }
+  return define
+}
+// 業務_発令_現職兼務
+function define_sub_business() {
+  const define = { 
+    'import_folder_id': getProperties("obicCsvFolderId"),
+    'import_file_name': getProperties("gensyokuKenmuCsv"),
+  }
+  return define
+}
+// 業務_発令_発令履歴兼務
+function define_proclamation_history() {
+  const define = { 
+    'import_folder_id': getProperties("obicCsvFolderId"),
+    'import_file_name': getProperties("hatsureiRirekiKenmuCsv"),
+  }
+  return define
+}
+// 業務_発令_本務経歴
+function define_main_hstory() {
+  const define = { 
+    'import_folder_id': getProperties("obicCsvFolderId"),
+    'import_file_name': getProperties("honmuKeirekiCsv"),
   }
   return define
 }
@@ -879,23 +1033,10 @@ function define_monthly_salary() {
 // 業務_源泉徴収票
 function define_tax_withoutholding() {
   const define = { 
-    // 環境毎に記載
-    'import_folder_id': '1Plhj8HpJIrSVosMUI16CJz-AOPc52Ki3',
-    'export_folder_id': '1jFcIoOSs8dma-athtCuG8cJtbWOF99Ls',
-    'import_file_name': 'OBIC_源泉徴収票_サンプル.csv',
-    'export_file_name': 'tax_withoutholding.csv',
-  }
-  return define
-}
-
-// 業務_年調・変動入力
-function define_year_end_adjustment() {
-  const define = { 
-    // 環境毎に記載
-    'import_folder_id': '1ZMVqgIfkFxsExpq7fk9UVOoRQdnHMB3E',
-    'export_folder_id': '1knHaYVdxwDF6V4-1HaC2_1FOM4qJAu7k',
-    'import_file_name': 'SHR_源泉徴収票_サンプル.csv',
-    'export_file_name': '年調変動入力OBIC取込.csv',
+    'import_folder_id': getProperties("obicCsvFolderId"), // OBIC出力CSV格納ディレクトリ
+    'import_file_name': getProperties("obicCsvFileName"), // OBIC出力CSV格納ディレクトリファイル名
+    'export_folder_id': getProperties("shrCsvFolderId"),　// SHR出力CSV格納ディレクトリ
+    'export_file_name': getProperties("shrCsvFileName"), // SHR出力CSV格納ディレクトリ
   }
   return define
 }
