@@ -1,4 +1,4 @@
-// 源泉徴収票データ取込処理
+// 源泉徴収票データ取込メイン処理
 function taxWithholding() {
 
   try{
