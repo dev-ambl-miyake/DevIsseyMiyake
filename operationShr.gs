@@ -134,7 +134,7 @@ function updateShrEmployee(id,processed_data,operation_type) {
     }
     // 項目（職種）の選択肢リストをループして選択肢IDを取得
     for (let i = 0; i <= bussiness_type_list.length; i++) {
-      if(bussiness_type_list[i]['name'] == processed_data[8]){
+      if(bussiness_type_list[i]['name'] == processed_data[9]){
         var bussiness_type_value_id = bussiness_type_list[i]['id']; // 選択肢ID
         break;
       }
@@ -154,7 +154,7 @@ function updateShrEmployee(id,processed_data,operation_type) {
     }
     // 項目（グレード）の選択肢リストをループして選択肢IDを取得
     for (let i = 0; i < grade_list.length; i++) {
-      if(grade_list[i]['name'] == processed_data[6]){
+      if(grade_list[i]['name'] == processed_data[7]){
         var grade_value_id = grade_list[i]['id']; // 選択肢ID
         break;
       }
@@ -186,7 +186,7 @@ function updateShrEmployee(id,processed_data,operation_type) {
     }
     // 項目（勤務地）の選択肢リストをループして選択肢IDを取得
     for (let i = 0; i < bussiness_locate_list.length; i++) {
-      if(bussiness_locate_list[i]['name'] == processed_data[14]){
+      if(bussiness_locate_list[i]['name'] == processed_data[15]){
         var bussiness_locate_value_id = bussiness_locate_list[i]['id']; // 選択肢ID
         break;
       }
@@ -197,8 +197,8 @@ function updateShrEmployee(id,processed_data,operation_type) {
     // 更新Json作成
     var payload = {
       'emp_code': processed_data[0], // 社員コード
-      "employment_type_id": processed_data[16], // 雇用形態 社員区分
-      'position': processed_data[12], // 役職
+      "employment_type_id": processed_data[17], // 雇用形態 社員区分
+      'position': processed_data[13], // 役職
       // 部署
       "custom_fields": [
         // 職種
@@ -214,7 +214,7 @@ function updateShrEmployee(id,processed_data,operation_type) {
         // レベル
         {
           "template_id": level_id,
-          "value": processed_data[10],
+          "value": processed_data[11],
         },
         // 勤務地
         {
@@ -695,23 +695,11 @@ function updateShrEmployee(id,processed_data,operation_type) {
     }
     var payload = JSON.stringify(payload);
   } else if(operation_type == 4){
-    if(processed_data[4] != ''){
-      // 氏名が空じゃないのであれば姓、名も送る
-      var payload = {
-        'emp_code': processed_data[0], // 社員コード
-        'monthly_standard_income_hel': processed_data[1], // 健康保険の標準報酬月額
-        'monthly_standard_income_updated_at': processed_data[2], // 標準報酬月額の改定年月
-        'monthly_standard_income_pns': processed_data[3], // 厚生年金の標準報酬月額
-        'last_name': processed_data[5], // 姓
-        'first_name': processed_data[6], // 名
-      }
-    }else{
-      var payload = {
-        'emp_code': processed_data[0], // 社員コード
-        'monthly_standard_income_hel': processed_data[1], // 健康保険の標準報酬月額
-        'monthly_standard_income_updated_at': processed_data[2], // 標準報酬月額の改定年月
-        'monthly_standard_income_pns': processed_data[3], // 厚生年金の標準報酬月額
-      }
+    var payload = {
+      'emp_code': processed_data[0], // 社員コード
+      'monthly_standard_income_hel': processed_data[1], // 健康保険の標準報酬月額
+      'monthly_standard_income_updated_at': processed_data[2], // 標準報酬月額の改定年月
+      'monthly_standard_income_pns': processed_data[3], // 厚生年金の標準報酬月額
     }
     var payload = JSON.stringify(payload);
   }

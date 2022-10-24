@@ -393,14 +393,6 @@ function processing_monthly_salary_data(csv_data) {
       var month = array[i][2].slice(-2); // 月の抽出
         array[i][2] = year + '/' + month + '/' + '01';
     }
-
-    // 社保FD用氏名（姓,名）
-    for (let i = 0; i < array.length; i++) {
-      if(array[i][4] != ''){
-        array[i][5] = array[i][4].split('　')[0]; // 姓
-        array[i][6] = array[i][4].split('　')[1]; // 名
-      }
-    }
   return array
 }
 // 源泉徴収票_インポートデータを出力用データ構造配列に加工
@@ -431,7 +423,7 @@ function processing_tax_withoutholding_data(csv_data) {
     // 文字加工
       // 社員コード（4桁→5桁）
       for (let i = 0; i < array.length; i++) {
-         array[i][0] = '="0'+ array[i][0] + '"';
+         array[i][0] = '0'+ array[i][0];
       }
 
       // 住所 (〒111-1111 東京都xxxxxxマンション名)
@@ -482,6 +474,20 @@ function processing_tax_withoutholding_data(csv_data) {
         }
       }
 
+      // 支払金額（SmartHRでは必須項目の為、空である場合、０を宣言）
+      for (let i = 0; i < array.length; i++) {
+        if(array[i][9] === ""){
+          array[i][9] = 0;
+        }
+      }
+
+      // 源泉徴収税額（SmartHRでは必須項目の為、空である場合、０を宣言）
+      for (let i = 0; i < array.length; i++) {
+        if(array[i][13] === ""){
+          array[i][13] = 0;
+        }
+      }
+
       // 中途区分(2:退職 1:就職)
       for (let i = 0; i < array.length; i++) {
         if(array[i][99] === '2'){
@@ -506,6 +512,82 @@ function processing_tax_withoutholding_data(csv_data) {
         }
       }
 
+      //（源泉）控除対象配偶者（有）
+      //（源泉）控除対象配偶者（従有）
+      // OBIC出力(源泉)控除対象配偶者の有無が3の場合SmartHRでは1、3以外の場合0
+      for (let i = 0; i < array.length; i++) {
+        if(array[i][15] == 3){
+          array[i][15] = 1;
+          array[i][111] = 1;
+        }else{
+          array[i][15] = 0;
+          array[i][111] = 0;
+        }
+      }
+
+      // （源泉・特別）控除対象配偶者（区分）
+      for (let i = 0; i < array.length; i++) {
+        if(array[i][62] == "00"){
+          array[i][62] = 0;
+        }
+      }
+
+      // 控除対象扶養親族（区分）1
+      for (let i = 0; i < array.length; i++) {
+        if(array[i][66] == "00"){
+          array[i][66] = 0;
+        }
+      }
+
+      // 控除対象扶養親族（区分）2
+      for (let i = 0; i < array.length; i++) {
+        if(array[i][69] == "00"){
+          array[i][69] = 0;
+        }
+      }
+
+      // 控除対象扶養親族（区分）3
+      for (let i = 0; i < array.length; i++) {
+        if(array[i][72] == "00"){
+          array[i][672] = 0;
+        }
+      }
+
+      // 控除対象扶養親族（区分）4
+      for (let i = 0; i < array.length; i++) {
+        if(array[i][75] == "00"){
+          array[i][75] = 0;
+        }
+      }
+
+      // 16歳未満の扶養親族（区分）1
+      for (let i = 0; i < array.length; i++) {
+        if(array[i][78] == "00"){
+          array[i][78] = 0;
+        }
+      }
+
+      // 16歳未満の扶養親族（区分）2
+      for (let i = 0; i < array.length; i++) {
+        if(array[i][81] == "00"){
+          array[i][81] = 0;
+        }
+      }
+
+      // 16歳未満の扶養親族（区分）3
+      for (let i = 0; i < array.length; i++) {
+        if(array[i][84] == "00"){
+          array[i][84] = 0;
+        }
+      }
+
+      // 16歳未満の扶養親族（区分）4
+      for (let i = 0; i < array.length; i++) {
+        if(array[i][87] == "00"){
+          array[i][87] = 0;
+        }
+      }
+
 
 
   // SmartHR取り込み用の順番に配列を並び替える
@@ -523,7 +605,7 @@ function processing_tax_withoutholding_data(csv_data) {
     elm[13], // 源泉徴収税額
     elm[14], // 未徴収税額
     elm[15], // (源泉)控除対象配偶者の有無
-    elm[0], // ※OBICではなし（源泉）控除対象配偶者（従有）
+    elm[111],  // ※OBICではなし（源泉）控除対象配偶者（従有）
     elm[16], // 老人控除対象配偶者
     elm[17], // 配偶者(特別)控除額
     elm[18], // 特定扶養人数 主

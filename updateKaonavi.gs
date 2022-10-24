@@ -1,6 +1,7 @@
 // 取得APIを取得
 const employees_api = kaonaviMemberApi(); // カオナビの全従業員情報API
 const member_list = employees_api['member_data']; // カオナビの全従業員情報リスト
+log(member_list,'s');
 
 const member_sheets_api = kaonaviMemberSheetsApi(); // カオナビの基本情報シート情報
 const member_custom_list = member_sheets_api['custom_fields']; // カオナビの基本情報シートカスタム項目リスト
@@ -75,7 +76,7 @@ function proclamationKaonaviMain() {
       }
     } 
     // カオナビ更新API
-    // kaonaviUpdateApi(member_data);
+    kaonaviUpdateApi(member_data);
     log('3. カオナビへのデータ更新’（現職本務）', 'e');
 
     // 3. カオナビへのデータ更新（通勤手当）
@@ -256,42 +257,34 @@ function makePayload(processed_data,member_custom_list,operation_type) {
   // 現職本務データ
   if(operation_type == 3.1){
     // カスタム項目のnameが雇用形態に一致するまでループしidを取得
-    if(processed_data[16] != ""){
-      for (let i = 0; i < member_custom_list.length; i++) {
-        if(member_custom_list[i]['name'] == '雇用形態'){
-          var employment_type_id = member_custom_list[i]['id'];
-          break;
-        }
+    for (let i = 0; i < member_custom_list.length; i++) {
+      if(member_custom_list[i]['name'] == '雇用形態'){
+        var employment_type_id = member_custom_list[i]['id'];
+        break;
       }
     }
 
     // カスタム項目のnameが職種に一致するまでループしidを取得
-    if(processed_data[16] != ""){
-      for (let i = 0; i < member_custom_list.length; i++) {
-        if(member_custom_list[i]['name'] == '職種'){
-          var bussiness_type_id = member_custom_list[i]['id'];
-          break;
-        }
+    for (let i = 0; i < member_custom_list.length; i++) {
+      if(member_custom_list[i]['name'] == '職種'){
+        var bussiness_type_id = member_custom_list[i]['id'];
+        break;
       }
     }
 
     // カスタム項目のnameが役職に一致するまでループしidを取得
-    if(processed_data[16] != ""){
-      for (let i = 0; i < member_custom_list.length; i++) {
-        if(member_custom_list[i]['name'] == '役職'){
-          var position_id = member_custom_list[i]['id'];
-          break;
-        }
+    for (let i = 0; i < member_custom_list.length; i++) {
+      if(member_custom_list[i]['name'] == '役職'){
+        var position_id = member_custom_list[i]['id'];
+        break;
       }
     }
 
     // カスタム項目のnameが勤務地に一致するまでループしidを取得
-    if(processed_data[16] != ""){
-      for (let i = 0; i < member_custom_list.length; i++) {
-        if(member_custom_list[i]['name'] == '勤務地'){
-          var bussiness_locate_id = member_custom_list[i]['id'];
-          break;
-        }
+    for (let i = 0; i < member_custom_list.length; i++) {
+      if(member_custom_list[i]['name'] == '勤務地'){
+        var bussiness_locate_id = member_custom_list[i]['id'];
+        break;
       }
     }
 
@@ -304,22 +297,22 @@ function makePayload(processed_data,member_custom_list,operation_type) {
           // 雇用形態
           {
             id: employment_type_id,
-            values: [processed_data[16]],
+            values: [processed_data[17]],
           },
           // 職種
           {
             id: bussiness_type_id,
-            values: [processed_data[8]],
+            values: [processed_data[9]],
           },
           // 役職
           {
             id: position_id,
-            values: [processed_data[12]],
+            values: [processed_data[13]],
           },
           // 勤務地
           {
             id: bussiness_locate_id,
-            values: [processed_data[14]],
+            values: [processed_data[15]],
           }
         ],
       }
