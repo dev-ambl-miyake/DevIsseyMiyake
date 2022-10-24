@@ -695,23 +695,11 @@ function updateShrEmployee(id,processed_data,operation_type) {
     }
     var payload = JSON.stringify(payload);
   } else if(operation_type == 4){
-    if(processed_data[4] != ''){
-      // 氏名が空じゃないのであれば姓、名も送る
-      var payload = {
-        'emp_code': processed_data[0], // 社員コード
-        'monthly_standard_income_hel': processed_data[1], // 健康保険の標準報酬月額
-        'monthly_standard_income_updated_at': processed_data[2], // 標準報酬月額の改定年月
-        'monthly_standard_income_pns': processed_data[3], // 厚生年金の標準報酬月額
-        'last_name': processed_data[5], // 姓
-        'first_name': processed_data[6], // 名
-      }
-    }else{
-      var payload = {
-        'emp_code': processed_data[0], // 社員コード
-        'monthly_standard_income_hel': processed_data[1], // 健康保険の標準報酬月額
-        'monthly_standard_income_updated_at': processed_data[2], // 標準報酬月額の改定年月
-        'monthly_standard_income_pns': processed_data[3], // 厚生年金の標準報酬月額
-      }
+    var payload = {
+      'emp_code': processed_data[0], // 社員コード
+      'monthly_standard_income_hel': processed_data[1], // 健康保険の標準報酬月額
+      'monthly_standard_income_updated_at': processed_data[2], // 標準報酬月額の改定年月
+      'monthly_standard_income_pns': processed_data[3], // 厚生年金の標準報酬月額
     }
     var payload = JSON.stringify(payload);
   }

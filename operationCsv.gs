@@ -393,14 +393,6 @@ function processing_monthly_salary_data(csv_data) {
       var month = array[i][2].slice(-2); // 月の抽出
         array[i][2] = year + '/' + month + '/' + '01';
     }
-
-    // 社保FD用氏名（姓,名）
-    for (let i = 0; i < array.length; i++) {
-      if(array[i][4] != ''){
-        array[i][5] = array[i][4].split('　')[0]; // 姓
-        array[i][6] = array[i][4].split('　')[1]; // 名
-      }
-    }
   return array
 }
 // 源泉徴収票_インポートデータを出力用データ構造配列に加工
