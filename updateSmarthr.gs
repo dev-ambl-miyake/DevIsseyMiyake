@@ -77,6 +77,18 @@ function changeDataToSHR(csv_data,operation_type) {
     for (let i = 0; i < csv_data.length; i++) {
       csv_data[i][0] = '0'+ csv_data[i][0];
     }
+
+    // 職種 (「総合職」「販売職」「専門職」に加工)
+    for (let i = 0; i < csv_data.length; i++) {
+      csv_data[i][9] = csv_data[i][9].substring(0, 3);
+      if(csv_data[i][9] == '(総)'){
+        csv_data[i][9] = '総合職';
+      } else if('(販)'){
+        csv_data[i][9] = '販売職';
+      } else if('(専)'){
+        csv_data[i][9] = '専門職';
+      }
+    }
   }else if(operation_type == 3.2){
     // csv_data.shift(); //見出し行の削除
     // 文字加工

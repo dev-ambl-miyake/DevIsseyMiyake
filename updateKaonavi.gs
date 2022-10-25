@@ -1,18 +1,6 @@
-// 取得APIを取得
-const employees_api = kaonaviMemberApi(); // カオナビの全従業員情報API
-const member_list = employees_api['member_data']; // カオナビの全従業員情報リスト
-log(member_list,'s');
-
-const member_sheets_api = kaonaviMemberSheetsApi(); // カオナビの基本情報シート情報
-const member_custom_list = member_sheets_api['custom_fields']; // カオナビの基本情報シートカスタム項目リスト
-
-const sheets_api = kaonaviSheetsApi(); // カオナビの全シート情報
-const sheets_list = sheets_api['sheets']; // カオナビの全シート情報
-
-
 // 発令（カオナビ）メイン処理
 function proclamationKaonaviMain() {
-  try{
+  // try{
     var work = '発令(カオナビ更新)';
     // 開始ログ
     log(work, 's');
@@ -53,7 +41,7 @@ function proclamationKaonaviMain() {
 
     let kaonavi_data = changeDataToKaonavi(csv_announcement, operation_type = 3.1);
     let kaonavi_tsukin_data = changeDataToKaonavi(csv_travel_allowance, operation_type = 3.2);
-    // let kaonavi_kenmu_data = changeDataToSHR(csv_travel_allowance, operation_type = 3.2);
+    let kaonavi_kenmu_data = changeDataToKaonavi(csv_sub_business, operation_type = 3.3);
     log('2. CSVファイルより対象データ取得', 'e');
 
     // 3. カオナビへのデータ更新’（現職本務）
@@ -79,6 +67,8 @@ function proclamationKaonaviMain() {
     kaonaviUpdateApi(member_data);
     log('3. カオナビへのデータ更新’（現職本務）', 'e');
 
+
+
     // 3. カオナビへのデータ更新（通勤手当）
     log('3. カオナビへのデータ更新（通勤手当）', 's');
     for (let i = 0; i < kaonavi_tsukin_data.length; i++) {
@@ -99,26 +89,73 @@ function proclamationKaonaviMain() {
       }
     }
     // カオナビシート更新API
-    kaonaviSheetsUpdateApi(sheets_id,member_traffic_data);
+    // kaonaviSheetsUpdateApi(sheets_id,member_traffic_data);
     log('3. カオナビへのデータ更新（通勤手当）', 'e');
+
+
 
     // 3. カオナビへのデータ更新（兼務）
     log('3. カオナビへのデータ更新（兼務）', 's');
-    for (let i = 0; i < kaonavi_tsukin_data.length; i++) {
-      callShrApi(kaonavi_tsukin_data[i],operation_type = 3.2);
-    } 
+    // ループで各従業員の更新JSONを作成し、連結する
+    for (let i = 0; i < kaonavi_data.length; i++) {
+      console.log(kaonavi_data);
+      // 現職本務データループ中に現職兼務をループして、兼務情報を取得
+      // 兼務情報をループ
+      var count = 0;
+      for (let n = 0; i < kaonavi_kenmu_data.length; n++) {
+        if(typeof kaonavi_kenmu_data[n] == "undefined"){
+          break;
+        }
+        // console.log(count);
+        // 現職本務の1レコードと社員番号が一致するか、一致してたらカウント
+        if(kaonavi_kenmu_data[n][5] == ''){
+          continue;
+        }
+        else if(kaonavi_data[i][0] == kaonavi_kenmu_data[n][0] && count == 0){
+          kaonavi_data[i][21] = kaonavi_kenmu_data[n][5]; // 兼務2
+          count = count + 1;
+        }
+        else if(kaonavi_data[i] == kaonavi_kenmu_data[n][0] && count == 1){
+          kaonavi_data[i][22] = kaonavi_kenmu_data[n][5]; // 兼務3
+          count = count + 1;
+        }
+        else if(kaonavi_data[i] == kaonavi_kenmu_data[n][0] && count == 2){
+          kaonavi_data[i][23] = kaonavi_kenmu_data[n][5]; // 兼務4
+          count = count + 1;
+          break;
+        }
+      }
+      
+      console.log(kaonavi_data[i]);
+
+        // // 更新JSONを作成
+        // var payload = makePayload(kaonavi_data[i],member_custom_list,operation_type = 3.1);
+
+        // // 連想配列(object)をJSON文字列に変換
+        // var payload = JSON.stringify(payload);
+
+        // // 各従業員の連想配列（JSON文字列）を連結させる
+        // if(typeof member_data == "undefined"){
+        //   var member_data = payload;
+        // } else {
+        //   member_data = member_data + ',' + payload;
+        // }
+    }
+    throw new Error('a');
+    // カオナビ更新API
+    kaonaviUpdateApi(member_data);
     log('3. カオナビへのデータ更新（兼務）', 'e');
 
     // 成功メールを送信
     sendMail(work);
-  }catch(e){
-    // メール本文に記載するエラー内容
-    var error_message = 'エラー内容：'+e.message;
-    // 失敗メールを送信
-    sendMail(work,error_message);
-    // 終了ログ
-    log('発令' + 'エラー内容：'+e.message, 'e');
-  }
+  // }catch(e){
+  //   // メール本文に記載するエラー内容
+  //   var error_message = 'エラー内容：'+e.message;
+  //   // 失敗メールを送信
+  //   sendMail(work,error_message);
+  //   // 終了ログ
+  //   log('発令' + 'エラー内容：'+e.message, 'e');
+  // }
 }
 
 /**
@@ -134,6 +171,18 @@ function changeDataToKaonavi(csv_data,operation_type) {
     // 社員コード（4桁→5桁）
     for (let i = 0; i < csv_data.length; i++) {
       csv_data[i][0] = '0'+ csv_data[i][0];
+    }
+
+    // 職種 (「総合職」「販売職」「専門職」に加工)
+    for (let i = 0; i < csv_data.length; i++) {
+      csv_data[i][9] = csv_data[i][9].substring(0, 3);
+      if(csv_data[i][9] == '(総)'){
+        csv_data[i][9] = '総合職';
+      } else if('(販)'){
+        csv_data[i][9] = '販売職';
+      } else if('(専)'){
+        csv_data[i][9] = '専門職';
+      }
     }
 
   }else if(operation_type == 3.2){
@@ -158,7 +207,6 @@ function changeDataToKaonavi(csv_data,operation_type) {
 
           // 社員番号が一致しているレコード && 同じ要素番号を比較していない && カウント
         } else if(csv_data[i][1] == csv_data[n][1] && csv_data.indexOf(csv_data[i]) != csv_data.indexOf(csv_data[n]) && count == 1){
-          console.log(csv_data);
           // 2回目に一致した時に通勤経路3に値を格納
           csv_data[i][27] = csv_data[n][18]; //通勤経路3_交通機関
           csv_data[i][38] = csv_data[n][19]; //通勤経路3_（発）利用駅
@@ -191,6 +239,12 @@ function changeDataToKaonavi(csv_data,operation_type) {
     for (let i = 0; i < csv_data.length; i++) {
       csv_data[i][1] = '0'+ csv_data[i][1];
     }
+  }else if(operation_type == 3.3){
+    // 文字加工
+    // 社員コード（4桁→5桁）
+    for (let i = 0; i < csv_data.length; i++) {
+      csv_data[i][0] = '0'+ csv_data[i][0];
+    }
   }
 
     return csv_data
@@ -219,26 +273,6 @@ function matchEmpCode(emp_code,member_list) {
     throw new Error("カオナビに該当のIDが見つかりませんでした。");
   }
   return id;
-}
-
-/**
- * カオナビのシートIDを取得する
- * @param {string} sheets_name  シート名
- * @return {string} sheets_id カオナビシートID
- */
-function matchSheets(sheets_name) {
-  // カオナビの全従業員情報jsonをループ
-  for (let i = 0; i < sheets_list.length; i++) {
-    if(sheets_name == sheets_list[i]['name']){
-      // カオナビ固有ID
-      var sheets_id = sheets_list[i]['id'];
-      break;
-    }
-  }
-  if(typeof sheets_id == "undefined"){
-    throw new Error("カオナビに該当のシートIDが見つかりませんでした。");
-  }
-  return sheets_id;
 }
 
 
@@ -288,10 +322,26 @@ function makePayload(processed_data,member_custom_list,operation_type) {
       }
     }
 
+    //　本務取得
+    for (let i = 0; i < department_list.length; i++) {
+      if(department_list[i]['name'] == processed_data[3]){
+        var department_code = department_list[i]['code'];
+      }
+    }
+
     // 更新Json作成
     var payload =
       {
         code: processed_data[0], // 社員コード
+        // 本務部署
+        department: 
+          // 雇用形態
+          {
+            code: department_code,
+          },
+        sub_departments : [{
+          code: "0207030"
+        }],
         // カスタム項目
         custom_fields: [
           // 雇用形態
@@ -802,358 +852,3 @@ function makePayload(processed_data,member_custom_list,operation_type) {
   }
   return payload;
 }
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-// function kaonaviMain() {
-//   let folderId = "1_Yc3q1b8ClYNbOW-orwejJTrfSlczhI8";
-//   //ファイル名一覧
-//   let regular_business = "announcement.csv";//現職本務
-//   let sub_business = "現職兼務データ.csv";//現職兼務
-//   let regular_business_history = "本務経歴データ.csv";//本務経歴
-//   let sub_business_history = "発令履歴兼務データ.csv";//兼務履歴
-//   let travel_allowance = "通勤手当データ.csv";//通勤手当
-
-
-//   //ファイルが存在する場合のみ実行
-//   if(commonFunction.checkExistFile(folderId, regular_business) && commonFunction.checkExistFile(folderId, travel_allowance)) {
-//     let csv_regular_business = commonFunction.import_csv(operation_type = 3.1)//現職本務データ取得
-//     let csv_travel_allowance = commonFunction.import_csv(operation_type = 3.2)//通勤手当データ取得
-//     let csv_sub_business = commonFunction.import_csv(operation_type = 3.3)//現職兼務データ取得
-
-//     //csvにデータが存在する場合のみ実行
-//     if(csv_regular_business.length > 0){
-//       let kaonavi_data = changeDataToKaonavi(csv_regular_business, csv_travel_allowance);
-
-//       updateKaonavi(kaonavi_data);
-
-//     }
-//   }
-// }
-
-// function changeDataToKaonavi2(csv_regular_business, csv_travel_allowance) {
-  
-//   let kaonavi_data = [];
-
-//   try {
-
-//     for(let i = 0; i < csv_regular_business.length; i++) {
-
-//       let data = [
-//         ("00000" + csv_regular_business[i][0]).slice(-5),//職種　社員コード 5桁に変換
-//         csv_regular_business[i][16],//雇用形態　社員区分
-//         csv_regular_business[i][8],//職種
-//         csv_regular_business[i][2],//所属名階層あり
-//         csv_regular_business[i][12],//役職 
-//         csv_regular_business[i][6],//グレード
-//         csv_regular_business[i][10],//レベル
-//         csv_regular_business[i][19],//退職日
-//         csv_regular_business[i][14],//勤務地
-//         //採用地 現在obic資料にも存在しません
-//         //採用時職種　現在obic資料にも存在しません
-//         //配属開始日　発令日
-//         //配属終了日　最新の発令日の一日前
-//         //本務所属履歴
-//         //本務役職履歴
-//         //兼務所属履歴1
-//         //兼務役職履歴1
-//         //兼務所属履歴2
-//         //兼務役職履歴2
-//         //兼務所属履歴3
-//         //兼務役職履歴3
-//         //兼務所属履歴4
-//         //兼務役職履歴4
-//         //配属開始日
-//         //配属終了日
-//         //所属履歴
-//         //兼務所属履歴1
-//         //兼務所属履歴2
-//         //兼務所属履歴3
-//         //兼務所属履歴4
-//         //役職開始日
-//         //役職終了日
-//         //役職履歴
-//         //兼務役職履歴1
-//         //兼務役職履歴2
-//         //兼務役職履歴3
-//         //兼務役職履歴4
-//         //発令日
-//         //終了日
-//         //グレード履歴
-//         //レベル履歴
-//         //発令日
-//         //終了日
-//         //休職事由
-//         //発令名
-//         //給与計
-//         //G給
-//         //貢献調整給
-//         //役職給 
-//       ]
-
-//       for(let m = 0; m < csv_travel_allowance.length; m++) {
-//         //同じ社員番号のデータを取得
-//         if(csv_travel_allowance[m][1] === csv_regular_business[i][0]) {
-//           data.push(csv_travel_allowance[m][18])//交通機関1
-//           data.push(csv_travel_allowance[m][19])//(発)利用駅1
-//           data.push(csv_travel_allowance[m][20])//(経由)利用駅1
-//           data.push(csv_travel_allowance[m][21])//(着)利用駅1
-//           data.push(csv_travel_allowance[m][9])//定期券金額1
-//           data.push(csv_travel_allowance[m][22])//備考1
-//           //交通機関2
-//           //(発)利用駅2
-//           //(経由)利用駅2
-//           //(着)利用駅2
-//           //定期券金額2
-//           //備考2
-//           //交通機関3
-//           //(発)利用駅3
-//           //(経由)利用駅3
-//           //(着)利用駅3
-//           //定期券金額3
-//           //備考3
-//           //交通機関3
-//           //(発)利用駅4
-//           //(経由)利用駅4
-//           //(着)利用駅4
-//           //定期券金額4
-//           //備考4
-//         }
-//       }
-
-//       kaonavi_data.push(data);
-
-//     }
-//     return kaonavi_data
-
-//   } catch(e) {
-
-//   }
-// }
-
-// function updateKaonavi(kaonavi_data) {
-
-
-
-
-
-
-
-//   try{
-//     // 開始ログ
-//     commonFunction.log('更新カオナビ連携登録', 's');
-
-//     //基本情報
-//     let basicInfoList = [];
-//     //データを作成 
-//     for(let i = 0; i < kaonavi_data.length; i++) {
-      
-//       //基本情報
-//       let inputDataBasicInfo = {
-//         "code" : kaonavi_data[i][0],//社員番号
-//         "department" : {
-//           "name" : kaonavi_data[i][3]//所属名
-//         },
-//         "retired_date" : kaonavi_data[i][6],//退職日
-//         "custom_fields" : [
-//           {
-//             "id": 5533,
-//             "values" : [
-//               kaonavi_data[i][1]//雇用形態
-//             ]
-//           },
-//           {
-//             "id": 5534,
-//             "values" : [
-//               kaonavi_data[i][2]//職種
-//             ]
-//           },
-//           {
-//             "id": 5532,
-//             "values" : [
-//               kaonavi_data[i][4]//役職
-//             ]
-//           },
-//           {
-//             "id": 5535,
-//             "values" : [
-//               kaonavi_data[i][8]//勤務地
-//             ]
-//           }
-//         ]
-//       }
-//       basicInfoList.push(inputDataBasicInfo)
-//     }
-//     //通勤手当
-//     let travelList = [];
-//     //データを作成 
-//     for(let i = 0; i < kaonavi_data.length; i++) {
-      
-//       //基本情報
-//       let inputDatatravel = {
-//         "code" : kaonavi_data[i][0],//社員番号
-//         "records": [
-//           {
-//             "custom_fields" : [
-//               {
-//                 "id": 5637,
-//                 "values" : [
-//                   kaonavi_data[i][0]//社員番号
-//                 ]
-//               },
-//               {
-//                 "id": 5638,
-//                 "values" : [
-//                   kaonavi_data[i][9]//交通機関1
-//                 ]
-//               },
-//               {
-//                 "id": 5639,
-//                 "values" : [
-//                   kaonavi_data[i][10]//（発）利用駅
-//                 ]
-//               },
-//               {
-//                 "id": 5640,
-//                 "values" : [
-//                   kaonavi_data[i][11]//（経由）利用駅1
-//                 ]
-//               },
-//              {
-//                 "id": 5641,
-//                 "values" : [
-//                   kaonavi_data[i][12]//（着）利用駅1
-//                ]
-//               },
-//               {
-//                 "id": 5642,
-//                 "values" : [
-//                   kaonavi_data[i][13]//定期券金額1
-//                ]
-//               },
-//               {
-//                 "id": 5643,
-//                 "values" : [
-//                   kaonavi_data[i][14]//備考1
-//                ]
-//               }
-//             ]
-//           }
-//         ]
-//       }
-//       travelList.push(inputDatatravel)
-//     }  
-
-//     let json = api(basicInfoList, 0);
-//     let json1 = api(travelList, 2);
-    
-//     //終了ログ
-//     commonFunction.log('更新カオナビ連携登録', 'e')
-//   }catch(e) {
-//   }
-// }
-
-// /**
-//  * @param {string} status 0:基本情報 1:現住所 2:通勤経路
-//  */
-// function api(list, status) {
-
-//   const sheetsid_adress = "2078";//現住所シートID
-//   const sheetsid_travel = "2088";//通勤経路
-
-//   const token = commonFunction.getToken();
-
-//   let member_data = {
-//     "member_data" : list
-//   }
-
-//   //APIに必要な情報
-//   let apiOptions = {
-//     'headers' : {
-//       'Kaonavi-Token' : token["access_token"],
-//       'Content-Type': 'application/json'
-//     },
-//     'payload': JSON.stringify(member_data),
-//     'method': 'patch',
-//     'muteHttpExceptions' : true
-//   }
-  
-//   if(status === 0) {
-//     //APIからの返答
-//     let json = JSON.parse(UrlFetchApp.fetch('https://api.kaonavi.jp/api/v2.0/members', apiOptions).getContentText())
-//     return json
-//   }else if(status === 1){
-//     //APIからの返答
-//     let json = JSON.parse(UrlFetchApp.fetch('https://api.kaonavi.jp/api/v2.0/sheets/' + sheetsid_adress, apiOptions).getContentText())
-//     return json
-//   }else if(status === 2){
-//     //APIからの返答
-//     let json = JSON.parse(UrlFetchApp.fetch('https://api.kaonavi.jp/api/v2.0/sheets/' + sheetsid_travel, apiOptions).getContentText())
-//     return json
-//   }
-// }
-
-//       //現住所シート
-//       let inputPresentAddressData = {
-//         "code" : changedDate[i].code,
-//         "records" : [
-//           {
-//             "custom_fields" : [
-//               {
-//                 "id" : 5537,
-//                 "values": [
-//                   changedDate[i].presentAddress_postalCode
-//                 ]
-//               },
-//               {
-//                 "id" : 5538,
-//                 "values": [
-//                   changedDate[i].presentAddress_prefectures
-//                 ]
-//               },
-//               {
-//                 "id" : 5539,
-//                 "values": [
-//                   changedDate[i].presentAddress_municipalities
-//                 ]
-//               },
-//               {
-//                 "id" : 5540,
-//                 "values": [
-//                   changedDate[i].presentAddress_houseNumber
-//                 ]
-//               },
-//               {
-//                 "id" : 5541,
-//                 "values": [
-//                   changedDate[i].presentAddress_roomNumber
-//                 ]
-//               },
-//               {
-//                 "id" : 5542,
-//                 "values": [
-//                   changedDate[i].pressentAddress_countryCode
-//                 ]
-//               }
-//             ]
-//           }
-//         ]
-//       }

@@ -1,7 +1,21 @@
+// 取得APIを取得
+const employees_api = kaonaviMemberApi(); // カオナビの全従業員情報API
+const member_list = employees_api['member_data']; // カオナビの全従業員情報リスト
+
+const department_api = kaonaviDepartmentApi(); // カオナビの所属ツリーAPI
+const department_list = department_api['department_data']; // カオナビの所属ツリーAPI
+
+const member_sheets_api = kaonaviMemberSheetsApi(); // カオナビの基本情報シート情報
+const member_custom_list = member_sheets_api['custom_fields']; // カオナビの基本情報シートカスタム項目リスト
+
+const sheets_api = kaonaviSheetsApi(); // カオナビの全シート情報
+const sheets_list = sheets_api['sheets']; // カオナビの全シート情報
+
+
 // カオナビから取得したアクセストークン情報一式を返す
 function getToken() {
-  const consumerKey = getProperties("localConsumerKey");;        //指定のconsumerKey
-  const consumerSecret = getProperties("localConsumerSecret");;  //指定のcunsumerSecret
+  const consumerKey = getProperties("localConsumerKey");        //指定のconsumerKey
+  const consumerSecret = getProperties("localConsumerSecret");  //指定のcunsumerSecret
 
   const credentials = Utilities.base64Encode(`${consumerKey}:${consumerSecret}`, Utilities.Charset.UTF_8);
 
@@ -31,6 +45,30 @@ function kaonaviMemberApi() {
 
   const token = getToken();
   var apiUrl = 'https://api.kaonavi.jp/api/v2.0/members';
+
+  //APIに必要な情報(全従業員情報取得)
+  var apiOptions = {
+    headers : {
+      'Kaonavi-Token' : token["access_token"],
+      'Content-Type': 'application/json'
+    },
+    method : 'get'
+  };
+
+  //APIからの返答
+  let response = UrlFetchApp.fetch(apiUrl, apiOptions).getContentText();
+
+  let json = JSON.parse(response);
+  return json;
+}
+
+/**
+ * カオナビの所属ツリーデータの取得
+ */
+function kaonaviDepartmentApi() {
+
+  const token = getToken();
+  var apiUrl = 'https://api.kaonavi.jp/api/v2.0/departments';
 
   //APIに必要な情報(全従業員情報取得)
   var apiOptions = {
@@ -117,7 +155,6 @@ function kaonaviTaskApi() {
   //APIからの返答
   let response = UrlFetchApp.fetch(apiUrl, apiOptions).getContentText();
   let json = JSON.parse(response);
-  console.log(json);
   return json;
 }
 
@@ -151,9 +188,9 @@ function kaonaviUpdateApi(member_data) {
     muteHttpExceptions : true,
   };
 
+
   //APIからの返答
   let response = UrlFetchApp.fetch(apiUrl, apiOptions).getContentText();
-
   log('response = '+ response, 'e'); // レスポンスをログに出力
 }
 
@@ -165,7 +202,6 @@ function kaonaviUpdateApi(member_data) {
 function kaonaviSheetsUpdateApi(sheets_id,member_data) {
 
   const token = getToken();
-  console.log(sheets_id);
   var apiUrl = `https://api.kaonavi.jp/api/v2.0/sheets/${sheets_id}`;
   
   var payload = {}; // 連想配列宣言
@@ -179,7 +215,6 @@ function kaonaviSheetsUpdateApi(sheets_id,member_data) {
   payload = JSON.stringify(payload);
   payload = JSON.parse(payload);
 
-  console.log(payload);
 
   //APIに必要な情報(全従業員情報取得)
   var apiOptions = {
@@ -194,6 +229,25 @@ function kaonaviSheetsUpdateApi(sheets_id,member_data) {
 
   //APIからの返答
   let response = UrlFetchApp.fetch(apiUrl, apiOptions).getContentText();
-  console.log('response = '+ response, 'e'); // レスポンスをログに出力
   log('response = '+ response, 'e'); // レスポンスをログに出力
+}
+
+/**
+ * カオナビのシートIDを取得する
+ * @param {string} sheets_name  シート名
+ * @return {string} sheets_id カオナビシートID
+ */
+function matchSheets(sheets_name) {
+  // カオナビの全従業員情報jsonをループ
+  for (let i = 0; i < sheets_list.length; i++) {
+    if(sheets_name == sheets_list[i]['name']){
+      // カオナビ固有ID
+      var sheets_id = sheets_list[i]['id'];
+      break;
+    }
+  }
+  if(typeof sheets_id == "undefined"){
+    throw new Error("カオナビに該当のシートIDが見つかりませんでした。");
+  }
+  return sheets_id;
 }

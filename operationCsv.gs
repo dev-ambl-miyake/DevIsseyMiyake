@@ -549,7 +549,7 @@ function processing_tax_withoutholding_data(csv_data) {
       // 控除対象扶養親族（区分）3
       for (let i = 0; i < array.length; i++) {
         if(array[i][72] == "00"){
-          array[i][672] = 0;
+          array[i][72] = 0;
         }
       }
 
