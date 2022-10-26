@@ -98,49 +98,54 @@ function proclamationKaonaviMain() {
     log('3. カオナビへのデータ更新（兼務）', 's');
     // ループで各従業員の更新JSONを作成し、連結する
     for (let i = 0; i < kaonavi_data.length; i++) {
-      console.log(kaonavi_data);
       // 現職本務データループ中に現職兼務をループして、兼務情報を取得
       // 兼務情報をループ
       var count = 0;
-      for (let n = 0; i < kaonavi_kenmu_data.length; n++) {
-        if(typeof kaonavi_kenmu_data[n] == "undefined"){
-          break;
-        }
-        // console.log(count);
+      labelIn:
+      for (let n = 0; n < kaonavi_kenmu_data.length; n++) {
         // 現職本務の1レコードと社員番号が一致するか、一致してたらカウント
         if(kaonavi_kenmu_data[n][5] == ''){
-          continue;
+          continue labelIn;
         }
-        else if(kaonavi_data[i][0] == kaonavi_kenmu_data[n][0] && count == 0){
+        
+        if(kaonavi_data[i][0] == kaonavi_kenmu_data[n][0] && count == 0){
           kaonavi_data[i][21] = kaonavi_kenmu_data[n][5]; // 兼務2
           count = count + 1;
         }
-        else if(kaonavi_data[i] == kaonavi_kenmu_data[n][0] && count == 1){
+        else if(kaonavi_data[i][0] == kaonavi_kenmu_data[n][0] && count == 1){
           kaonavi_data[i][22] = kaonavi_kenmu_data[n][5]; // 兼務3
           count = count + 1;
         }
-        else if(kaonavi_data[i] == kaonavi_kenmu_data[n][0] && count == 2){
+        else if(kaonavi_data[i][0] == kaonavi_kenmu_data[n][0] && count == 2){
           kaonavi_data[i][23] = kaonavi_kenmu_data[n][5]; // 兼務4
           count = count + 1;
           break;
         }
       }
-      
-      console.log(kaonavi_data[i]);
-
-        // // 更新JSONを作成
-        // var payload = makePayload(kaonavi_data[i],member_custom_list,operation_type = 3.1);
-
-        // // 連想配列(object)をJSON文字列に変換
-        // var payload = JSON.stringify(payload);
-
-        // // 各従業員の連想配列（JSON文字列）を連結させる
-        // if(typeof member_data == "undefined"){
-        //   var member_data = payload;
-        // } else {
-        //   member_data = member_data + ',' + payload;
-        // }
     }
+    for (let i = 0; i < kaonavi_data.length; i++) {
+      // 更新JSONを作成
+      var payload = makePayload(kaonavi_tsukin_data[i],member_custom_list,operation_type = 3.3);
+
+      // 兼務情報が一つもないならスキップ
+      if(payload == null){
+        continue;
+      }
+
+      // 連想配列(object)をJSON文字列に変換
+      var payload = JSON.stringify(payload);
+
+      // 各従業員の連想配列（JSON文字列）を連結させる
+      if(typeof member_data == "undefined"){
+        var member_data = payload;
+      } else {
+        member_data = member_data + ',' + payload;
+      }
+    }
+    console.log(kaonavi_data);
+    // カオナビ更新API
+    kaonaviUpdateApi(member_data);
+
     throw new Error('a');
     // カオナビ更新API
     kaonaviUpdateApi(member_data);
@@ -849,6 +854,73 @@ function makePayload(processed_data,member_custom_list,operation_type) {
           }
         ]
       }
+  }// 所属データ
+  else if(operation_type == 3.3){
+    // 兼務情報が一つもない場合
+    if(typeof processed_data[21] == "undefined"){
+      var count = 0;
+    } else {
+      var count = 1;
+    }
+
+    // 兼務情報が一つの場合
+    if(typeof processed_data[22] == "undefined"){
+      var count = 1;
+    } else {
+      var count = 2;
+    }
+
+    // 兼務情報が一つの場合
+    if(typeof processed_data[23] == "undefined"){
+      var count = 2;
+    } else {
+      var count = 3;
+    }
+
+    if(count == 0){
+      return null;
+    } else if(count == 1) {
+      // 兼務が一つの更新Json作成
+      var payload =
+      {
+        code: processed_data[0], // 社員コード
+        // 兼務部署
+        sub_departments : [{
+          code: "0207030"
+        }],
+      }
+    } else if(count == 2) {
+      // 兼務が二つの更新Json作成
+      var payload =
+      {
+        code: processed_data[0], // 社員コード
+        // 兼務部署
+        sub_departments : [{
+          code: "0207030"
+        },
+        {
+          code: "0207030"
+        }
+        ],
+      }
+    } else if(count == 3) {
+      // 兼務が二つの更新Json作成
+      var payload =
+      {
+        code: processed_data[0], // 社員コード
+        // 兼務部署
+        sub_departments : [{
+          code: "0207030"
+        },
+        {
+          code: "0207030"
+        },
+        {
+          code: "0207030"
+        }
+        ],
+      }
+    }
   }
   return payload;
 }
