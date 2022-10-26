@@ -10,12 +10,12 @@ function createCSV() {
     // 開始ログ
     log('入社_OBIC連携登録', 's');
 
-    const employeeIdList = createIdList();
+    const employeeIdList = createObicIdList();
     if(!employeeIdList) {
       return
     }
 
-    const memberData = createEmployeeList(employeeIdList);
+    const memberData = createObicEmployeeList(employeeIdList);
 
     let baseDataList = [];
     let addressDataList = [];
@@ -275,7 +275,8 @@ function createCSV() {
 }
 
 // 社員番号を照合し、連携登録対象の社員ID一覧データ配列を生成する
-function createIdList() {
+function createObicIdList() {
+  console.log("OBIC側のcreateIdListが呼ばれました。");
   try{
     // 社員番号入力シートに入力された従業員番号を取得する
     let ss = SpreadsheetApp.getActive();
@@ -322,7 +323,7 @@ function createIdList() {
 }
 
 // SmartHR_APIより社員IDを用いて社員情報を取得し、社員情報一覧配列データを生成する
-function createEmployeeList(idList) {
+function createObicEmployeeList(idList) {
     // SmartHR_API 環境値
     const AccessToken = getProperties("ACCESS_TOKEN")  //smartHRのアクセストークン
     const SubDomain = getProperties("SUB_DOMAIN")  //smartHRのサブドメイン

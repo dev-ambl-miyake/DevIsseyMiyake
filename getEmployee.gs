@@ -39,6 +39,7 @@ function getEmployee() {
 
     // 終了ログ
     log('履歴データ作成', 'e');
+    SpreadsheetApp.getUi().alert("履歴データの作成が正常に完了しました。");
   }catch(e) {
     // SpreadsheetApp.getUi().alert("履歴データ作成中にエラーが発生しました。");
     SpreadsheetApp.getUi().alert(e.message);
