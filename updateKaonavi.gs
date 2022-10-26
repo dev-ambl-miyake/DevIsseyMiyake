@@ -1,6 +1,6 @@
 // 発令（カオナビ）メイン処理
 function proclamationKaonaviMain() {
-  // try{
+  try{
     var work = '発令(カオナビ更新)';
     // 開始ログ
     log(work, 's');
@@ -89,7 +89,7 @@ function proclamationKaonaviMain() {
       }
     }
     // カオナビシート更新API
-    // kaonaviSheetsUpdateApi(sheets_id,member_traffic_data);
+    kaonaviSheetsUpdateApi(sheets_id,member_traffic_data);
     log('3. カオナビへのデータ更新（通勤手当）', 'e');
 
 
@@ -119,48 +119,49 @@ function proclamationKaonaviMain() {
         else if(kaonavi_data[i][0] == kaonavi_kenmu_data[n][0] && count == 2){
           kaonavi_data[i][23] = kaonavi_kenmu_data[n][5]; // 兼務4
           count = count + 1;
+        }
+        else if(kaonavi_data[i][0] == kaonavi_kenmu_data[n][0] && count == 3){
+          kaonavi_data[i][24] = kaonavi_kenmu_data[n][5]; // 兼務4
+          count = count + 1;
           break;
         }
       }
     }
     for (let i = 0; i < kaonavi_data.length; i++) {
       // 更新JSONを作成
-      var payload = makePayload(kaonavi_tsukin_data[i],member_custom_list,operation_type = 3.3);
+      var kenmu_payload = makePayload(kaonavi_data[i],member_custom_list,operation_type = 3.3);
 
       // 兼務情報が一つもないならスキップ
-      if(payload == null){
+      if(kenmu_payload == null){
         continue;
       }
 
       // 連想配列(object)をJSON文字列に変換
-      var payload = JSON.stringify(payload);
+      var kenmu_payload = JSON.stringify(kenmu_payload);
 
       // 各従業員の連想配列（JSON文字列）を連結させる
-      if(typeof member_data == "undefined"){
-        var member_data = payload;
+      if(typeof member_kenmu_data == "undefined"){
+        var member_kenmu_data = kenmu_payload;
       } else {
-        member_data = member_data + ',' + payload;
+        member_kenmu_data = member_kenmu_data + ',' + kenmu_payload;
       }
     }
-    console.log(kaonavi_data);
     // カオナビ更新API
-    kaonaviUpdateApi(member_data);
-
-    throw new Error('a');
-    // カオナビ更新API
-    kaonaviUpdateApi(member_data);
-    log('3. カオナビへのデータ更新（兼務）', 'e');
+    kaonaviUpdateApi(member_kenmu_data);
+    log(work, 'e');
 
     // 成功メールを送信
     sendMail(work);
-  // }catch(e){
-  //   // メール本文に記載するエラー内容
-  //   var error_message = 'エラー内容：'+e.message;
-  //   // 失敗メールを送信
-  //   sendMail(work,error_message);
-  //   // 終了ログ
-  //   log('発令' + 'エラー内容：'+e.message, 'e');
-  // }
+    // 終了ログ
+    log('発令' + 'エラー内容：'+e.message, 'e');
+  }catch(e){
+    // メール本文に記載するエラー内容
+    var error_message = 'エラー内容：'+e.message;
+    // 失敗メールを送信
+    sendMail(work,error_message);
+    // 終了ログ
+    log('発令' + 'エラー内容：'+e.message, 'e');
+  }
 }
 
 /**
@@ -176,6 +177,11 @@ function changeDataToKaonavi(csv_data,operation_type) {
     // 社員コード（4桁→5桁）
     for (let i = 0; i < csv_data.length; i++) {
       csv_data[i][0] = '0'+ csv_data[i][0];
+    }
+
+    // 退職日（yyyy/mm/dd → yyyy-mm-dd）
+    for (let i = 0; i < csv_data.length; i++) {
+      csv_data[i][20] = csv_data[i][20].replace(/\//g, '-');
     }
 
     // 職種 (「総合職」「販売職」「専門職」に加工)
@@ -249,6 +255,25 @@ function changeDataToKaonavi(csv_data,operation_type) {
     // 社員コード（4桁→5桁）
     for (let i = 0; i < csv_data.length; i++) {
       csv_data[i][0] = '0'+ csv_data[i][0];
+    }
+
+    // 所属略名（加工方法IMIに要確認）
+    for (let i = 0; i < csv_data.length; i++) {
+      if(csv_data[i][5] == '国内・海外ビジネス担当'){
+        csv_data[i][5] = '国内・海外ビジネス';
+      }
+      if(csv_data[i][5] == '管理・財務担当'){
+        csv_data[i][5] = '管理・財務';
+      }
+      if(csv_data[i][5] == '生産・製造技術開発担当'){
+        csv_data[i][5] = '生産・製造技術開発';
+      }
+      if(csv_data[i][5] == 'コミュニケーションデザイン担当'){
+        csv_data[i][5] = 'コミュニケーションデザイン';
+      }
+      if(csv_data[i][5] == 'プロダクト開発担当'){
+        csv_data[i][5] = 'プロダクト開発';
+      }
     }
   }
 
@@ -338,15 +363,13 @@ function makePayload(processed_data,member_custom_list,operation_type) {
     var payload =
       {
         code: processed_data[0], // 社員コード
+        retired_date: processed_data[20], // 社員コード
         // 本務部署
         department: 
           // 雇用形態
           {
             code: department_code,
           },
-        sub_departments : [{
-          code: "0207030"
-        }],
         // カスタム項目
         custom_fields: [
           // 雇用形態
@@ -856,68 +879,152 @@ function makePayload(processed_data,member_custom_list,operation_type) {
       }
   }// 所属データ
   else if(operation_type == 3.3){
-    // 兼務情報が一つもない場合
-    if(typeof processed_data[21] == "undefined"){
+    // 兼務情報が1つもない場合
+    if(typeof(processed_data[21]) == "undefined"){
       var count = 0;
-    } else {
+    }
+    
+    // 兼務情報が1つの場合
+    if(typeof(processed_data[21]) != "undefined" && typeof processed_data[22] == "undefined"){
       var count = 1;
     }
 
-    // 兼務情報が一つの場合
-    if(typeof processed_data[22] == "undefined"){
-      var count = 1;
-    } else {
+    // 兼務情報が2つの場合
+    if(typeof(processed_data[21]) != "undefined" && typeof processed_data[22] != "undefined" && typeof processed_data[23] == "undefined"){
       var count = 2;
     }
 
-    // 兼務情報が一つの場合
-    if(typeof processed_data[23] == "undefined"){
-      var count = 2;
-    } else {
+    // 兼務情報が3つの場合
+    if(typeof(processed_data[21]) != "undefined" && typeof processed_data[22] != "undefined" && typeof processed_data[23] != "undefined" && typeof processed_data[24] == "undefined"){
       var count = 3;
+    }
+
+    // 兼務情報が4つの場合
+    if(typeof(processed_data[21]) != "undefined" && typeof processed_data[22] != "undefined" && typeof processed_data[23] != "undefined" && typeof processed_data[24] != "undefined"){
+      var count = 4;
     }
 
     if(count == 0){
       return null;
     } else if(count == 1) {
-      // 兼務が一つの更新Json作成
+      // 兼務コードの取得(1つ目)
+      for (let i = 0; i < department_list.length; i++) {
+        if(department_list[i]['name'] == processed_data[21]){
+          var department1_code = department_list[i]['code'];
+        }
+      }
+      // 兼務が1つの更新Json作成
       var payload =
       {
         code: processed_data[0], // 社員コード
         // 兼務部署
         sub_departments : [{
-          code: "0207030"
+          code: department1_code
         }],
       }
     } else if(count == 2) {
-      // 兼務が二つの更新Json作成
+      // 兼務コードの取得(1つ目)
+      for (let i = 0; i < department_list.length; i++) {
+        if(department_list[i]['name'] == processed_data[21]){
+          var department1_code = department_list[i]['code'];
+        }
+      }
+      // 兼務コードの取得(2つ目)
+      for (let i = 0; i < department_list.length; i++) {
+        if(department_list[i]['name'] == processed_data[22]){
+          var department2_code = department_list[i]['code'];
+        }
+      }
+      // 兼務が2つの更新Json作成
       var payload =
       {
         code: processed_data[0], // 社員コード
         // 兼務部署
         sub_departments : [{
-          code: "0207030"
+          code: department1_code
         },
         {
-          code: "0207030"
+          code: department2_code
         }
         ],
       }
     } else if(count == 3) {
-      // 兼務が二つの更新Json作成
+      // 兼務コードの取得(1つ目)
+      for (let i = 0; i < department_list.length; i++) {
+        if(department_list[i]['name'] == processed_data[21]){
+          var department1_code = department_list[i]['code'];
+        }
+      }
+      // 兼務コードの取得(2つ目)
+      for (let i = 0; i < department_list.length; i++) {
+        if(department_list[i]['name'] == processed_data[22]){
+          var department2_code = department_list[i]['code'];
+        }
+      }
+      // 兼務コードの取得(3つ目)
+      for (let i = 0; i < department_list.length; i++) {
+        if(department_list[i]['name'] == processed_data[23]){
+          var department3_code = department_list[i]['code'];
+        }
+      }
+      // 兼務が3つの更新Json作成
       var payload =
       {
         code: processed_data[0], // 社員コード
         // 兼務部署
         sub_departments : [{
-          code: "0207030"
+          code: department1_code
         },
         {
-          code: "0207030"
+          code: department2_code
         },
         {
-          code: "0207030"
+          code: department3_code
         }
+        ],
+      }
+    } else if(count == 4) {
+      // 兼務コードの取得(1つ目)
+      for (let i = 0; i < department_list.length; i++) {
+        if(department_list[i]['name'] == processed_data[21]){
+          var department1_code = department_list[i]['code'];
+        }
+      }
+      // 兼務コードの取得(2つ目)
+      for (let i = 0; i < department_list.length; i++) {
+        if(department_list[i]['name'] == processed_data[22]){
+          var department2_code = department_list[i]['code'];
+        }
+      }
+      // 兼務コードの取得(3つ目)
+      for (let i = 0; i < department_list.length; i++) {
+        if(department_list[i]['name'] == processed_data[23]){
+          var department3_code = department_list[i]['code'];
+        }
+      }
+      // 兼務コードの取得(4つ目)
+      for (let i = 0; i < department_list.length; i++) {
+        if(department_list[i]['name'] == processed_data[24]){
+          var department4_code = department_list[i]['code'];
+        }
+      }
+      // 兼務が4つの更新Json作成
+      var payload =
+      {
+        code: processed_data[0], // 社員コード
+        // 兼務部署
+        sub_departments : [{
+          code: department1_code
+        },
+        {
+          code: department2_code
+        },
+        {
+          code: department3_code
+        },
+        {
+          code: department4_code
+        },
         ],
       }
     }
