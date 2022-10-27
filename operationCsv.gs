@@ -1040,3 +1040,25 @@ function define_tax_withoutholding() {
   }
   return define
 }
+
+/**
+ * 指定したドライブフォルダ内のファイルをすべて削除する
+ * 正確にはゴミ箱へファイルを移動する
+ * 
+ * @param [string] folderId
+ */
+function deleteCsv(folderId) {
+  //フォルダを取得
+  const folder = DriveApp.getFolderById(folderId);
+  //フォルダ内のすべてのファイルを取得
+  var files = folder.getFiles();
+
+  //各ファイルに対して繰り返し
+  while (files.hasNext()) {
+    //ファイルを取得
+    var file = files.next();
+
+    //ゴミ箱へ移動
+    file.setTrashed(true);　
+  }
+}
