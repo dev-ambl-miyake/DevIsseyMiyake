@@ -335,6 +335,10 @@ function createCSV() {
       insuranceDataList.push(insuranceData);
     }
 
+    // CSVファイル出力先ドライブフォルダ内に既に存在するファイルを削除
+    deleteCsv(getProperties("obicExportCsvFolderId"));
+
+    // CSVファイル出力
     export_csv(baseDataList, operation_type = 1.1);
     export_csv(addressDataList, operation_type = 1.2);
     export_csv(familyDataList, operation_type = 1.3);

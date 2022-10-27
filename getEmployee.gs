@@ -11,30 +11,8 @@ function getEmployee() {
     // 開始ログ
     log(work, 's');
 
-    // SmartHR_API 環境値
-    const AccessToken = getProperties("ACCESS_TOKEN")  //smartHRのアクセストークン
-    const SubDomain = getProperties("SUB_DOMAIN")  //smartHRのサブドメイン
-
-    // HTTPリクエストヘッダーの作成
-    const headers = {
-      //アクセストークンの設定
-      'Authorization': 'Bearer ' + AccessToken
-    }
-
-    // HTTPリクエストのオプションの設定
-    const params = {
-      'method': 'GET',  //GETメソッドでリクエスト
-      'headers' : headers  //HTTPリクエストヘッダー
-    }
-
-    // SmartHR_API 従業員_"リストの取得"にリクエストを送信しレスポンスを取得
-    const response = UrlFetchApp.fetch('https://'+SubDomain+'.daruma.space/api/v1/crews?per_page=100', params)
-
-    // レスポンスを文字列で取得
-    const responseBody = response.getContentText()
-
-    // jsonオブジェクトに変換
-    const json = JSON.parse(responseBody)
+    // SmartHR 全従業員一覧情報の取得
+    const json = callShrEmployeeListApi();
 
     // 履歴データ[登録用]・履歴データ[更新用]スプレッドシートに履歴データを生成
     storeEmployeeHistory.storeHistory(json);
