@@ -33,7 +33,7 @@ function import_csv(operation_type = 5) {
     var define = define_proclamation_history()
     // 発令　本務経歴
   }else if (operation_type === 3.5) {
-    var define = define_main_hstory()
+    var define = define_main_history()
   // 標準報酬月額
   } else if (operation_type === 4) {
     var define = define_monthly_salary()
@@ -1015,7 +1015,7 @@ function define_proclamation_history() {
   return define
 }
 // 業務_発令_本務経歴
-function define_main_hstory() {
+function define_main_history() {
   const define = { 
     'import_folder_id': getProperties("obicCsvFolderId"),
     'import_file_name': getProperties("honmuKeirekiCsv"),

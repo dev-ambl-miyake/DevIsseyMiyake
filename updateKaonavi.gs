@@ -1,3 +1,52 @@
+// 定数宣言
+// 不要発令コード
+let no_proclamation = [
+  '1061',
+  '1062',
+  '1063',
+  '1064',
+  '1065',
+  '1070',
+  '2010',
+  '2011',
+  '2020',
+  '2030',
+  '2040',
+  '2051',
+  '2060',
+  '5000',
+  '5010',
+  '5011',
+  '5020',
+  '5030',
+  '5040',
+  '5050',
+  '5060',
+  '5070',
+  '5080',
+  '5090',
+  '5100',
+  '5101',
+  '6000',
+  '6010',
+  '6011',
+  '6020',
+  '6030',
+  '6040',
+  '6050',
+  '6060',
+];
+
+// 兼務発令コード
+let kenmu_proclamation = [
+  '8000',
+  '8020',
+  '8100',
+  '8120',
+  '8200',
+  '8220'
+];
+
 // 発令（カオナビ）メイン処理
 function proclamationKaonaviMain() {
   try{
@@ -37,11 +86,15 @@ function proclamationKaonaviMain() {
     let csv_travel_allowance = import_csv(operation_type = 3.2)
     let csv_sub_business = import_csv(operation_type = 3.3)
     let csv_proclamation_history = import_csv(operation_type = 3.4)
-    let csv_main_hstory = import_csv(operation_type = 3.5)
+    let csv_main_history = import_csv(operation_type = 3.5)
+
 
     let kaonavi_data = changeDataToKaonavi(csv_announcement, operation_type = 3.1);
     let kaonavi_tsukin_data = changeDataToKaonavi(csv_travel_allowance, operation_type = 3.2);
     let kaonavi_kenmu_data = changeDataToKaonavi(csv_sub_business, operation_type = 3.3);
+    let kaonavi_kenmu_rireki_data = changeDataToKaonavi(csv_proclamation_history, operation_type = 3.4);
+    let kaonavi_honmu_keireki_data = changeDataToKaonavi(csv_main_history, operation_type = 3.5);
+
     log('2. CSVファイルより対象データ取得', 'e');
 
     // 3. カオナビへのデータ更新’（現職本務）
@@ -89,7 +142,7 @@ function proclamationKaonaviMain() {
       }
     }
     // カオナビシート更新API
-    kaonaviSheetsUpdateApi(sheets_id,member_traffic_data);
+    // kaonaviSheetsUpdateApi(sheets_id,member_traffic_data);
     log('3. カオナビへのデータ更新（通勤手当）', 'e');
 
 
@@ -147,7 +200,68 @@ function proclamationKaonaviMain() {
       }
     }
     // カオナビ更新API
-    kaonaviUpdateApi(member_kenmu_data);
+    // kaonaviUpdateApi(member_kenmu_data);
+    log('3. カオナビへのデータ更新（兼務）', 'e');
+
+    // 3. カオナビへのデータ更新（兼務）
+    log('3. カオナビへのデータ更新（所属/役職履歴）', 's');
+    // 1.本務経歴データ・発令履歴兼務データのインポート
+    //clear
+    // 2.「不要発令」「所属名/兼務所属名が空」の列削除
+    //clear
+
+    // 社員番号が一致するものを配列に集める
+    for (let i = 0; i < kaonavi_honmu_keireki_data.length; i++) {
+      // 社員番号を取り出す
+      var his_emp_code = kaonavi_honmu_keireki_data[i][0];
+      var emp_data = []; // 同じ社員番号行を格納する配列
+      for(let n = 0; n < kaonavi_honmu_keireki_data.length; n++){
+        // 社員番号一致で配列にする
+        if(his_emp_code == kaonavi_honmu_keireki_data[n][0]){
+          if(emp_data.length === 0){
+            emp_data = kaonavi_honmu_keireki_data[n];
+            var num = n;
+          } else {
+            emp_data.push(emp_data,kaonavi_honmu_keireki_data[n]);
+            var num = n;
+          }
+          i = num; // 結合しただけiを進める
+        }
+      }
+      console.log(emp_data);
+      throw new Error('next→社員番号一致した配列を回してカスタムフィールドを作る');
+    }
+
+    // 3.本務経歴データを1レコードづつループ
+    for (let i = 0; i < kaonavi_honmu_keireki_data.length; i++) {
+      // 3-2.兼務データを回して「社員コード/発令日」=「社員コード/兼務発令日」が一致するレコードを結合
+      for (let n = 0; n < kaonavi_kenmu_rireki_data.length; n++) {
+        // 社員コードと発令日が一致する
+        if(
+          kaonavi_honmu_keireki_data[i][0] == kaonavi_kenmu_rireki_data[n][0] &&
+          kaonavi_honmu_keireki_data[i][2] == kaonavi_kenmu_rireki_data[n][2]
+          ){
+          if(typeof his_data == "undefined"){
+            let his_data = [
+              kaonavi_honmu_keireki_data[i][0], // 社員コード
+              kaonavi_honmu_keireki_data[i][2], // 発令日
+              kaonavi_honmu_keireki_data[i][6], // 本務所属名
+              kaonavi_honmu_keireki_data[i][17], // 人事役職名
+              kaonavi_kenmu_rireki_data[n][17], // 人事役職名
+            ];
+          }
+        }
+      }
+    }
+
+    // 4.結合したレコードでpayload作成
+    // 4-2.一つの社員コードで複数レコード（複数のカスタムフィールドの塊）を作る
+    // 4-3.4-2で作ったものを全部結合
+
+    // 5.カオナビシート更新API
+
+    log('3. カオナビへのデータ更新（所属/役職履歴）', 'e');
+    
     log(work, 'e');
 
     // 成功メールを送信
@@ -275,8 +389,31 @@ function changeDataToKaonavi(csv_data,operation_type) {
         csv_data[i][5] = 'プロダクト開発';
       }
     }
-  }
+  }else if(operation_type == 3.5){
+    csv_data.shift(); //見出し行の削除
 
+    // 所属名が空のものを削除
+    for (let i = 0; i < csv_data.length; i++) {
+      if(csv_data[i][6] == ''){
+          csv_data.splice(i,1); 
+          i = i - 1;
+      }
+    }
+    // 不要発令コード行削除
+    for (let i = 0; i < csv_data.length; i++) {
+      if(no_proclamation.includes(csv_data[i][4])){
+          csv_data.splice(i,1); 
+          i = i - 1;
+      }
+    }
+    // 兼務コード行削除
+    // for (let i = 0; i < csv_data.length; i++) {
+    //   if(kenmu_proclamation.includes(csv_data[i][4])){
+    //       csv_data.splice(i,1); 
+    //       i = i - 1;
+    //   }
+    // }
+  }
     return csv_data
 }
 
