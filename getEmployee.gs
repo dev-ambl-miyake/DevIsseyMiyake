@@ -6,8 +6,10 @@
 */
 function getEmployee() {
   try{
+    var work = "履歴データ作成";
+
     // 開始ログ
-    log('履歴データ作成', 's');
+    log(work, 's');
 
     // SmartHR_API 環境値
     const AccessToken = getProperties("ACCESS_TOKEN")  //smartHRのアクセストークン
@@ -38,10 +40,12 @@ function getEmployee() {
     storeEmployeeHistory.storeHistory(json);
 
     // 終了ログ
-    log('履歴データ作成', 'e');
+    log(work, 'e');
     SpreadsheetApp.getUi().alert("履歴データの作成が正常に完了しました。");
   }catch(e) {
-    // SpreadsheetApp.getUi().alert("履歴データ作成中にエラーが発生しました。");
-    SpreadsheetApp.getUi().alert(e.message);
+    log(work + "[エラーログ]", "s");
+    log(e.message, "error");
+    log(work + "[エラーログ]", "e");
+    SpreadsheetApp.getUi().alert("履歴データ作成中にエラーが発生しました。");
   }
 }

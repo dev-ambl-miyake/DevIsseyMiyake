@@ -6,40 +6,1033 @@
  * 一致した社員情報をSmartHR_APIより取得しカオナビへ登録する
  */
 function createMember() {
-  // 開始ログ
-  log('入社_カオナビ連携登録', 's');
+  try {
+    var work = "入社_カオナビ連携登録";
 
-  const employeeIdList = createKaonaviIdList();
-  if(!employeeIdList) {
-    return
-  }
+    // 開始ログ
+    log(work, 's');
 
-  // 社員情報を取得
-  const employeesData = createKaonaviEmployeeList(employeeIdList);
-  log(JSON.stringify(employeesData, null, 5),'s');
+    // カオナビ_シート名定義
+    const kaonaviContactSheetName = "連絡先";
+    const kaonaviAddressSheetName = "現住所";
+    const kaonaviEmergencyContactSheetName = "緊急連絡先";
+    const kaonaviBankSheetName = "銀行口座";
+    const kaonaviAcademicSheetName = "学歴";
+    const kaonaviLanguageSheetName = "語学";
+    const kaonaviLicenseSheetName = "免許・資格等";
+    const kaonaviFamilySheetName = "家族情報";
 
-  // データ格納用配列変数
-  let basicInfoList = [];  // 基本情報
-  let contactList = [];  // 連絡先
-  let addressList = [];  // 住所
-  let emergencyContactList = [];  // 緊急連絡先
-  let bankList = [];  // 銀行口座
-  let academicList = [];  // 学歴
-  let languageList = [];  // 語学
-  let licenseList = [];  // 免許・資格等
-  let familyList = [];  // 家族情報
+    /* カオナビ_各シート情報を参照取得 */
+    // シート_基本情報
+    var basicInfoSheetData = [];
+    for (var basicInfoSheetKey = 0; basicInfoSheetKey < member_sheets_api['custom_fields'].length; basicInfoSheetKey++) {
+      if (member_sheets_api['custom_fields'][basicInfoSheetKey]['name'] == "採用形態") {
+        basicInfoSheetData['recruitment'] = member_sheets_api['custom_fields'][basicInfoSheetKey]['id'];
+      }
+    }
+    const basicInfoSheetIdList = {
+      'recruitment' : basicInfoSheetData['recruitment'],
+    }
+    // シート_連絡先
+    const contactSheetList = checkSheetName(sheets_list, kaonaviContactSheetName);
+    var contactSheetData = [];
+    for (var contactSheetKey = 0; contactSheetKey < contactSheetList['custom_fields'].length; contactSheetKey++) {
+      if (contactSheetList['custom_fields'][contactSheetKey]['name'] == "メールアドレス") {
+        contactSheetData['email'] = contactSheetList['custom_fields'][contactSheetKey]['id'];
+      }
+      if (contactSheetList['custom_fields'][contactSheetKey]['name'] == "電話番号") {
+        contactSheetData['telNumber'] = contactSheetList['custom_fields'][contactSheetKey]['id'];
+      }
+    }
+    const contactSheetIdList = {
+      'sheetId' : contactSheetList['id'],
+      'email' : contactSheetData['email'],
+      'telNumber' : contactSheetData['telNumber'],
+    }
+    // シート_現住所
+    const addressSheetList = checkSheetName(sheets_list, kaonaviAddressSheetName);
+    var addressSheetData = [];
+    for (var academicSheetKey = 0; academicSheetKey < addressSheetList['custom_fields'].length; academicSheetKey++) {
+      if (addressSheetList['custom_fields'][academicSheetKey]['name'] == "郵便番号") {
+        addressSheetData['zipCode'] = addressSheetList['custom_fields'][academicSheetKey]['id'];
+      }
+      if (addressSheetList['custom_fields'][academicSheetKey]['name'] == "市区町村") {
+        addressSheetData['city'] = addressSheetList['custom_fields'][academicSheetKey]['id'];
+      }
+      if (addressSheetList['custom_fields'][academicSheetKey]['name'] == "丁目・番地") {
+        addressSheetData['street'] = addressSheetList['custom_fields'][academicSheetKey]['id'];
+      }
+      if (addressSheetList['custom_fields'][academicSheetKey]['name'] == "建物名・部屋番号") {
+        addressSheetData['building'] = addressSheetList['custom_fields'][academicSheetKey]['id'];
+      }
+      if (addressSheetList['custom_fields'][academicSheetKey]['name'] == "国コード") {
+        addressSheetData['countryNumber'] = addressSheetList['custom_fields'][academicSheetKey]['id'];
+      }
+      if (addressSheetList['custom_fields'][academicSheetKey]['name'] == "都道府県") {
+        addressSheetData['pref'] = addressSheetList['custom_fields'][academicSheetKey]['id'];
+      }
+    }
+    const addressSheetIdList = {
+      'sheetId' : addressSheetList['id'],
+      'zipCode' : addressSheetData['zipCode'],
+      'city' : addressSheetData['city'],
+      'street' : addressSheetData['street'],
+      'building' : addressSheetData['building'],
+      'countryNumber' : addressSheetData['countryNumber'],
+      'pref' : addressSheetData['pref'],
+    }
+    // シート_緊急連絡先
+    const emergencyContactSheetList = checkSheetName(sheets_list, kaonaviEmergencyContactSheetName);
+    var emergencyContactSheetData = [];
+    for (var emergencyContactSheetKey = 0; emergencyContactSheetKey < emergencyContactSheetList['custom_fields'].length; emergencyContactSheetKey++) {
+      if (emergencyContactSheetList['custom_fields'][emergencyContactSheetKey]['name'] == "続柄") {
+        emergencyContactSheetData['relationName'] = emergencyContactSheetList['custom_fields'][emergencyContactSheetKey]['id'];
+      }
+      if (emergencyContactSheetList['custom_fields'][emergencyContactSheetKey]['name'] == "氏名") {
+        emergencyContactSheetData['name'] = emergencyContactSheetList['custom_fields'][emergencyContactSheetKey]['id'];
+      }
+      if (emergencyContactSheetList['custom_fields'][emergencyContactSheetKey]['name'] == "氏名カナ") {
+        emergencyContactSheetData['nameKana'] = emergencyContactSheetList['custom_fields'][emergencyContactSheetKey]['id'];
+      }
+      if (emergencyContactSheetList['custom_fields'][emergencyContactSheetKey]['name'] == "電話番号") {
+        emergencyContactSheetData['telNumber'] = emergencyContactSheetList['custom_fields'][emergencyContactSheetKey]['id'];
+      }
+      if (emergencyContactSheetList['custom_fields'][emergencyContactSheetKey]['name'] == "郵便番号") {
+        emergencyContactSheetData['zipCode'] = emergencyContactSheetList['custom_fields'][emergencyContactSheetKey]['id'];
+      }
+      if (emergencyContactSheetList['custom_fields'][emergencyContactSheetKey]['name'] == "都道府県") {
+        emergencyContactSheetData['pref'] = emergencyContactSheetList['custom_fields'][emergencyContactSheetKey]['id'];
+      }
+      if (emergencyContactSheetList['custom_fields'][emergencyContactSheetKey]['name'] == "市区町村") {
+        emergencyContactSheetData['city'] = emergencyContactSheetList['custom_fields'][emergencyContactSheetKey]['id'];
+      }
+      if (emergencyContactSheetList['custom_fields'][emergencyContactSheetKey]['name'] == "丁目・番地") {
+        emergencyContactSheetData['street'] = emergencyContactSheetList['custom_fields'][emergencyContactSheetKey]['id'];
+      }
+      if (emergencyContactSheetList['custom_fields'][emergencyContactSheetKey]['name'] == "建物名・部屋番号") {
+        emergencyContactSheetData['building'] = emergencyContactSheetList['custom_fields'][emergencyContactSheetKey]['id'];
+      }
+    }
+    const emergencyContactSheetIdList = {
+      'sheetId' : emergencyContactSheetList['id'],
+      'relationName' : emergencyContactSheetData['relationName'],
+      'name' : emergencyContactSheetData['name'],
+      'nameKana' : emergencyContactSheetData['nameKana'],
+      'telNumber' : emergencyContactSheetData['telNumber'],
+      'zipCode' : emergencyContactSheetData['zipCode'],
+      'pref' : emergencyContactSheetData['pref'],
+      'city' : emergencyContactSheetData['city'],
+      'street' : emergencyContactSheetData['street'],
+      'building' : emergencyContactSheetData['building'],
+    }
+    // 銀行口座
+    const bankSheetList = checkSheetName(sheets_list, kaonaviBankSheetName);
+    var bankSheetData = [];
+    for (var bankSheetKey = 0; bankSheetKey < bankSheetList['custom_fields'].length; bankSheetKey++) {
+      if (bankSheetList['custom_fields'][bankSheetKey]['name'] == "銀行コード") {
+        bankSheetData['bankCode'] = bankSheetList['custom_fields'][bankSheetKey]['id'];
+      }
+      if (bankSheetList['custom_fields'][bankSheetKey]['name'] == "支店コード") {
+        bankSheetData['bankBranchCode'] = bankSheetList['custom_fields'][bankSheetKey]['id'];
+      }
+      if (bankSheetList['custom_fields'][bankSheetKey]['name'] == "預金種別") {
+        bankSheetData['accountType'] = bankSheetList['custom_fields'][bankSheetKey]['id'];
+      }
+      if (bankSheetList['custom_fields'][bankSheetKey]['name'] == "口座番号") {
+        bankSheetData['accountNumber'] = bankSheetList['custom_fields'][bankSheetKey]['id'];
+      }
+      if (bankSheetList['custom_fields'][bankSheetKey]['name'] == "名義（カタカナ）") {
+        bankSheetData['accountHolderName'] = bankSheetList['custom_fields'][bankSheetKey]['id'];
+      }
+    }
+    const bankSheetIdList = {
+      'sheetId' : bankSheetList['id'],
+      'bankCode' : bankSheetData['bankCode'],
+      'bankBranchCode' : bankSheetData['bankBranchCode'],
+      'accountType' : bankSheetData['accountType'],
+      'accountNumber' : bankSheetData['accountNumber'],
+      'accountHolderName' : bankSheetData['accountHolderName'],
+    }
+    // 学歴
+    const academicSheetList = checkSheetName(sheets_list, kaonaviAcademicSheetName);
+    var academicSheetData = [];
+    for (var academicSheetKey = 0; academicSheetKey < academicSheetList['custom_fields'].length; academicSheetKey++) {
+      if (academicSheetList['custom_fields'][academicSheetKey]['name'] == "学校1_学校分類") {
+        academicSheetData['schoolCategory1'] = academicSheetList['custom_fields'][academicSheetKey]['id'];
+      }
+      if (academicSheetList['custom_fields'][academicSheetKey]['name'] == "学校2_学校分類") {
+        academicSheetData['schoolCategory2'] = academicSheetList['custom_fields'][academicSheetKey]['id'];
+      }
+      if (academicSheetList['custom_fields'][academicSheetKey]['name'] == "学校3_学校分類") {
+        academicSheetData['schoolCategory3'] = academicSheetList['custom_fields'][academicSheetKey]['id'];
+      }
+      if (academicSheetList['custom_fields'][academicSheetKey]['name'] == "学校4_学校分類") {
+        academicSheetData['schoolCategory4'] = academicSheetList['custom_fields'][academicSheetKey]['id'];
+      }
+      if (academicSheetList['custom_fields'][academicSheetKey]['name'] == "学校5_学校分類") {
+        academicSheetData['schoolCategory5'] = academicSheetList['custom_fields'][academicSheetKey]['id'];
+      }
+      if (academicSheetList['custom_fields'][academicSheetKey]['name'] == "学校1_学校名") {
+        academicSheetData['schoolName1'] = academicSheetList['custom_fields'][academicSheetKey]['id'];
+      }
+      if (academicSheetList['custom_fields'][academicSheetKey]['name'] == "学校2_学校名") {
+        academicSheetData['schoolName2'] = academicSheetList['custom_fields'][academicSheetKey]['id'];
+      }
+      if (academicSheetList['custom_fields'][academicSheetKey]['name'] == "学校3_学校名") {
+        academicSheetData['schoolName3'] = academicSheetList['custom_fields'][academicSheetKey]['id'];
+      }
+      if (academicSheetList['custom_fields'][academicSheetKey]['name'] == "学校4_学校名") {
+        academicSheetData['schoolName4'] = academicSheetList['custom_fields'][academicSheetKey]['id'];
+      }
+      if (academicSheetList['custom_fields'][academicSheetKey]['name'] == "学校5_学校名") {
+        academicSheetData['schoolName5'] = academicSheetList['custom_fields'][academicSheetKey]['id'];
+      }
+      if (academicSheetList['custom_fields'][academicSheetKey]['name'] == "学校1_学部・学科・コース") {
+        academicSheetData['schoolDepartment1'] = academicSheetList['custom_fields'][academicSheetKey]['id'];
+      }
+      if (academicSheetList['custom_fields'][academicSheetKey]['name'] == "学校2_学部・学科・コース") {
+        academicSheetData['schoolDepartment2'] = academicSheetList['custom_fields'][academicSheetKey]['id'];
+      }
+      if (academicSheetList['custom_fields'][academicSheetKey]['name'] == "学校3_学部・学科・コース") {
+        academicSheetData['schoolDepartment3'] = academicSheetList['custom_fields'][academicSheetKey]['id'];
+      }
+      if (academicSheetList['custom_fields'][academicSheetKey]['name'] == "学校4_学部・学科・コース") {
+        academicSheetData['schoolDepartment4'] = academicSheetList['custom_fields'][academicSheetKey]['id'];
+      }
+      if (academicSheetList['custom_fields'][academicSheetKey]['name'] == "学校5_学部・学科・コース") {
+        academicSheetData['schoolDepartment5'] = academicSheetList['custom_fields'][academicSheetKey]['id'];
+      }
+      if (academicSheetList['custom_fields'][academicSheetKey]['name'] == "学校1_専攻科目ジャンル") {
+        academicSheetData['schoolMajor1'] = academicSheetList['custom_fields'][academicSheetKey]['id'];
+      }
+      if (academicSheetList['custom_fields'][academicSheetKey]['name'] == "学校2_専攻科目ジャンル") {
+        academicSheetData['schoolMajor2'] = academicSheetList['custom_fields'][academicSheetKey]['id'];
+      }
+      if (academicSheetList['custom_fields'][academicSheetKey]['name'] == "学校3_専攻科目ジャンル") {
+        academicSheetData['schoolMajor3'] = academicSheetList['custom_fields'][academicSheetKey]['id'];
+      }
+      if (academicSheetList['custom_fields'][academicSheetKey]['name'] == "学校4_専攻科目ジャンル") {
+        academicSheetData['schoolMajor4'] = academicSheetList['custom_fields'][academicSheetKey]['id'];
+      }
+      if (academicSheetList['custom_fields'][academicSheetKey]['name'] == "学校5_専攻科目ジャンル") {
+        academicSheetData['schoolMajor5'] = academicSheetList['custom_fields'][academicSheetKey]['id'];
+      }
+      if (academicSheetList['custom_fields'][academicSheetKey]['name'] == "学校1_入学年月日") {
+        academicSheetData['schoolEnteredDate1'] = academicSheetList['custom_fields'][academicSheetKey]['id'];
+      }
+      if (academicSheetList['custom_fields'][academicSheetKey]['name'] == "学校2_入学年月日") {
+        academicSheetData['schoolEnteredDate2'] = academicSheetList['custom_fields'][academicSheetKey]['id'];
+      }
+      if (academicSheetList['custom_fields'][academicSheetKey]['name'] == "学校3_入学年月日") {
+        academicSheetData['schoolEnteredDate3'] = academicSheetList['custom_fields'][academicSheetKey]['id'];
+      }
+      if (academicSheetList['custom_fields'][academicSheetKey]['name'] == "学校4_入学年月日") {
+        academicSheetData['schoolEnteredDate4'] = academicSheetList['custom_fields'][academicSheetKey]['id'];
+      }
+      if (academicSheetList['custom_fields'][academicSheetKey]['name'] == "学校5_入学年月日") {
+        academicSheetData['schoolEnteredDate5'] = academicSheetList['custom_fields'][academicSheetKey]['id'];
+      }
+      if (academicSheetList['custom_fields'][academicSheetKey]['name'] == "学校1_卒業・中退") {
+        academicSheetData['graduatedAndDropout1'] = academicSheetList['custom_fields'][academicSheetKey]['id'];
+      }
+      if (academicSheetList['custom_fields'][academicSheetKey]['name'] == "学校2_卒業・中退") {
+        academicSheetData['graduatedAndDropout2'] = academicSheetList['custom_fields'][academicSheetKey]['id'];
+      }
+      if (academicSheetList['custom_fields'][academicSheetKey]['name'] == "学校3_卒業・中退") {
+        academicSheetData['graduatedAndDropout3'] = academicSheetList['custom_fields'][academicSheetKey]['id'];
+      }
+      if (academicSheetList['custom_fields'][academicSheetKey]['name'] == "学校4_卒業・中退") {
+        academicSheetData['graduatedAndDropout4'] = academicSheetList['custom_fields'][academicSheetKey]['id'];
+      }
+      if (academicSheetList['custom_fields'][academicSheetKey]['name'] == "学校5_卒業・中退") {
+        academicSheetData['graduatedAndDropout5'] = academicSheetList['custom_fields'][academicSheetKey]['id'];
+      }
+      if (academicSheetList['custom_fields'][academicSheetKey]['name'] == "学校1_卒業・中退年月日") {
+        academicSheetData['graduatedAndDropoutDate1'] = academicSheetList['custom_fields'][academicSheetKey]['id'];
+      }
+      if (academicSheetList['custom_fields'][academicSheetKey]['name'] == "学校2_卒業・中退年月日") {
+        academicSheetData['graduatedAndDropoutDate2'] = academicSheetList['custom_fields'][academicSheetKey]['id'];
+      }
+      if (academicSheetList['custom_fields'][academicSheetKey]['name'] == "学校3_卒業・中退年月日") {
+        academicSheetData['graduatedAndDropoutDate3'] = academicSheetList['custom_fields'][academicSheetKey]['id'];
+      }
+      if (academicSheetList['custom_fields'][academicSheetKey]['name'] == "学校4_卒業・中退年月日") {
+        academicSheetData['graduatedAndDropoutDate4'] = academicSheetList['custom_fields'][academicSheetKey]['id'];
+      }
+      if (academicSheetList['custom_fields'][academicSheetKey]['name'] == "学校5_卒業・中退年月日") {
+        academicSheetData['graduatedAndDropoutDate5'] = academicSheetList['custom_fields'][academicSheetKey]['id'];
+      }
+    }
+    const academicSheetIdList = {
+      'sheetId' : academicSheetList['id'],
+      'schoolCategory1' : academicSheetData['schoolCategory1'],
+      'schoolCategory2' : academicSheetData['schoolCategory2'],
+      'schoolCategory3' : academicSheetData['schoolCategory3'],
+      'schoolCategory4' : academicSheetData['schoolCategory4'],
+      'schoolCategory5' : academicSheetData['schoolCategory5'],
+      'schoolName1' : academicSheetData['schoolName1'],
+      'schoolName2' : academicSheetData['schoolName2'],
+      'schoolName3' : academicSheetData['schoolName3'],
+      'schoolName4' : academicSheetData['schoolName4'],
+      'schoolName5' : academicSheetData['schoolName5'],
+      'schoolDepartment1' : academicSheetData['schoolDepartment1'],
+      'schoolDepartment2' : academicSheetData['schoolDepartment2'],
+      'schoolDepartment3' : academicSheetData['schoolDepartment3'],
+      'schoolDepartment4' : academicSheetData['schoolDepartment4'],
+      'schoolDepartment5' : academicSheetData['schoolDepartment5'],
+      'schoolMajor1' : academicSheetData['schoolMajor1'],
+      'schoolMajor2' : academicSheetData['schoolMajor2'],
+      'schoolMajor3' : academicSheetData['schoolMajor3'],
+      'schoolMajor4' : academicSheetData['schoolMajor4'],
+      'schoolMajor5' : academicSheetData['schoolMajor5'],
+      'schoolEnteredDate1' : academicSheetData['schoolEnteredDate1'],
+      'schoolEnteredDate2' : academicSheetData['schoolEnteredDate2'],
+      'schoolEnteredDate3' : academicSheetData['schoolEnteredDate3'],
+      'schoolEnteredDate4' : academicSheetData['schoolEnteredDate4'],
+      'schoolEnteredDate5' : academicSheetData['schoolEnteredDate5'],
+      'graduatedAndDropout1' : academicSheetData['graduatedAndDropout1'],
+      'graduatedAndDropout2' : academicSheetData['graduatedAndDropout2'],
+      'graduatedAndDropout3' : academicSheetData['graduatedAndDropout3'],
+      'graduatedAndDropout4' : academicSheetData['graduatedAndDropout4'],
+      'graduatedAndDropout5' : academicSheetData['graduatedAndDropout5'],
+      'graduatedAndDropoutDate1' : academicSheetData['graduatedAndDropoutDate1'],
+      'graduatedAndDropoutDate2' : academicSheetData['graduatedAndDropoutDate2'],
+      'graduatedAndDropoutDate3' : academicSheetData['graduatedAndDropoutDate3'],
+      'graduatedAndDropoutDate4' : academicSheetData['graduatedAndDropoutDate4'],
+      'graduatedAndDropoutDate5' : academicSheetData['graduatedAndDropoutDate5'],
+    }
+    // 語学
+    const languageSheetList = checkSheetName(sheets_list, kaonaviLanguageSheetName);
+    var languageSheetData = [];
+    for (var languageSheetKey = 0; languageSheetKey < languageSheetList['custom_fields'].length; languageSheetKey++) {
+      // if (languageSheetList['custom_fields'][languageSheetKey]['name'] == "英語（社内テスト）_テスト名") {
+      //   languageSheetData['mail'] = languageSheetList['custom_fields'][languageSheetKey]['id'];
+      // }
+      // if (languageSheetList['custom_fields'][languageSheetKey]['name'] == "英語（社内テスト）_スコア") {
+      //   languageSheetData['telNumber'] = languageSheetList['custom_fields'][languageSheetKey]['id'];
+      // }
+      // if (languageSheetList['custom_fields'][languageSheetKey]['name'] == "英語（社内テスト）_受験日") {
+      //   languageSheetData['telNumber'] = languageSheetList['custom_fields'][languageSheetKey]['id'];
+      // }
+      if (languageSheetList['custom_fields'][languageSheetKey]['name'] == "英語_試験名") {
+        languageSheetData['englishTestName'] = languageSheetList['custom_fields'][languageSheetKey]['id'];
+      }
+      if (languageSheetList['custom_fields'][languageSheetKey]['name'] == "英語_スコア") {
+        languageSheetData['englishTestScore'] = languageSheetList['custom_fields'][languageSheetKey]['id'];
+      }
+      if (languageSheetList['custom_fields'][languageSheetKey]['name'] == "英語_受験日") {
+        languageSheetData['englishTestDate'] = languageSheetList['custom_fields'][languageSheetKey]['id'];
+      }
+      if (languageSheetList['custom_fields'][languageSheetKey]['name'] == "その他外国語1_語学名") {
+        languageSheetData['otherLanguageName1'] = languageSheetList['custom_fields'][languageSheetKey]['id'];
+      }
+      if (languageSheetList['custom_fields'][languageSheetKey]['name'] == "その他外国語1_級・スコア") {
+        languageSheetData['otherLanguageScore1'] = languageSheetList['custom_fields'][languageSheetKey]['id'];
+      }
+      if (languageSheetList['custom_fields'][languageSheetKey]['name'] == "その他外国語1_取得年月日") {
+        languageSheetData['otherLanguageAcquisitionDate1'] = languageSheetList['custom_fields'][languageSheetKey]['id'];
+      }
+      if (languageSheetList['custom_fields'][languageSheetKey]['name'] == "その他外国語2_語学名") {
+        languageSheetData['otherLanguageName2'] = languageSheetList['custom_fields'][languageSheetKey]['id'];
+      }
+      if (languageSheetList['custom_fields'][languageSheetKey]['name'] == "その他外国語2_級・スコア") {
+        languageSheetData['otherLanguageScore2'] = languageSheetList['custom_fields'][languageSheetKey]['id'];
+      }
+      if (languageSheetList['custom_fields'][languageSheetKey]['name'] == "その他外国語2_取得年月日") {
+        languageSheetData['otherLanguageAcquisitionDate2'] = languageSheetList['custom_fields'][languageSheetKey]['id'];
+      }
+    }
+    const languageSheetIdList = {
+      'sheetId' : languageSheetList['id'],
+      'englishTestName' : languageSheetData['englishTestName'],
+      'englishTestScore' : languageSheetData['englishTestScore'],
+      'englishTestDate' : languageSheetData['englishTestDate'],
+      'otherLanguageName1' : languageSheetData['otherLanguageName1'],
+      'otherLanguageScore1' : languageSheetData['otherLanguageScore1'],
+      'otherLanguageAcquisitionDate1' : languageSheetData['otherLanguageAcquisitionDate1'],
+      'otherLanguageName2' : languageSheetData['otherLanguageName2'],
+      'otherLanguageScore2' : languageSheetData['otherLanguageScore2'],
+      'otherLanguageAcquisitionDate2' : languageSheetData['otherLanguageAcquisitionDate2'],
+    }
+    // 免許・資格等
+    const licenseSheetList = checkSheetName(sheets_list, kaonaviLicenseSheetName);
+    var licenseSheetData = [];
+    for (var licenseSheetKey = 0; licenseSheetKey < licenseSheetList['custom_fields'].length; licenseSheetKey++) {
+      if (licenseSheetList['custom_fields'][licenseSheetKey]['name'] == "免許・資格名1") {
+        licenseSheetData['licenseName1'] = licenseSheetList['custom_fields'][licenseSheetKey]['id'];
+      }
+      if (licenseSheetList['custom_fields'][licenseSheetKey]['name'] == "取得年月日（免許・資格）1") {
+        licenseSheetData['licenseAcquisitionDate1'] = licenseSheetList['custom_fields'][licenseSheetKey]['id'];
+      }
+      if (licenseSheetList['custom_fields'][licenseSheetKey]['name'] == "免許・資格名2") {
+        licenseSheetData['licenseName2'] = licenseSheetList['custom_fields'][licenseSheetKey]['id'];
+      }
+      if (licenseSheetList['custom_fields'][licenseSheetKey]['name'] == "取得年月日（免許・資格）2") {
+        licenseSheetData['licenseAcquisitionDate2'] = licenseSheetList['custom_fields'][licenseSheetKey]['id'];
+      }
+      if (licenseSheetList['custom_fields'][licenseSheetKey]['name'] == "知識・技能1") {
+        licenseSheetData['knowledgeName1'] = licenseSheetList['custom_fields'][licenseSheetKey]['id'];
+      }
+      if (licenseSheetList['custom_fields'][licenseSheetKey]['name'] == "取得年月日（知識・技能）1") {
+        licenseSheetData['knowledgeAcquisitionDate1'] = licenseSheetList['custom_fields'][licenseSheetKey]['id'];
+      }
+      if (licenseSheetList['custom_fields'][licenseSheetKey]['name'] == "知識・技能2") {
+        licenseSheetData['knowledgeName2'] = licenseSheetList['custom_fields'][licenseSheetKey]['id'];
+      }
+      if (licenseSheetList['custom_fields'][licenseSheetKey]['name'] == "取得年月日（知識・技能）2") {
+        licenseSheetData['knowledgeAcquisitionDate2'] = licenseSheetList['custom_fields'][licenseSheetKey]['id'];
+      }
+    }
+    const licenseSheetIdList = {
+      'sheetId' : licenseSheetList['id'],
+      'licenseName1' : licenseSheetData['licenseName1'],
+      'licenseAcquisitionDate1' : licenseSheetData['licenseAcquisitionDate1'],
+      'licenseName2' : licenseSheetData['licenseName2'],
+      'licenseAcquisitionDate2' : licenseSheetData['licenseAcquisitionDate2'],
+      'knowledgeName1' : licenseSheetData['knowledgeName1'],
+      'knowledgeAcquisitionDate1' : licenseSheetData['knowledgeAcquisitionDate1'],
+      'knowledgeName2' : licenseSheetData['knowledgeName2'],
+      'knowledgeAcquisitionDate2' : licenseSheetData['knowledgeAcquisitionDate2'],
+    }
 
-  // var test = kaonaviSheetsApi();
-  // log(JSON.stringify(test, null, 5),'s');
+    // 家族情報
+    const familySheetList = checkSheetName(sheets_list, kaonaviFamilySheetName);
+    var familySheetData = [];
+    for (var familySheetKey = 0; familySheetKey < familySheetList['custom_fields'].length; familySheetKey++) {
+      if (familySheetList['custom_fields'][familySheetKey]['name'] == "家族1_続柄") {
+        familySheetData['familyRelationship1'] = familySheetList['custom_fields'][familySheetKey]['id'];
+      }
+      if (familySheetList['custom_fields'][familySheetKey]['name'] == "家族2_続柄") {
+        familySheetData['familyRelationship2'] = familySheetList['custom_fields'][familySheetKey]['id'];
+      }
+      if (familySheetList['custom_fields'][familySheetKey]['name'] == "家族3_続柄") {
+        familySheetData['familyRelationship3'] = familySheetList['custom_fields'][familySheetKey]['id'];
+      }
+      if (familySheetList['custom_fields'][familySheetKey]['name'] == "家族4_続柄") {
+        familySheetData['familyRelationship4'] = familySheetList['custom_fields'][familySheetKey]['id'];
+      }
+      if (familySheetList['custom_fields'][familySheetKey]['name'] == "家族5_続柄") {
+        familySheetData['familyRelationship5'] = familySheetList['custom_fields'][familySheetKey]['id'];
+      }
+      if (familySheetList['custom_fields'][familySheetKey]['name'] == "家族6_続柄") {
+        familySheetData['familyRelationship6'] = familySheetList['custom_fields'][familySheetKey]['id'];
+      }
+      if (familySheetList['custom_fields'][familySheetKey]['name'] == "家族7_続柄") {
+        familySheetData['familyRelationship7'] = familySheetList['custom_fields'][familySheetKey]['id'];
+      }
+      if (familySheetList['custom_fields'][familySheetKey]['name'] == "家族8_続柄") {
+        familySheetData['familyRelationship8'] = familySheetList['custom_fields'][familySheetKey]['id'];
+      }
+      if (familySheetList['custom_fields'][familySheetKey]['name'] == "家族9_続柄") {
+        familySheetData['familyRelationship9'] = familySheetList['custom_fields'][familySheetKey]['id'];
+      }
+      if (familySheetList['custom_fields'][familySheetKey]['name'] == "家族10_続柄") {
+        familySheetData['familyRelationship10'] = familySheetList['custom_fields'][familySheetKey]['id'];
+      }
+      if (familySheetList['custom_fields'][familySheetKey]['name'] == "家族1_姓") {
+        familySheetData['familyLastName1'] = familySheetList['custom_fields'][familySheetKey]['id'];
+      }
+      if (familySheetList['custom_fields'][familySheetKey]['name'] == "家族2_姓") {
+        familySheetData['familyLastName2'] = familySheetList['custom_fields'][familySheetKey]['id'];
+      }
+      if (familySheetList['custom_fields'][familySheetKey]['name'] == "家族3_姓") {
+        familySheetData['familyLastName3'] = familySheetList['custom_fields'][familySheetKey]['id'];
+      }
+      if (familySheetList['custom_fields'][familySheetKey]['name'] == "家族4_姓") {
+        familySheetData['familyLastName4'] = familySheetList['custom_fields'][familySheetKey]['id'];
+      }
+      if (familySheetList['custom_fields'][familySheetKey]['name'] == "家族5_姓") {
+        familySheetData['familyLastName5'] = familySheetList['custom_fields'][familySheetKey]['id'];
+      }
+      if (familySheetList['custom_fields'][familySheetKey]['name'] == "家族6_姓") {
+        familySheetData['familyLastName6'] = familySheetList['custom_fields'][familySheetKey]['id'];
+      }
+      if (familySheetList['custom_fields'][familySheetKey]['name'] == "家族7_姓") {
+        familySheetData['familyLastName7'] = familySheetList['custom_fields'][familySheetKey]['id'];
+      }
+      if (familySheetList['custom_fields'][familySheetKey]['name'] == "家族8_姓") {
+        familySheetData['familyLastName8'] = familySheetList['custom_fields'][familySheetKey]['id'];
+      }
+      if (familySheetList['custom_fields'][familySheetKey]['name'] == "家族9_姓") {
+        familySheetData['familyLastName9'] = familySheetList['custom_fields'][familySheetKey]['id'];
+      }
+      if (familySheetList['custom_fields'][familySheetKey]['name'] == "家族10_姓") {
+        familySheetData['familyLastName10'] = familySheetList['custom_fields'][familySheetKey]['id'];
+      }
+      if (familySheetList['custom_fields'][familySheetKey]['name'] == "家族1_名") {
+        familySheetData['familyFirstName1'] = familySheetList['custom_fields'][familySheetKey]['id'];
+      }
+      if (familySheetList['custom_fields'][familySheetKey]['name'] == "家族2_名") {
+        familySheetData['familyFirstName2'] = familySheetList['custom_fields'][familySheetKey]['id'];
+      }
+      if (familySheetList['custom_fields'][familySheetKey]['name'] == "家族3_名") {
+        familySheetData['familyFirstName3'] = familySheetList['custom_fields'][familySheetKey]['id'];
+      }
+      if (familySheetList['custom_fields'][familySheetKey]['name'] == "家族4_名") {
+        familySheetData['familyFirstName4'] = familySheetList['custom_fields'][familySheetKey]['id'];
+      }
+      if (familySheetList['custom_fields'][familySheetKey]['name'] == "家族5_名") {
+        familySheetData['familyFirstName5'] = familySheetList['custom_fields'][familySheetKey]['id'];
+      }
+      if (familySheetList['custom_fields'][familySheetKey]['name'] == "家族6_名") {
+        familySheetData['familyFirstName6'] = familySheetList['custom_fields'][familySheetKey]['id'];
+      }
+      if (familySheetList['custom_fields'][familySheetKey]['name'] == "家族7_名") {
+        familySheetData['familyFirstName7'] = familySheetList['custom_fields'][familySheetKey]['id'];
+      }
+      if (familySheetList['custom_fields'][familySheetKey]['name'] == "家族8_名") {
+        familySheetData['familyFirstName8'] = familySheetList['custom_fields'][familySheetKey]['id'];
+      }
+      if (familySheetList['custom_fields'][familySheetKey]['name'] == "家族9_名") {
+        familySheetData['familyFirstName9'] = familySheetList['custom_fields'][familySheetKey]['id'];
+      }
+      if (familySheetList['custom_fields'][familySheetKey]['name'] == "家族10_名") {
+        familySheetData['familyFirstName10'] = familySheetList['custom_fields'][familySheetKey]['id'];
+      }
+      if (familySheetList['custom_fields'][familySheetKey]['name'] == "家族1_姓（フリガナ）") {
+        familySheetData['familyLastNameKana1'] = familySheetList['custom_fields'][familySheetKey]['id'];
+      }
+      if (familySheetList['custom_fields'][familySheetKey]['name'] == "家族2_姓（フリガナ）") {
+        familySheetData['familyLastNameKana2'] = familySheetList['custom_fields'][familySheetKey]['id'];
+      }
+      if (familySheetList['custom_fields'][familySheetKey]['name'] == "家族3_姓（フリガナ）") {
+        familySheetData['familyLastNameKana3'] = familySheetList['custom_fields'][familySheetKey]['id'];
+      }
+      if (familySheetList['custom_fields'][familySheetKey]['name'] == "家族4_姓（フリガナ）") {
+        familySheetData['familyLastNameKana4'] = familySheetList['custom_fields'][familySheetKey]['id'];
+      }
+      if (familySheetList['custom_fields'][familySheetKey]['name'] == "家族5_姓（フリガナ）") {
+        familySheetData['familyLastNameKana5'] = familySheetList['custom_fields'][familySheetKey]['id'];
+      }
+      if (familySheetList['custom_fields'][familySheetKey]['name'] == "家族6_姓（フリガナ）") {
+        familySheetData['familyLastNameKana6'] = familySheetList['custom_fields'][familySheetKey]['id'];
+      }
+      if (familySheetList['custom_fields'][familySheetKey]['name'] == "家族7_姓（フリガナ）") {
+        familySheetData['familyLastNameKana7'] = familySheetList['custom_fields'][familySheetKey]['id'];
+      }
+      if (familySheetList['custom_fields'][familySheetKey]['name'] == "家族8_姓（フリガナ）") {
+        familySheetData['familyLastNameKana8'] = familySheetList['custom_fields'][familySheetKey]['id'];
+      }
+      if (familySheetList['custom_fields'][familySheetKey]['name'] == "家族9_姓（フリガナ）") {
+        familySheetData['familyLastNameKana9'] = familySheetList['custom_fields'][familySheetKey]['id'];
+      }
+      if (familySheetList['custom_fields'][familySheetKey]['name'] == "家族10_姓（フリガナ）") {
+        familySheetData['familyLastNameKana10'] = familySheetList['custom_fields'][familySheetKey]['id'];
+      }
+      if (familySheetList['custom_fields'][familySheetKey]['name'] == "家族1_名（フリガナ）") {
+        familySheetData['familyFirstNameKana1'] = familySheetList['custom_fields'][familySheetKey]['id'];
+      }
+      if (familySheetList['custom_fields'][familySheetKey]['name'] == "家族2_名（フリガナ）") {
+        familySheetData['familyFirstNameKana2'] = familySheetList['custom_fields'][familySheetKey]['id'];
+      }
+      if (familySheetList['custom_fields'][familySheetKey]['name'] == "家族3_名（フリガナ）") {
+        familySheetData['familyFirstNameKana3'] = familySheetList['custom_fields'][familySheetKey]['id'];
+      }
+      if (familySheetList['custom_fields'][familySheetKey]['name'] == "家族4_名（フリガナ）") {
+        familySheetData['familyFirstNameKana4'] = familySheetList['custom_fields'][familySheetKey]['id'];
+      }
+      if (familySheetList['custom_fields'][familySheetKey]['name'] == "家族5_名（フリガナ）") {
+        familySheetData['familyFirstNameKana5'] = familySheetList['custom_fields'][familySheetKey]['id'];
+      }
+      if (familySheetList['custom_fields'][familySheetKey]['name'] == "家族6_名（フリガナ）") {
+        familySheetData['familyFirstNameKana6'] = familySheetList['custom_fields'][familySheetKey]['id'];
+      }
+      if (familySheetList['custom_fields'][familySheetKey]['name'] == "家族7_名（フリガナ）") {
+        familySheetData['familyFirstNameKana7'] = familySheetList['custom_fields'][familySheetKey]['id'];
+      }
+      if (familySheetList['custom_fields'][familySheetKey]['name'] == "家族8_名（フリガナ）") {
+        familySheetData['familyFirstNameKana8'] = familySheetList['custom_fields'][familySheetKey]['id'];
+      }
+      if (familySheetList['custom_fields'][familySheetKey]['name'] == "家族9_名（フリガナ）") {
+        familySheetData['familyFirstNameKana9'] = familySheetList['custom_fields'][familySheetKey]['id'];
+      }
+      if (familySheetList['custom_fields'][familySheetKey]['name'] == "家族10_名（フリガナ）") {
+        familySheetData['familyFirstNameKana10'] = familySheetList['custom_fields'][familySheetKey]['id'];
+      }
+      if (familySheetList['custom_fields'][familySheetKey]['name'] == "家族1_性別") {
+        familySheetData['familyGender1'] = familySheetList['custom_fields'][familySheetKey]['id'];
+      }
+      if (familySheetList['custom_fields'][familySheetKey]['name'] == "家族2_性別") {
+        familySheetData['familyGender2'] = familySheetList['custom_fields'][familySheetKey]['id'];
+      }
+      if (familySheetList['custom_fields'][familySheetKey]['name'] == "家族3_性別") {
+        familySheetData['familyGender3'] = familySheetList['custom_fields'][familySheetKey]['id'];
+      }
+      if (familySheetList['custom_fields'][familySheetKey]['name'] == "家族4_性別") {
+        familySheetData['familyGender4'] = familySheetList['custom_fields'][familySheetKey]['id'];
+      }
+      if (familySheetList['custom_fields'][familySheetKey]['name'] == "家族5_性別") {
+        familySheetData['familyGender5'] = familySheetList['custom_fields'][familySheetKey]['id'];
+      }
+      if (familySheetList['custom_fields'][familySheetKey]['name'] == "家族6_性別") {
+        familySheetData['familyGender6'] = familySheetList['custom_fields'][familySheetKey]['id'];
+      }
+      if (familySheetList['custom_fields'][familySheetKey]['name'] == "家族7_性別") {
+        familySheetData['familyGender7'] = familySheetList['custom_fields'][familySheetKey]['id'];
+      }
+      if (familySheetList['custom_fields'][familySheetKey]['name'] == "家族8_性別") {
+        familySheetData['familyGender8'] = familySheetList['custom_fields'][familySheetKey]['id'];
+      }
+      if (familySheetList['custom_fields'][familySheetKey]['name'] == "家族9_性別") {
+        familySheetData['familyGender9'] = familySheetList['custom_fields'][familySheetKey]['id'];
+      }
+      if (familySheetList['custom_fields'][familySheetKey]['name'] == "家族10_性別") {
+        familySheetData['familyGender10'] = familySheetList['custom_fields'][familySheetKey]['id'];
+      }
+      if (familySheetList['custom_fields'][familySheetKey]['name'] == "家族1_生年月日") {
+        familySheetData['familyBirthday1'] = familySheetList['custom_fields'][familySheetKey]['id'];
+      }
+      if (familySheetList['custom_fields'][familySheetKey]['name'] == "家族2_生年月日") {
+        familySheetData['familyBirthday2'] = familySheetList['custom_fields'][familySheetKey]['id'];
+      }
+      if (familySheetList['custom_fields'][familySheetKey]['name'] == "家族3_生年月日") {
+        familySheetData['familyBirthday3'] = familySheetList['custom_fields'][familySheetKey]['id'];
+      }
+      if (familySheetList['custom_fields'][familySheetKey]['name'] == "家族4_生年月日") {
+        familySheetData['familyBirthday4'] = familySheetList['custom_fields'][familySheetKey]['id'];
+      }
+      if (familySheetList['custom_fields'][familySheetKey]['name'] == "家族5_生年月日") {
+        familySheetData['familyBirthday5'] = familySheetList['custom_fields'][familySheetKey]['id'];
+      }
+      if (familySheetList['custom_fields'][familySheetKey]['name'] == "家族6_生年月日") {
+        familySheetData['familyBirthday6'] = familySheetList['custom_fields'][familySheetKey]['id'];
+      }
+      if (familySheetList['custom_fields'][familySheetKey]['name'] == "家族7_生年月日") {
+        familySheetData['familyBirthday7'] = familySheetList['custom_fields'][familySheetKey]['id'];
+      }
+      if (familySheetList['custom_fields'][familySheetKey]['name'] == "家族8_生年月日") {
+        familySheetData['familyBirthday8'] = familySheetList['custom_fields'][familySheetKey]['id'];
+      }
+      if (familySheetList['custom_fields'][familySheetKey]['name'] == "家族9_生年月日") {
+        familySheetData['familyBirthday9'] = familySheetList['custom_fields'][familySheetKey]['id'];
+      }
+      if (familySheetList['custom_fields'][familySheetKey]['name'] == "家族10_生年月日") {
+        familySheetData['familyBirthday10'] = familySheetList['custom_fields'][familySheetKey]['id'];
+      }
+      if (familySheetList['custom_fields'][familySheetKey]['name'] == "家族1_電話番号") {
+        familySheetData['familyTelNumber1'] = familySheetList['custom_fields'][familySheetKey]['id'];
+      }
+      if (familySheetList['custom_fields'][familySheetKey]['name'] == "家族2_電話番号") {
+        familySheetData['familyTelNumber2'] = familySheetList['custom_fields'][familySheetKey]['id'];
+      }
+      if (familySheetList['custom_fields'][familySheetKey]['name'] == "家族3_電話番号") {
+        familySheetData['familyTelNumber3'] = familySheetList['custom_fields'][familySheetKey]['id'];
+      }
+      if (familySheetList['custom_fields'][familySheetKey]['name'] == "家族4_電話番号") {
+        familySheetData['familyTelNumber4'] = familySheetList['custom_fields'][familySheetKey]['id'];
+      }
+      if (familySheetList['custom_fields'][familySheetKey]['name'] == "家族5_電話番号") {
+        familySheetData['familyTelNumber5'] = familySheetList['custom_fields'][familySheetKey]['id'];
+      }
+      if (familySheetList['custom_fields'][familySheetKey]['name'] == "家族6_電話番号") {
+        familySheetData['familyTelNumber6'] = familySheetList['custom_fields'][familySheetKey]['id'];
+      }
+      if (familySheetList['custom_fields'][familySheetKey]['name'] == "家族7_電話番号") {
+        familySheetData['familyTelNumber7'] = familySheetList['custom_fields'][familySheetKey]['id'];
+      }
+      if (familySheetList['custom_fields'][familySheetKey]['name'] == "家族8_電話番号") {
+        familySheetData['familyTelNumber8'] = familySheetList['custom_fields'][familySheetKey]['id'];
+      }
+      if (familySheetList['custom_fields'][familySheetKey]['name'] == "家族9_電話番号") {
+        familySheetData['familyTelNumber9'] = familySheetList['custom_fields'][familySheetKey]['id'];
+      }
+      if (familySheetList['custom_fields'][familySheetKey]['name'] == "家族10_電話番号") {
+        familySheetData['familyTelNumber10'] = familySheetList['custom_fields'][familySheetKey]['id'];
+      }
+      if (familySheetList['custom_fields'][familySheetKey]['name'] == "家族1_職業") {
+        familySheetData['familyJob1'] = familySheetList['custom_fields'][familySheetKey]['id'];
+      }
+      if (familySheetList['custom_fields'][familySheetKey]['name'] == "家族2_職業") {
+        familySheetData['familyJob2'] = familySheetList['custom_fields'][familySheetKey]['id'];
+      }
+      if (familySheetList['custom_fields'][familySheetKey]['name'] == "家族3_職業") {
+        familySheetData['familyJob3'] = familySheetList['custom_fields'][familySheetKey]['id'];
+      }
+      if (familySheetList['custom_fields'][familySheetKey]['name'] == "家族4_職業") {
+        familySheetData['familyJob4'] = familySheetList['custom_fields'][familySheetKey]['id'];
+      }
+      if (familySheetList['custom_fields'][familySheetKey]['name'] == "家族5_職業") {
+        familySheetData['familyJob5'] = familySheetList['custom_fields'][familySheetKey]['id'];
+      }
+      if (familySheetList['custom_fields'][familySheetKey]['name'] == "家族6_職業") {
+        familySheetData['familyJob6'] = familySheetList['custom_fields'][familySheetKey]['id'];
+      }
+      if (familySheetList['custom_fields'][familySheetKey]['name'] == "家族7_職業") {
+        familySheetData['familyJob7'] = familySheetList['custom_fields'][familySheetKey]['id'];
+      }
+      if (familySheetList['custom_fields'][familySheetKey]['name'] == "家族8_職業") {
+        familySheetData['familyJob8'] = familySheetList['custom_fields'][familySheetKey]['id'];
+      }
+      if (familySheetList['custom_fields'][familySheetKey]['name'] == "家族9_職業") {
+        familySheetData['familyJob9'] = familySheetList['custom_fields'][familySheetKey]['id'];
+      }
+      if (familySheetList['custom_fields'][familySheetKey]['name'] == "家族10_職業") {
+        familySheetData['familyJob10'] = familySheetList['custom_fields'][familySheetKey]['id'];
+      }
+      if (familySheetList['custom_fields'][familySheetKey]['name'] == "家族1_同居・別居の別") {
+        familySheetData['familyLiveTogether1'] = familySheetList['custom_fields'][familySheetKey]['id'];
+      }
+      if (familySheetList['custom_fields'][familySheetKey]['name'] == "家族2_同居・別居の別") {
+        familySheetData['familyLiveTogether2'] = familySheetList['custom_fields'][familySheetKey]['id'];
+      }
+      if (familySheetList['custom_fields'][familySheetKey]['name'] == "家族3_同居・別居の別") {
+        familySheetData['familyLiveTogether3'] = familySheetList['custom_fields'][familySheetKey]['id'];
+      }
+      if (familySheetList['custom_fields'][familySheetKey]['name'] == "家族4_同居・別居の別") {
+        familySheetData['familyLiveTogether4'] = familySheetList['custom_fields'][familySheetKey]['id'];
+      }
+      if (familySheetList['custom_fields'][familySheetKey]['name'] == "家族5_同居・別居の別") {
+        familySheetData['familyLiveTogether5'] = familySheetList['custom_fields'][familySheetKey]['id'];
+      }
+      if (familySheetList['custom_fields'][familySheetKey]['name'] == "家族6_同居・別居の別") {
+        familySheetData['familyLiveTogether6'] = familySheetList['custom_fields'][familySheetKey]['id'];
+      }
+      if (familySheetList['custom_fields'][familySheetKey]['name'] == "家族7_同居・別居の別") {
+        familySheetData['familyLiveTogether7'] = familySheetList['custom_fields'][familySheetKey]['id'];
+      }
+      if (familySheetList['custom_fields'][familySheetKey]['name'] == "家族8_同居・別居の別") {
+        familySheetData['familyLiveTogether8'] = familySheetList['custom_fields'][familySheetKey]['id'];
+      }
+      if (familySheetList['custom_fields'][familySheetKey]['name'] == "家族9_同居・別居の別") {
+        familySheetData['familyLiveTogether9'] = familySheetList['custom_fields'][familySheetKey]['id'];
+      }
+      if (familySheetList['custom_fields'][familySheetKey]['name'] == "家族10_同居・別居の別") {
+        familySheetData['familyLiveTogether10'] = familySheetList['custom_fields'][familySheetKey]['id'];
+      }
+      if (familySheetList['custom_fields'][familySheetKey]['name'] == "家族1_住所（郵便番号）") {
+        familySheetData['familyZipCode1'] = familySheetList['custom_fields'][familySheetKey]['id'];
+      }
+      if (familySheetList['custom_fields'][familySheetKey]['name'] == "家族2_住所（郵便番号）") {
+        familySheetData['familyZipCode2'] = familySheetList['custom_fields'][familySheetKey]['id'];
+      }
+      if (familySheetList['custom_fields'][familySheetKey]['name'] == "家族3_住所（郵便番号）") {
+        familySheetData['familyZipCode3'] = familySheetList['custom_fields'][familySheetKey]['id'];
+      }
+      if (familySheetList['custom_fields'][familySheetKey]['name'] == "家族4_住所（郵便番号）") {
+        familySheetData['familyZipCode4'] = familySheetList['custom_fields'][familySheetKey]['id'];
+      }
+      if (familySheetList['custom_fields'][familySheetKey]['name'] == "家族5_住所（郵便番号）") {
+        familySheetData['familyZipCode5'] = familySheetList['custom_fields'][familySheetKey]['id'];
+      }
+      if (familySheetList['custom_fields'][familySheetKey]['name'] == "家族6_住所（郵便番号）") {
+        familySheetData['familyZipCode6'] = familySheetList['custom_fields'][familySheetKey]['id'];
+      }
+      if (familySheetList['custom_fields'][familySheetKey]['name'] == "家族7_住所（郵便番号）") {
+        familySheetData['familyZipCode7'] = familySheetList['custom_fields'][familySheetKey]['id'];
+      }
+      if (familySheetList['custom_fields'][familySheetKey]['name'] == "家族8_住所（郵便番号）") {
+        familySheetData['familyZipCode8'] = familySheetList['custom_fields'][familySheetKey]['id'];
+      }
+      if (familySheetList['custom_fields'][familySheetKey]['name'] == "家族9_住所（郵便番号）") {
+        familySheetData['familyZipCode9'] = familySheetList['custom_fields'][familySheetKey]['id'];
+      }
+      if (familySheetList['custom_fields'][familySheetKey]['name'] == "家族10_住所（郵便番号）") {
+        familySheetData['familyZipCode10'] = familySheetList['custom_fields'][familySheetKey]['id'];
+      }
+      if (familySheetList['custom_fields'][familySheetKey]['name'] == "家族1_住所（都道府県）") {
+        familySheetData['familyPref1'] = familySheetList['custom_fields'][familySheetKey]['id'];
+      }
+      if (familySheetList['custom_fields'][familySheetKey]['name'] == "家族2_住所（都道府県）") {
+        familySheetData['familyPref2'] = familySheetList['custom_fields'][familySheetKey]['id'];
+      }
+      if (familySheetList['custom_fields'][familySheetKey]['name'] == "家族3_住所（都道府県）") {
+        familySheetData['familyPref3'] = familySheetList['custom_fields'][familySheetKey]['id'];
+      }
+      if (familySheetList['custom_fields'][familySheetKey]['name'] == "家族4_住所（都道府県）") {
+        familySheetData['familyPref4'] = familySheetList['custom_fields'][familySheetKey]['id'];
+      }
+      if (familySheetList['custom_fields'][familySheetKey]['name'] == "家族5_住所（都道府県）") {
+        familySheetData['familyPref5'] = familySheetList['custom_fields'][familySheetKey]['id'];
+      }
+      if (familySheetList['custom_fields'][familySheetKey]['name'] == "家族6_住所（都道府県）") {
+        familySheetData['familyPref6'] = familySheetList['custom_fields'][familySheetKey]['id'];
+      }
+      if (familySheetList['custom_fields'][familySheetKey]['name'] == "家族7_住所（都道府県）") {
+        familySheetData['familyPref7'] = familySheetList['custom_fields'][familySheetKey]['id'];
+      }
+      if (familySheetList['custom_fields'][familySheetKey]['name'] == "家族8_住所（都道府県）") {
+        familySheetData['familyPref8'] = familySheetList['custom_fields'][familySheetKey]['id'];
+      }
+      if (familySheetList['custom_fields'][familySheetKey]['name'] == "家族9_住所（都道府県）") {
+        familySheetData['familyPref9'] = familySheetList['custom_fields'][familySheetKey]['id'];
+      }
+      if (familySheetList['custom_fields'][familySheetKey]['name'] == "家族10_住所（都道府県）") {
+        familySheetData['familyPref10'] = familySheetList['custom_fields'][familySheetKey]['id'];
+      }
+      if (familySheetList['custom_fields'][familySheetKey]['name'] == "家族1_住所（市区町村）") {
+        familySheetData['familyCity1'] = familySheetList['custom_fields'][familySheetKey]['id'];
+      }
+      if (familySheetList['custom_fields'][familySheetKey]['name'] == "家族2_住所（市区町村）") {
+        familySheetData['familyCity2'] = familySheetList['custom_fields'][familySheetKey]['id'];
+      }
+      if (familySheetList['custom_fields'][familySheetKey]['name'] == "家族3_住所（市区町村）") {
+        familySheetData['familyCity3'] = familySheetList['custom_fields'][familySheetKey]['id'];
+      }
+      if (familySheetList['custom_fields'][familySheetKey]['name'] == "家族4_住所（市区町村）") {
+        familySheetData['familyCity4'] = familySheetList['custom_fields'][familySheetKey]['id'];
+      }
+      if (familySheetList['custom_fields'][familySheetKey]['name'] == "家族5_住所（市区町村）") {
+        familySheetData['familyCity5'] = familySheetList['custom_fields'][familySheetKey]['id'];
+      }
+      if (familySheetList['custom_fields'][familySheetKey]['name'] == "家族6_住所（市区町村）") {
+        familySheetData['familyCity6'] = familySheetList['custom_fields'][familySheetKey]['id'];
+      }
+      if (familySheetList['custom_fields'][familySheetKey]['name'] == "家族7_住所（市区町村）") {
+        familySheetData['familyCity7'] = familySheetList['custom_fields'][familySheetKey]['id'];
+      }
+      if (familySheetList['custom_fields'][familySheetKey]['name'] == "家族8_住所（市区町村）") {
+        familySheetData['familyCity8'] = familySheetList['custom_fields'][familySheetKey]['id'];
+      }
+      if (familySheetList['custom_fields'][familySheetKey]['name'] == "家族9_住所（市区町村）") {
+        familySheetData['familyCity9'] = familySheetList['custom_fields'][familySheetKey]['id'];
+      }
+      if (familySheetList['custom_fields'][familySheetKey]['name'] == "家族10_住所（市区町村）") {
+        familySheetData['familyCity10'] = familySheetList['custom_fields'][familySheetKey]['id'];
+      }
+      if (familySheetList['custom_fields'][familySheetKey]['name'] == "家族1_住所（丁目・番地）") {
+        familySheetData['familyStreet1'] = familySheetList['custom_fields'][familySheetKey]['id'];
+      }
+      if (familySheetList['custom_fields'][familySheetKey]['name'] == "家族2_住所（丁目・番地）") {
+        familySheetData['familyStreet2'] = familySheetList['custom_fields'][familySheetKey]['id'];
+      }
+      if (familySheetList['custom_fields'][familySheetKey]['name'] == "家族3_住所（丁目・番地）") {
+        familySheetData['familyStreet3'] = familySheetList['custom_fields'][familySheetKey]['id'];
+      }
+      if (familySheetList['custom_fields'][familySheetKey]['name'] == "家族4_住所（丁目・番地）") {
+        familySheetData['familyStreet4'] = familySheetList['custom_fields'][familySheetKey]['id'];
+      }
+      if (familySheetList['custom_fields'][familySheetKey]['name'] == "家族5_住所（丁目・番地）") {
+        familySheetData['familyStreet5'] = familySheetList['custom_fields'][familySheetKey]['id'];
+      }
+      if (familySheetList['custom_fields'][familySheetKey]['name'] == "家族6_住所（丁目・番地）") {
+        familySheetData['familyStreet6'] = familySheetList['custom_fields'][familySheetKey]['id'];
+      }
+      if (familySheetList['custom_fields'][familySheetKey]['name'] == "家族7_住所（丁目・番地）") {
+        familySheetData['familyStreet7'] = familySheetList['custom_fields'][familySheetKey]['id'];
+      }
+      if (familySheetList['custom_fields'][familySheetKey]['name'] == "家族8_住所（丁目・番地）") {
+        familySheetData['familyStreet8'] = familySheetList['custom_fields'][familySheetKey]['id'];
+      }
+      if (familySheetList['custom_fields'][familySheetKey]['name'] == "家族9_住所（丁目・番地）") {
+        familySheetData['familyStreet9'] = familySheetList['custom_fields'][familySheetKey]['id'];
+      }
+      if (familySheetList['custom_fields'][familySheetKey]['name'] == "家族10_住所（丁目・番地）") {
+        familySheetData['familyStreet10'] = familySheetList['custom_fields'][familySheetKey]['id'];
+      }
+      if (familySheetList['custom_fields'][familySheetKey]['name'] == "家族1_住所（建物名・部屋番号）") {
+        familySheetData['familyBuilding1'] = familySheetList['custom_fields'][familySheetKey]['id'];
+      }
+      if (familySheetList['custom_fields'][familySheetKey]['name'] == "家族2_住所（建物名・部屋番号）") {
+        familySheetData['familyBuilding2'] = familySheetList['custom_fields'][familySheetKey]['id'];
+      }
+      if (familySheetList['custom_fields'][familySheetKey]['name'] == "家族3_住所（建物名・部屋番号）") {
+        familySheetData['familyBuilding3'] = familySheetList['custom_fields'][familySheetKey]['id'];
+      }
+      if (familySheetList['custom_fields'][familySheetKey]['name'] == "家族4_住所（建物名・部屋番号）") {
+        familySheetData['familyBuilding4'] = familySheetList['custom_fields'][familySheetKey]['id'];
+      }
+      if (familySheetList['custom_fields'][familySheetKey]['name'] == "家族5_住所（建物名・部屋番号）") {
+        familySheetData['familyBuilding5'] = familySheetList['custom_fields'][familySheetKey]['id'];
+      }
+      if (familySheetList['custom_fields'][familySheetKey]['name'] == "家族6_住所（建物名・部屋番号）") {
+        familySheetData['familyBuilding6'] = familySheetList['custom_fields'][familySheetKey]['id'];
+      }
+      if (familySheetList['custom_fields'][familySheetKey]['name'] == "家族7_住所（建物名・部屋番号）") {
+        familySheetData['familyBuilding7'] = familySheetList['custom_fields'][familySheetKey]['id'];
+      }
+      if (familySheetList['custom_fields'][familySheetKey]['name'] == "家族8_住所（建物名・部屋番号）") {
+        familySheetData['familyBuilding8'] = familySheetList['custom_fields'][familySheetKey]['id'];
+      }
+      if (familySheetList['custom_fields'][familySheetKey]['name'] == "家族9_住所（建物名・部屋番号）") {
+        familySheetData['familyBuilding9'] = familySheetList['custom_fields'][familySheetKey]['id'];
+      }
+      if (familySheetList['custom_fields'][familySheetKey]['name'] == "家族10_住所（建物名・部屋番号）") {
+        familySheetData['familyBuilding10'] = familySheetList['custom_fields'][familySheetKey]['id'];
+      }
+    }
+    const familySheetIdList = {
+      'sheetId' : familySheetList['id'],
+      'familyRelationship1' : familySheetData['familyRelationship1'],
+      'familyRelationship2' : familySheetData['familyRelationship2'],
+      'familyRelationship3' : familySheetData['familyRelationship3'],
+      'familyRelationship4' : familySheetData['familyRelationship4'],
+      'familyRelationship5' : familySheetData['familyRelationship5'],
+      'familyRelationship6' : familySheetData['familyRelationship6'],
+      'familyRelationship7' : familySheetData['familyRelationship7'],
+      'familyRelationship8' : familySheetData['familyRelationship8'],
+      'familyRelationship9' : familySheetData['familyRelationship9'],
+      'familyRelationship10' : familySheetData['familyRelationship10'],
+      'familyLastName1' : familySheetData['familyLastName1'],
+      'familyLastName2' : familySheetData['familyLastName2'],
+      'familyLastName3' : familySheetData['familyLastName3'],
+      'familyLastName4' : familySheetData['familyLastName4'],
+      'familyLastName5' : familySheetData['familyLastName5'],
+      'familyLastName6' : familySheetData['familyLastName6'],
+      'familyLastName7' : familySheetData['familyLastName7'],
+      'familyLastName8' : familySheetData['familyLastName8'],
+      'familyLastName9' : familySheetData['familyLastName9'],
+      'familyLastName10' : familySheetData['familyLastName10'],
+      'familyFirstName1' : familySheetData['familyFirstName1'],
+      'familyFirstName2' : familySheetData['familyFirstName2'],
+      'familyFirstName3' : familySheetData['familyFirstName3'],
+      'familyFirstName4' : familySheetData['familyFirstName4'],
+      'familyFirstName5' : familySheetData['familyFirstName5'],
+      'familyFirstName6' : familySheetData['familyFirstName6'],
+      'familyFirstName7' : familySheetData['familyFirstName7'],
+      'familyFirstName8' : familySheetData['familyFirstName8'],
+      'familyFirstName9' : familySheetData['familyFirstName9'],
+      'familyFirstName10' : familySheetData['familyFirstName10'],
+      'familyLastNameKana1' : familySheetData['familyLastNameKana1'],
+      'familyLastNameKana2' : familySheetData['familyLastNameKana2'],
+      'familyLastNameKana3' : familySheetData['familyLastNameKana3'],
+      'familyLastNameKana4' : familySheetData['familyLastNameKana4'],
+      'familyLastNameKana5' : familySheetData['familyLastNameKana5'],
+      'familyLastNameKana6' : familySheetData['familyLastNameKana6'],
+      'familyLastNameKana7' : familySheetData['familyLastNameKana7'],
+      'familyLastNameKana8' : familySheetData['familyLastNameKana8'],
+      'familyLastNameKana9' : familySheetData['familyLastNameKana9'],
+      'familyLastNameKana10' : familySheetData['familyLastNameKana10'],
+      'familyFirstNameKana1' : familySheetData['familyFirstNameKana1'],
+      'familyFirstNameKana2' : familySheetData['familyFirstNameKana2'],
+      'familyFirstNameKana3' : familySheetData['familyFirstNameKana3'],
+      'familyFirstNameKana4' : familySheetData['familyFirstNameKana4'],
+      'familyFirstNameKana5' : familySheetData['familyFirstNameKana5'],
+      'familyFirstNameKana6' : familySheetData['familyFirstNameKana6'],
+      'familyFirstNameKana7' : familySheetData['familyFirstNameKana7'],
+      'familyFirstNameKana8' : familySheetData['familyFirstNameKana8'],
+      'familyFirstNameKana9' : familySheetData['familyFirstNameKana9'],
+      'familyFirstNameKana10' : familySheetData['familyFirstNameKana10'],
+      'familyGender1' : familySheetData['familyGender1'],
+      'familyGender2' : familySheetData['familyGender2'],
+      'familyGender3' : familySheetData['familyGender3'],
+      'familyGender4' : familySheetData['familyGender4'],
+      'familyGender5' : familySheetData['familyGender5'],
+      'familyGender6' : familySheetData['familyGender6'],
+      'familyGender7' : familySheetData['familyGender7'],
+      'familyGender8' : familySheetData['familyGender8'],
+      'familyGender9' : familySheetData['familyGender9'],
+      'familyGender10' : familySheetData['familyGender10'],
+      'familyBirthday1' : familySheetData['familyBirthday1'],
+      'familyBirthday2' : familySheetData['familyBirthday2'],
+      'familyBirthday3' : familySheetData['familyBirthday3'],
+      'familyBirthday4' : familySheetData['familyBirthday4'],
+      'familyBirthday5' : familySheetData['familyBirthday5'],
+      'familyBirthday6' : familySheetData['familyBirthday6'],
+      'familyBirthday7' : familySheetData['familyBirthday7'],
+      'familyBirthday8' : familySheetData['familyBirthday8'],
+      'familyBirthday9' : familySheetData['familyBirthday9'],
+      'familyBirthday10' : familySheetData['familyBirthday10'],
+      'familyTelNumber1' : familySheetData['familyTelNumber1'],
+      'familyTelNumber2' : familySheetData['familyTelNumber2'],
+      'familyTelNumber3' : familySheetData['familyTelNumber3'],
+      'familyTelNumber4' : familySheetData['familyTelNumber4'],
+      'familyTelNumber5' : familySheetData['familyTelNumber5'],
+      'familyTelNumber6' : familySheetData['familyTelNumber6'],
+      'familyTelNumber7' : familySheetData['familyTelNumber7'],
+      'familyTelNumber8' : familySheetData['familyTelNumber8'],
+      'familyTelNumber9' : familySheetData['familyTelNumber9'],
+      'familyTelNumber10' : familySheetData['familyTelNumber10'],
+      'familyJob1' : familySheetData['familyJob1'],
+      'familyJob2' : familySheetData['familyJob2'],
+      'familyJob3' : familySheetData['familyJob3'],
+      'familyJob4' : familySheetData['familyJob4'],
+      'familyJob5' : familySheetData['familyJob5'],
+      'familyJob6' : familySheetData['familyJob6'],
+      'familyJob7' : familySheetData['familyJob7'],
+      'familyJob8' : familySheetData['familyJob8'],
+      'familyJob9' : familySheetData['familyJob9'],
+      'familyJob10' : familySheetData['familyJob10'],
+      'familyLiveTogether1' : familySheetData['familyLiveTogether1'],
+      'familyLiveTogether2' : familySheetData['familyLiveTogether2'],
+      'familyLiveTogether3' : familySheetData['familyLiveTogether3'],
+      'familyLiveTogether4' : familySheetData['familyLiveTogether4'],
+      'familyLiveTogether5' : familySheetData['familyLiveTogether5'],
+      'familyLiveTogether6' : familySheetData['familyLiveTogether6'],
+      'familyLiveTogether7' : familySheetData['familyLiveTogether7'],
+      'familyLiveTogether8' : familySheetData['familyLiveTogether8'],
+      'familyLiveTogether9' : familySheetData['familyLiveTogether9'],
+      'familyLiveTogether10' : familySheetData['familyLiveTogether10'],
+      'familyZipCode1' : familySheetData['familyZipCode1'],
+      'familyZipCode2' : familySheetData['familyZipCode2'],
+      'familyZipCode3' : familySheetData['familyZipCode3'],
+      'familyZipCode4' : familySheetData['familyZipCode4'],
+      'familyZipCode5' : familySheetData['familyZipCode5'],
+      'familyZipCode6' : familySheetData['familyZipCode6'],
+      'familyZipCode7' : familySheetData['familyZipCode7'],
+      'familyZipCode8' : familySheetData['familyZipCode8'],
+      'familyZipCode9' : familySheetData['familyZipCode9'],
+      'familyZipCode10' : familySheetData['familyZipCode10'],
+      'familyPref1' : familySheetData['familyPref1'],
+      'familyPref2' : familySheetData['familyPref2'],
+      'familyPref3' : familySheetData['familyPref3'],
+      'familyPref4' : familySheetData['familyPref4'],
+      'familyPref5' : familySheetData['familyPref5'],
+      'familyPref6' : familySheetData['familyPref6'],
+      'familyPref7' : familySheetData['familyPref7'],
+      'familyPref8' : familySheetData['familyPref8'],
+      'familyPref9' : familySheetData['familyPref9'],
+      'familyPref10' : familySheetData['familyPref10'],
+      'familyCity1' : familySheetData['familyCity1'],
+      'familyCity2' : familySheetData['familyCity2'],
+      'familyCity3' : familySheetData['familyCity3'],
+      'familyCity4' : familySheetData['familyCity4'],
+      'familyCity5' : familySheetData['familyCity5'],
+      'familyCity6' : familySheetData['familyCity6'],
+      'familyCity7' : familySheetData['familyCity7'],
+      'familyCity8' : familySheetData['familyCity8'],
+      'familyCity9' : familySheetData['familyCity9'],
+      'familyCity10' : familySheetData['familyCity10'],
+      'familyStreet1' : familySheetData['familyStreet1'],
+      'familyStreet2' : familySheetData['familyStreet2'],
+      'familyStreet3' : familySheetData['familyStreet3'],
+      'familyStreet4' : familySheetData['familyStreet4'],
+      'familyStreet5' : familySheetData['familyStreet5'],
+      'familyStreet6' : familySheetData['familyStreet6'],
+      'familyStreet7' : familySheetData['familyStreet7'],
+      'familyStreet8' : familySheetData['familyStreet8'],
+      'familyStreet9' : familySheetData['familyStreet9'],
+      'familyStreet10' : familySheetData['familyStreet10'],
+      'familyBuilding1' : familySheetData['familyBuilding1'],
+      'familyBuilding2' : familySheetData['familyBuilding2'],
+      'familyBuilding3' : familySheetData['familyBuilding3'],
+      'familyBuilding4' : familySheetData['familyBuilding4'],
+      'familyBuilding5' : familySheetData['familyBuilding5'],
+      'familyBuilding6' : familySheetData['familyBuilding6'],
+      'familyBuilding7' : familySheetData['familyBuilding7'],
+      'familyBuilding8' : familySheetData['familyBuilding8'],
+      'familyBuilding9' : familySheetData['familyBuilding9'],
+      'familyBuilding10' : familySheetData['familyBuilding10'],
+    }
 
-  try{
+    const employeeIdList = createKaonaviIdList();
+    // 文字列(エラー)が返却された場合、エラーハンドリング
+    if (typeof employeeIdList == "string") {
+      SpreadsheetApp.getUi().alert(employeeIdList);
+      throw new Error("スプレッドシート操作エラー：" + employeeIdList);
+    }
+
+    // smartHR_社員情報を取得
+    const employeesData = createKaonaviEmployeeList(employeeIdList);
+
+    // カオナビAPIリクエスト送信形式_データ格納用配列変数
+    let basicInfoList = [];  // 基本情報
+    let contactList = [];  // 連絡先
+    let addressList = [];  // 住所
+    let emergencyContactList = [];  // 緊急連絡先
+    let bankList = [];  // 銀行口座
+    let academicList = [];  // 学歴
+    let languageList = [];  // 語学
+    let licenseList = [];  // 免許・資格等
+    let familyList = [];  // 家族情報
+
     // 登録対象の社員人数分ループ参照
     for (var l = 0; l < employeesData.length; l++) {
       // 対象社員の家族情報を取得
       const employeeFamilyData = callShrFamilyApi(employeesData[l]['id']);
-      // log(JSON.stringify(employeeFamilyData, null, 5),'s', "s");
 
       // SmartHR_各種カスタム項目_整形用配列
+      // 採用経緯
+      var recruitmentData = [];
       // 学歴
       var academicHistoryData = [];
       // 英語
@@ -59,6 +1052,10 @@ function createMember() {
 
       if (employeesData[l]['custom_fields'].length > 0) {
         for (var cl = 0; cl < employeesData[l]['custom_fields'].length; cl++) {
+          // 採用経緯
+          if (employeesData[l]['custom_fields'][cl]['template']['group_id'] == getProperties("recruitmentGroupId")) {
+            recruitmentData.push(employeesData[l]['custom_fields'][cl]);
+          }
           // 学歴
           if (employeesData[l]['custom_fields'][cl]['template']['group_id'] == getProperties("academicHistoryGroupId")) {
             academicHistoryData.push(employeesData[l]['custom_fields'][cl]);
@@ -94,6 +1091,19 @@ function createMember() {
       var enteredDate = employeesData[l]['entered_at']
       var gender = employeesData[l]['gender'] === "male"　? "男性" : employeesData[l]['gender'] === "female" ? "女性" : "";
       var birthday = employeesData[l]['birth_at'];
+      // 抽出した採用経緯データを変数へ代入
+      if (recruitmentData.length > 0) {
+        for (var rl = 0; rl < recruitmentData.length; rl++) {
+          // 採用形態
+          if (recruitmentData[rl]['template']['name'] == "採用形態") {
+            for (var relm = 0; relm < recruitmentData[rl]['template']['elements'].length; relm++) {
+              if (recruitmentData[rl]['value'] == recruitmentData[rl]['template']['elements'][relm]['id']) {
+                recruitmentForm = recruitmentData[rl]['template']['elements'][relm]['name'];
+              }
+            }
+          }
+        }
+      }
 
       // 連絡先
       var email = employeesData[l]['email'];
@@ -419,7 +1429,6 @@ function createMember() {
             }
           }
           // その他外国語1_級・スコア
-          // SmartHR側はstring、カオナビ側はnumber(integer)のため、どちらかの型に統一する必要がある
           if (otherLanguageData[oll]['template']['name'] == "その他外国語検定名、級・スコア等①") {
             otherLanguageScore1 = otherLanguageData[oll]['value'];
           }
@@ -440,40 +1449,64 @@ function createMember() {
 
       // 抽出した免許資格・知識技能データを変数へ代入
       // 免許・資格等
-      var licenseName = null;
-      var licenseAcquisitionDate = null;
-      var knowledgeName = null;
-      var knowledgeAcquisitionDate = null;
+      var licenseName1 = null;
+      var licenseName2 = null;
+      var licenseAcquisitionDate1 = null;
+      var licenseAcquisitionDate2 = null;
+      var knowledgeName1 = null;
+      var knowledgeName2 = null;
+      var knowledgeAcquisitionDate1 = null;
+      var knowledgeAcquisitionDate2 = null;
 
       if (licenseData.length > 0) {
         for (var ll = 0; ll < licenseData.length; ll++) {
           // 免許・資格名
-          if (licenseData[ll]['template']['name'] == "免許・資格名") {
+          if (licenseData[ll]['template']['name'] == "免許・資格名①") {
             for (var lelm = 0; lelm < licenseData[ll]['template']['elements'].length; lelm++) {
               if (licenseData[ll]['value'] == licenseData[ll]['template']['elements'][lelm]['id']) {
-                licenseName = licenseData[ll]['template']['elements'][lelm]['name'];
+                licenseName1 = licenseData[ll]['template']['elements'][lelm]['name'];
+              }
+            }
+          }
+          if (licenseData[ll]['template']['name'] == "免許・資格名②") {
+            for (var lelm = 0; lelm < licenseData[ll]['template']['elements'].length; lelm++) {
+              if (licenseData[ll]['value'] == licenseData[ll]['template']['elements'][lelm]['id']) {
+                licenseName2 = licenseData[ll]['template']['elements'][lelm]['name'];
               }
             }
           }
           // 取得年月日
-          if (licenseData[ll]['template']['name'] == "取得年月日") {
-            licenseAcquisitionDate = licenseData[ll]['value'];
+          if (licenseData[ll]['template']['name'] == "免許・資格取得年月日①") {
+            licenseAcquisitionDate1 = licenseData[ll]['value'];
+          }
+          if (licenseData[ll]['template']['name'] == "免許・資格取得年月日②") {
+            licenseAcquisitionDate2 = licenseData[ll]['value'];
           }
         }
       }
       if (knowledgeData.length > 0) {
         for (var kl = 0; kl < knowledgeData.length; kl++) {
           // 知識・技能名
-          if (knowledgeData[kl]['template']['name'] == "知識・技能名") {
+          if (knowledgeData[kl]['template']['name'] == "知識・技能名①") {
             for (var kelm = 0; kelm < knowledgeData[kl]['template']['elements'].length; kelm++) {
               if (knowledgeData[kl]['value'] == knowledgeData[kl]['template']['elements'][kelm]['id']) {
-                knowledgeName = knowledgeData[kl]['template']['elements'][kelm]['name'];
+                knowledgeName1 = knowledgeData[kl]['template']['elements'][kelm]['name'];
+              }
+            }
+          }
+          if (knowledgeData[kl]['template']['name'] == "知識・技能名②") {
+            for (var kelm = 0; kelm < knowledgeData[kl]['template']['elements'].length; kelm++) {
+              if (knowledgeData[kl]['value'] == knowledgeData[kl]['template']['elements'][kelm]['id']) {
+                knowledgeName2 = knowledgeData[kl]['template']['elements'][kelm]['name'];
               }
             }
           }
           // 取得年月日
-          if (knowledgeData[kl]['template']['name'] == "取得年月日") {
-            knowledgeAcquisitionDate = knowledgeData[kl]['value'];
+          if (knowledgeData[kl]['template']['name'] == "知識・技能取得年月日①") {
+            knowledgeAcquisitionDate1 = knowledgeData[kl]['value'];
+          }
+          if (knowledgeData[kl]['template']['name'] == "知識・技能取得年月日②") {
+            knowledgeAcquisitionDate2 = knowledgeData[kl]['value'];
           }
         }
       }
@@ -666,7 +1699,7 @@ function createMember() {
         familyData[efl+1]['familyGender'] = employeeFamilyData[efl]['gender'] === "male" ? "男性" : employeeFamilyData[efl]['gender'] === "female" ? "女性" : null;
         familyData[efl+1]['familyJob'] = employeeFamilyData[efl]['job'];
         familyData[efl+1]['familyLiveTogether'] = employeeFamilyData[efl]['live_together_type'] === "living_together" ? "同居" : employeeFamilyData[efl]['live_together_type'] === "living_separately" ? "別居" : null;
-        if (employeeFamilyData[efl]['live_together_type'] === "living_together ") {
+        if (employeeFamilyData[efl]['live_together_type'] === "living_together") {
           familyData[efl+1]['familyZipCode'] = zipCode;
           familyData[efl+1]['familyPref'] = pref;
           familyData[efl+1]['familyCity'] = city;
@@ -690,7 +1723,15 @@ function createMember() {
         "entered_date" : enteredDate,  // 入社日
         "gender" : gender,  // 性別
         "birthday" : birthday,  // 生年月日
-        // 採用形態
+      }
+      if (recruitmentData.length > 0) {
+        basicInfo['custom_fields'] = [
+            {
+              "id": basicInfoSheetIdList['recruitment'],
+              "name": "採用形態",
+              "values": [ recruitmentForm ]
+            }
+        ]
       }
 
       /* 連絡先 */
@@ -701,12 +1742,12 @@ function createMember() {
             "custom_fields" : [
               // メールアドレス
               {
-                "id" : 5552,
+                "id" : contactSheetIdList['email'],
                 "values": [ email ]
               },
               // 電話番号
               {
-                "id" : 5553,
+                "id" : contactSheetIdList['telNumber'],
                 "values": [ telNumber ]
               }
             ]
@@ -722,32 +1763,32 @@ function createMember() {
             "custom_fields" : [
               // 現住所（郵便番号）
               {
-                "id" : 5537,
+                "id" : addressSheetIdList['zipCode'],
                 "values": [ zipCode ]
               },
               // 現住所（都道府県）
               {
-                "id" : 5823,
+                "id" : addressSheetIdList['pref'],
                 "values": [ pref ]
               },
               // 現住所（市区町村）
               {
-                "id" : 5539,
+                "id" : addressSheetIdList['city'],
                 "values": [ city ]
               },
               // 現住所（丁目・番地）
               {
-                "id" : 5540,
+                "id" : addressSheetIdList['street'],
                 "values": [ street ]
               },
               // 現住所（建物名・部屋番号）
               {
-                "id" : 5541,
+                "id" : addressSheetIdList['building'],
                 "values": [ building ]
               },
               // 現住所（国コード）
               {
-                "id" : 5542,
+                "id" : addressSheetIdList['countryNumber'],
                 "values": [ countryNumber ]
               }
             ]
@@ -763,47 +1804,47 @@ function createMember() {
             "custom_fields" : [
               // 緊急連絡先の続柄
               {
-                "id" : 5543,
+                "id" : emergencyContactSheetIdList['relationName'],
                 "values": [ emergencyRelationName ]
               },
               // 緊急連絡先の氏名
               {
-                "id" : 5544,
+                "id" : emergencyContactSheetIdList['name'],
                 "values": [ emergencyName ]
               },
               // 緊急連絡先のフリガナ
               {
-                "id" : 5545,
+                "id" : emergencyContactSheetIdList['nameKana'],
                 "values": [ emergencyNameKana ]
               },
               // 緊急連絡先の電話番号
               {
-                "id" : 5546,
+                "id" : emergencyContactSheetIdList['telNumber'],
                 "values": [ emergencyTelNumber ]
               },
               // 緊急連絡先の郵便番号
               {
-                "id" : 5547,
+                "id" : emergencyContactSheetIdList['zipCode'],
                 "values": [ emergencyAddressZipcode ]
               },
               // 緊急連絡先の都道府県
               {
-                "id" : 5548,
+                "id" : emergencyContactSheetIdList['pref'],
                 "values": [ emergencyAddressPref ]
               },
               // 緊急連絡先の市区町村
               {
-                "id" : 5549,
+                "id" : emergencyContactSheetIdList['city'],
                 "values": [ emergencyAddressCity ]
               },
               // 緊急連絡先の丁目・番地
               {
-                "id" : 5550,
+                "id" : emergencyContactSheetIdList['street'],
                 "values": [ emergencyAddressStreet ]
               },
               // 緊急連絡先の建物名・部屋番号
               {
-                "id" : 5551,
+                "id" : emergencyContactSheetIdList['building'],
                 "values": [ emergencyAddressBuilding ]
               }
             ]
@@ -819,27 +1860,27 @@ function createMember() {
             "custom_fields" : [
               // 銀行コード
               {
-                "id" : 5554,
+                "id" : bankSheetIdList['bankCode'],
                 "values": [ bankCode ]
               },
               // 支店コード
               {
-                "id" : 5555,
+                "id" : bankSheetIdList['bankBranchCode'],
                 "values": [ bankBranchCode ]
               },
               // 預金種別
               {
-                "id" : 5556,
+                "id" : bankSheetIdList['accountType'],
                 "values": [ accountType ]
               },
               // 口座番号
               {
-                "id" : 5557,
+                "id" : bankSheetIdList['accountNumber'],
                 "values": [ accountNumber ]
               },
               // 名義（カタカナ）
               {
-                "id" : 5558,
+                "id" : bankSheetIdList['accountHolderName'],
                 "values": [ accountHolderName ]
               }
             ]
@@ -855,177 +1896,177 @@ function createMember() {
             "custom_fields" : [
               // 学校1_学校分類
               {
-                "id" : 5559,
+                "id" : academicSheetIdList['schoolCategory1'],
                 "values": [ schoolCategory1 ]
               },
               // 学校2_学校分類
               {
-                "id" : 5565,
+                "id" : academicSheetIdList['schoolCategory2'],
                 "values": [ schoolCategory2 ]
               },
               // 学校3_学校分類
               {
-                "id" : 5571,
+                "id" : academicSheetIdList['schoolCategory3'],
                 "values": [ schoolCategory3 ]
               },
               // 学校4_学校分類
               {
-                "id" : 5577,
+                "id" : academicSheetIdList['schoolCategory4'],
                 "values": [ schoolCategory4 ]
               },
               // 学校5_学校分類
               {
-                "id" : 5583,
+                "id" : academicSheetIdList['schoolCategory5'],
                 "values": [ schoolCategory5 ]
               },
               // 学校1_学校名
               {
-                "id" : 5560,
+                "id" : academicSheetIdList['schoolName1'],
                 "values": [ schoolName1 ]
               },
               // 学校2_学校名
               {
-                "id" : 5566,
+                "id" : academicSheetIdList['schoolName2'],
                 "values": [ schoolName2 ]
               },
               // 学校3_学校名
               {
-                "id" : 5572,
+                "id" : academicSheetIdList['schoolName3'],
                 "values": [ schoolName3 ]
               },
               // 学校4_学校名
               {
-                "id" : 5578,
+                "id" : academicSheetIdList['schoolName4'],
                 "values": [ schoolName4 ]
               },
               // 学校5_学校名
               {
-                "id" : 5584,
+                "id" : academicSheetIdList['schoolName5'],
                 "values": [ schoolName5 ]
               },
               // 学校1_学部・学科・コース
               {
-                "id" : 5561,
+                "id" : academicSheetIdList['schoolDepartment1'],
                 "values": [ schoolDepartment1 ]
               },
               // 学校2_学部・学科・コース
               {
-                "id" : 5567,
+                "id" : academicSheetIdList['schoolDepartment2'],
                 "values": [ schoolDepartment2 ]
               },
               // 学校3_学部・学科・コース
               {
-                "id" : 5573,
+                "id" : academicSheetIdList['schoolDepartment3'],
                 "values": [ schoolDepartment3 ]
               },
               // 学校4_学部・学科・コース
               {
-                "id" : 5579,
+                "id" : academicSheetIdList['schoolDepartment4'],
                 "values": [ schoolDepartment4 ]
               },
               // 学校5_学部・学科・コース
               {
-                "id" : 5585,
+                "id" : academicSheetIdList['schoolDepartment5'],
                 "values": [ schoolDepartment5 ]
               },
               // 学校1_専攻科目ジャンル
               {
-                "id" : 5824,
+                "id" : academicSheetIdList['schoolMajor1'],
                 "values": [ schoolMajor1 ]
               },
               // 学校2_専攻科目ジャンル
               {
-                "id" : 5825,
+                "id" : academicSheetIdList['schoolMajor2'],
                 "values": [ schoolMajor2 ]
               },
               // 学校3_専攻科目ジャンル
               {
-                "id" : 5826,
+                "id" : academicSheetIdList['schoolMajor3'],
                 "values": [ schoolMajor3 ]
               },
               // 学校4_専攻科目ジャンル
               {
-                "id" : 5827,
+                "id" : academicSheetIdList['schoolMajor4'],
                 "values": [ schoolMajor4 ]
               },
               // 学校5_専攻科目ジャンル
               {
-                "id" : 5828,
+                "id" : academicSheetIdList['schoolMajor5'],
                 "values": [ schoolMajor5 ]
               },
               // 学校1_入学年月日
               {
-                "id" : 5562,
+                "id" : academicSheetIdList['schoolEnteredDate1'],
                 "values": [ schoolEnteredDate1 ]
               },
               // 学校2_入学年月日
               {
-                "id" : 5568,
+                "id" : academicSheetIdList['schoolEnteredDate2'],
                 "values": [ schoolEnteredDate2 ]
               },
               // 学校3_入学年月日
               {
-                "id" : 5574,
+                "id" : academicSheetIdList['schoolEnteredDate3'],
                 "values": [ schoolEnteredDate3 ]
               },
               // 学校4_入学年月日
               {
-                "id" : 5580,
+                "id" : academicSheetIdList['schoolEnteredDate4'],
                 "values": [ schoolEnteredDate4 ]
               },
               // 学校5_入学年月日
               {
-                "id" : 5586,
+                "id" : academicSheetIdList['schoolEnteredDate5'],
                 "values": [ schoolEnteredDate5 ]
               },
               // 学校1_卒業・中退
               {
-                "id" : 5563,
+                "id" : academicSheetIdList['graduatedAndDropout1'],
                 "values": [ graduatedAndDropout1 ]
               },
               // 学校2_卒業・中退
               {
-                "id" : 5569,
+                "id" : academicSheetIdList['graduatedAndDropout2'],
                 "values": [ graduatedAndDropout2 ]
               },
               // 学校3_卒業・中退
               {
-                "id" : 5575,
+                "id" : academicSheetIdList['graduatedAndDropout3'],
                 "values": [ graduatedAndDropout3 ]
               },
               // 学校4_卒業・中退
               {
-                "id" : 5581,
+                "id" : academicSheetIdList['graduatedAndDropout4'],
                 "values": [ graduatedAndDropout4 ]
               },
               // 学校5_卒業・中退
               {
-                "id" : 5587,
+                "id" : academicSheetIdList['graduatedAndDropout5'],
                 "values": [ graduatedAndDropout5 ]
               },
               // 学校1_卒業・中退年月日
               {
-                "id" : 5564,
+                "id" : academicSheetIdList['graduatedAndDropoutDate1'],
                 "values": [ graduatedAndDropoutDate1 ]
               },
               // 学校2_卒業・中退年月日
               {
-                "id" : 5570,
+                "id" : academicSheetIdList['graduatedAndDropoutDate2'],
                 "values": [ graduatedAndDropoutDate2 ]
               },
               // 学校3_卒業・中退年月日
               {
-                "id" : 5576,
+                "id" : academicSheetIdList['graduatedAndDropoutDate3'],
                 "values": [ graduatedAndDropoutDate3 ]
               },
               // 学校4_卒業・中退年月日
               {
-                "id" : 5582,
+                "id" : academicSheetIdList['graduatedAndDropoutDate4'],
                 "values": [ graduatedAndDropoutDate4 ]
               },
               // 学校5_卒業・中退年月日
               {
-                "id" : 5588,
+                "id" : academicSheetIdList['graduatedAndDropoutDate5'],
                 "values": [ graduatedAndDropoutDate5 ]
               },
             ]
@@ -1058,47 +2099,47 @@ function createMember() {
               // },
               // 英語_試験名
               {
-                "id" : 5592,
+                "id" : languageSheetIdList['englishTestName'],
                 "values": [ englishTestName ]
               },
               // 英語_スコア
               {
-                "id" : 5593,
+                "id" : languageSheetIdList['englishTestScore'],
                 "values": [ englishTestScore ]
               },
               // 英語_受験日
               {
-                "id" : 5594,
+                "id" : languageSheetIdList['englishTestDate'],
                 "values": [ englishTestDate ]
               },
-              // その他外国語①_語学名
+              // その他外国語1_語学名
               {
-                "id" : 5595,
+                "id" : languageSheetIdList['otherLanguageName1'],
                 "values": [ otherLanguageName1 ]
               },
-              // その他外国語①_級・スコア等
+              // その他外国語1_級・スコア
               {
-                "id" : 5596,
+                "id" : languageSheetIdList['otherLanguageScore1'],
                 "values": [ otherLanguageScore1 ]
               },
-              // その他外国語①_取得年月日
+              // その他外国語1_取得年月日
               {
-                "id" : 5597,
+                "id" : languageSheetIdList['otherLanguageAcquisitionDate1'],
                 "values": [ otherLanguageAcquisitionDate1 ]
               },
-              // その他外国語②_語学名
+              // その他外国語2_語学名
               {
-                "id" : 5598,
+                "id" : languageSheetIdList['otherLanguageName2'],
                 "values": [ otherLanguageName2 ]
               },
-              // その他外国語②_級・スコア等
+              // その他外国語2_級・スコア
               {
-                "id" : 5599,
+                "id" : languageSheetIdList['otherLanguageScore2'],
                 "values": [ otherLanguageScore2 ]
               },
-              // その他外国語②_取得年月日
+              // その他外国語2_取得年月日
               {
-                "id" : 5600,
+                "id" : languageSheetIdList['otherLanguageAcquisitionDate2'],
                 "values": [ otherLanguageAcquisitionDate2 ]
               },
             ]
@@ -1112,25 +2153,45 @@ function createMember() {
         "records" : [
           {
             "custom_fields" : [
-              // 免許名・資格名①
+              // 免許・資格名1
               {
-                "id" : 5601,
-                "values": [ licenseName ]
+                "id" : licenseSheetIdList['licenseName1'],
+                "values": [ licenseName1 ]
               },
-              // 免許・資格.取得年月日①
+              // 取得年月日（免許・資格）1
               {
-                "id" : 5602,
-                "values": [ licenseAcquisitionDate ]
+                "id" : licenseSheetIdList['licenseAcquisitionDate1'],
+                "values": [ licenseAcquisitionDate1 ]
               },
-              // 知識・技能名①
+              // 免許・資格名2
               {
-                "id" : 5605,
-                "values": [ knowledgeName ]
+                "id" : licenseSheetIdList['licenseName2'],
+                "values": [ licenseName2 ]
               },
-              // 知識・技能.取得年月日②
+              // 取得年月日（免許・資格）2
               {
-                "id" : 5606,
-                "values": [ knowledgeAcquisitionDate ]
+                "id" : licenseSheetIdList['licenseAcquisitionDate2'],
+                "values": [ licenseAcquisitionDate2 ]
+              },
+              // 知識・技能1
+              {
+                "id" : licenseSheetIdList['knowledgeName1'],
+                "values": [ knowledgeName1 ]
+              },
+              // 取得年月日（知識・技能）1
+              {
+                "id" : licenseSheetIdList['knowledgeAcquisitionDate1'],
+                "values": [ knowledgeAcquisitionDate1 ]
+              },
+              // 知識・技能2
+              {
+                "id" : licenseSheetIdList['knowledgeName2'],
+                "values": [ knowledgeName2 ]
+              },
+              // 取得年月日（知識・技能）2
+              {
+                "id" : licenseSheetIdList['knowledgeAcquisitionDate2'],
+                "values": [ knowledgeAcquisitionDate2 ]
               },
             ]
           }
@@ -1143,754 +2204,754 @@ function createMember() {
         "records" : [
           {
             "custom_fields" : [
-              // 家族1 続柄
+              // 家族1_続柄
               {
-                "id" : 5644,
+                "id" : familySheetIdList['familyRelationship1'],
                 "values": [ familyData[1]['familyRelationship'] ]
               },
-              // 家族2 続柄
+              // 家族2_続柄
               {
-                "id" : 5659,
+                "id" : familySheetIdList['familyRelationship2'],
                 "values": [ familyData[2]['familyRelationship'] ]
               },
-              // 家族3 続柄
+              // 家族3_続柄
               {
-                "id" : 5674,
+                "id" : familySheetIdList['familyRelationship3'],
                 "values": [ familyData[3]['familyRelationship'] ]
               },
-              // 家族4 続柄
+              // 家族4_続柄
               {
-                "id" : 5689,
+                "id" : familySheetIdList['familyRelationship4'],
                 "values": [ familyData[4]['familyRelationship'] ]
               },
-              // 家族5 続柄
+              // 家族5_続柄
               {
-                "id" : 5704,
+                "id" : familySheetIdList['familyRelationship5'],
                 "values": [ familyData[5]['familyRelationship'] ]
               },
-              // 家族6 続柄
+              // 家族6_続柄
               {
-                "id" : 5719,
+                "id" : familySheetIdList['familyRelationship6'],
                 "values": [ familyData[6]['familyRelationship'] ]
               },
-              // 家族7 続柄
+              // 家族7_続柄
               {
-                "id" : 5609,
+                "id" : familySheetIdList['familyRelationship7'],
                 "values": [ familyData[7]['familyRelationship'] ]
               },
-              // 家族8 続柄
+              // 家族8_続柄
               {
-                "id" : 5734,
+                "id" : familySheetIdList['familyRelationship8'],
                 "values": [ familyData[8]['familyRelationship'] ]
               },
-              // 家族9 続柄
+              // 家族9_続柄
               {
-                "id" : 5749,
+                "id" : familySheetIdList['familyRelationship9'],
                 "values": [ familyData[9]['familyRelationship'] ]
               },
-              // 家族10 続柄
+              // 家族10_続柄
               {
-                "id" : 5764,
+                "id" : familySheetIdList['familyRelationship10'],
                 "values": [ familyData[10]['familyRelationship'] ]
               },
-              // 家族1 姓
+              // 家族1_姓
               {
-                "id" : 5645,
+                "id" : familySheetIdList['familyLastName1'],
                 "values": [ familyData[1]['familyLastName'] ]
               },
-              // 家族2 姓
+              // 家族2_姓
               {
-                "id" : 5660,
+                "id" : familySheetIdList['familyLastName2'],
                 "values": [ familyData[2]['familyLastName'] ]
               },
-              // 家族3 姓
+              // 家族3_姓
               {
-                "id" : 5675,
+                "id" : familySheetIdList['familyLastName3'],
                 "values": [ familyData[3]['familyLastName'] ]
               },
-              // 家族4 姓
+              // 家族4_姓
               {
-                "id" : 5690,
+                "id" : familySheetIdList['familyLastName4'],
                 "values": [ familyData[4]['familyLastName'] ]
               },
-              // 家族5 姓
+              // 家族5_姓
               {
-                "id" : 5705,
+                "id" : familySheetIdList['familyLastName5'],
                 "values": [ familyData[5]['familyLastName'] ]
               },
-              // 家族6 姓
+              // 家族6_姓
               {
-                "id" : 5720,
+                "id" : familySheetIdList['familyLastName6'],
                 "values": [ familyData[6]['familyLastName'] ]
               },
-              // 家族7 姓
+              // 家族7_姓
               {
-                "id" : 5610,
+                "id" : familySheetIdList['familyLastName7'],
                 "values": [ familyData[7]['familyLastName'] ]
               },
-              // 家族8 姓
+              // 家族8_姓
               {
-                "id" : 5735,
+                "id" : familySheetIdList['familyLastName8'],
                 "values": [ familyData[8]['familyLastName'] ]
               },
-              // 家族9 姓
+              // 家族9_姓
               {
-                "id" : 5750,
+                "id" : familySheetIdList['familyLastName9'],
                 "values": [ familyData[9]['familyLastName'] ]
               },
-              // 家族10 姓
+              // 家族10_姓
               {
-                "id" : 5765,
+                "id" : familySheetIdList['familyLastName10'],
                 "values": [ familyData[10]['familyLastName'] ]
               },
-              // 家族1 名
+              // 家族1_名
               {
-                "id" : 5646,
+                "id" : familySheetIdList['familyFirstName1'],
                 "values": [ familyData[1]['familyFirstName'] ]
               },
-              // 家族2 名
+              // 家族2_名
               {
-                "id" : 5661,
+                "id" : familySheetIdList['familyFirstName2'],
                 "values": [ familyData[2]['familyFirstName'] ]
               },
-              // 家族3 名
+              // 家族3_名
               {
-                "id" : 5676,
+                "id" : familySheetIdList['familyFirstName3'],
                 "values": [ familyData[3]['familyFirstName'] ]
               },
-              // 家族4 名
+              // 家族4_名
               {
-                "id" : 5691,
+                "id" : familySheetIdList['familyFirstName4'],
                 "values": [ familyData[4]['familyFirstName'] ]
               },
-              // 家族5 名
+              // 家族5_名
               {
-                "id" : 5706,
+                "id" : familySheetIdList['familyFirstName5'],
                 "values": [ familyData[5]['familyFirstName'] ]
               },
-              // 家族6 名
+              // 家族6_名
               {
-                "id" : 5721,
+                "id" : familySheetIdList['familyFirstName6'],
                 "values": [ familyData[6]['familyFirstName'] ]
               },
-              // 家族7 名
+              // 家族7_名
               {
-                "id" : 5611,
+                "id" : familySheetIdList['familyFirstName7'],
                 "values": [ familyData[7]['familyFirstName'] ]
               },
-              // 家族8 名
+              // 家族8_名
               {
-                "id" : 5736,
+                "id" : familySheetIdList['familyFirstName8'],
                 "values": [ familyData[8]['familyFirstName'] ]
               },
-              // 家族9 名
+              // 家族9_名
               {
-                "id" : 5751,
+                "id" : familySheetIdList['familyFirstName9'],
                 "values": [ familyData[9]['familyFirstName'] ]
               },
-              // 家族10 名
+              // 家族10_名
               {
-                "id" : 5766,
+                "id" : familySheetIdList['familyFirstName10'],
                 "values": [ familyData[10]['familyFirstName'] ]
               },
-              // 家族1 姓（ヨミガナ）
+              // 家族1_姓（フリガナ）
               {
-                "id" : 5647,
+                "id" : familySheetIdList['familyLastNameKana1'],
                 "values": [ familyData[1]['familyLastNameKana'] ]
               },
-              // 家族2 姓（ヨミガナ）
+              // 家族2_姓（フリガナ）
               {
-                "id" : 5662,
+                "id" : familySheetIdList['familyLastNameKana2'],
                 "values": [ familyData[2]['familyLastNameKana'] ]
               },
-              // 家族3 姓（ヨミガナ）
+              // 家族3_姓（フリガナ）
               {
-                "id" : 5677,
+                "id" : familySheetIdList['familyLastNameKana3'],
                 "values": [ familyData[3]['familyLastNameKana'] ]
               },
-              // 家族4 姓（ヨミガナ）
+              // 家族4_姓（フリガナ）
               {
-                "id" : 5692,
+                "id" : familySheetIdList['familyLastNameKana4'],
                 "values": [ familyData[4]['familyLastNameKana'] ]
               },
-              // 家族5 姓（ヨミガナ）
+              // 家族5_姓（フリガナ）
               {
-                "id" : 5707,
+                "id" : familySheetIdList['familyLastNameKana5'],
                 "values": [ familyData[5]['familyLastNameKana'] ]
               },
-              // 家族6 姓（ヨミガナ）
+              // 家族6_姓（フリガナ）
               {
-                "id" : 5722,
+                "id" : familySheetIdList['familyLastNameKana6'],
                 "values": [ familyData[6]['familyLastNameKana'] ]
               },
-              // 家族7 姓（ヨミガナ）
+              // 家族7_姓（フリガナ）
               {
-                "id" : 5612,
+                "id" : familySheetIdList['familyLastNameKana7'],
                 "values": [ familyData[7]['familyLastNameKana'] ]
               },
-              // 家族8 姓（ヨミガナ）
+              // 家族8_姓（フリガナ）
               {
-                "id" : 5737,
+                "id" : familySheetIdList['familyLastNameKana8'],
                 "values": [ familyData[8]['familyLastNameKana'] ]
               },
-              // 家族9 姓（ヨミガナ）
+              // 家族9_姓（フリガナ）
               {
-                "id" : 5752,
+                "id" : familySheetIdList['familyLastNameKana9'],
                 "values": [ familyData[9]['familyLastNameKana'] ]
               },
-              // 家族10 姓（ヨミガナ）
+              // 家族10_姓（フリガナ）
               {
-                "id" : 5767,
+                "id" : familySheetIdList['familyLastNameKana10'],
                 "values": [ familyData[10]['familyLastNameKana'] ]
               },
-              // 家族1 名（ヨミガナ）
+              // 家族1_名（フリガナ）
               {
-                "id" : 5648,
+                "id" : familySheetIdList['familyFirstNameKana1'],
                 "values": [ familyData[1]['familyFirstNameKana'] ]
               },
-              // 家族2 名（ヨミガナ）
+              // 家族2_名（フリガナ）
               {
-                "id" : 5663,
+                "id" : familySheetIdList['familyFirstNameKana2'],
                 "values": [ familyData[2]['familyFirstNameKana'] ]
               },
-              // 家族3 名（ヨミガナ）
+              // 家族3_名（フリガナ）
               {
-                "id" : 5678,
+                "id" : familySheetIdList['familyFirstNameKana3'],
                 "values": [ familyData[3]['familyFirstNameKana'] ]
               },
-              // 家族4 名（ヨミガナ）
+              // 家族4_名（フリガナ）
               {
-                "id" : 5693,
+                "id" : familySheetIdList['familyFirstNameKana4'],
                 "values": [ familyData[4]['familyFirstNameKana'] ]
               },
-              // 家族5 名（ヨミガナ）
+              // 家族5_名（フリガナ）
               {
-                "id" : 5708,
+                "id" : familySheetIdList['familyFirstNameKana5'],
                 "values": [ familyData[5]['familyFirstNameKana'] ]
               },
-              // 家族6 名（ヨミガナ）
+              // 家族6_名（フリガナ）
               {
-                "id" : 5723,
+                "id" : familySheetIdList['familyFirstNameKana6'],
                 "values": [ familyData[6]['familyFirstNameKana'] ]
               },
-              // 家族7 名（ヨミガナ）
+              // 家族7_名（フリガナ）
               {
-                "id" : 5613,
+                "id" : familySheetIdList['familyFirstNameKana7'],
                 "values": [ familyData[7]['familyFirstNameKana'] ]
               },
-              // 家族8 名（ヨミガナ）
+              // 家族8_名（フリガナ）
               {
-                "id" : 5738,
+                "id" : familySheetIdList['familyFirstNameKana8'],
                 "values": [ familyData[8]['familyFirstNameKana'] ]
               },
-              // 家族9 名（ヨミガナ）
+              // 家族9_名（フリガナ）
               {
-                "id" : 5753,
+                "id" : familySheetIdList['familyFirstNameKana9'],
                 "values": [ familyData[9]['familyFirstNameKana'] ]
               },
-              // 家族10 名（ヨミガナ）
+              // 家族10_名（フリガナ）
               {
-                "id" : 5768,
+                "id" : familySheetIdList['familyFirstNameKana10'],
                 "values": [ familyData[10]['familyFirstNameKana'] ]
               },
-              // 家族1 生年月日
+              // 家族1_生年月日
               {
-                "id" : 5650,
+                "id" : familySheetIdList['familyBirthday1'],
                 "values": [ familyData[1]['familyBirthday'] ]
               },
-              // 家族2 生年月日
+              // 家族2_生年月日
               {
-                "id" : 5665,
+                "id" : familySheetIdList['familyBirthday2'],
                 "values": [ familyData[2]['familyBirthday'] ]
               },
-              // 家族3 生年月日
+              // 家族3_生年月日
               {
-                "id" : 5680,
+                "id" : familySheetIdList['familyBirthday3'],
                 "values": [ familyData[3]['familyBirthday'] ]
               },
-              // 家族4 生年月日
+              // 家族4_生年月日
               {
-                "id" : 5695,
+                "id" : familySheetIdList['familyBirthday4'],
                 "values": [ familyData[4]['familyBirthday'] ]
               },
-              // 家族5 生年月日
+              // 家族5_生年月日
               {
-                "id" : 5710,
+                "id" : familySheetIdList['familyBirthday5'],
                 "values": [ familyData[5]['familyBirthday'] ]
               },
-              // 家族6 生年月日
+              // 家族6_生年月日
               {
-                "id" : 5725,
+                "id" : familySheetIdList['familyBirthday6'],
                 "values": [ familyData[6]['familyBirthday'] ]
               },
-              // 家族7 生年月日
+              // 家族7_生年月日
               {
-                "id" : 5615,
+                "id" : familySheetIdList['familyBirthday7'],
                 "values": [ familyData[7]['familyBirthday'] ]
               },
-              // 家族8 生年月日
+              // 家族8_生年月日
               {
-                "id" : 5740,
+                "id" : familySheetIdList['familyBirthday8'],
                 "values": [ familyData[8]['familyBirthday'] ]
               },
-              // 家族9 生年月日
+              // 家族9_生年月日
               {
-                "id" : 5755,
+                "id" : familySheetIdList['familyBirthday9'],
                 "values": [ familyData[9]['familyBirthday'] ]
               },
-              // 家族10 生年月日
+              // 家族10_生年月日
               {
-                "id" : 5770,
+                "id" : familySheetIdList['familyBirthday10'],
                 "values": [ familyData[10]['familyBirthday'] ]
               },
-              // 家族1 性別
+              // 家族1_性別
               {
-                "id" : 5649,
+                "id" : familySheetIdList['familyGender1'],
                 "values": [ familyData[1]['familyGender'] ]
               },
-              // 家族2 性別
+              // 家族2_性別
               {
-                "id" : 5664,
+                "id" : familySheetIdList['familyGender2'],
                 "values": [ familyData[2]['familyGender'] ]
               },
-              // 家族3 性別
+              // 家族3_性別
               {
-                "id" : 5679,
+                "id" : familySheetIdList['familyGender3'],
                 "values": [ familyData[3]['familyGender'] ]
               },
-              // 家族4 性別
+              // 家族4_性別
               {
-                "id" : 5694,
+                "id" : familySheetIdList['familyGender4'],
                 "values": [ familyData[4]['familyGender'] ]
               },
-              // 家族5 性別
+              // 家族5_性別
               {
-                "id" : 5709,
+                "id" : familySheetIdList['familyGender5'],
                 "values": [ familyData[5]['familyGender'] ]
               },
-              // 家族6 性別
+              // 家族6_性別
               {
-                "id" : 5724,
+                "id" : familySheetIdList['familyGender6'],
                 "values": [ familyData[6]['familyGender'] ]
               },
-              // 家族7 性別
+              // 家族7_性別
               {
-                "id" : 5614,
+                "id" : familySheetIdList['familyGender7'],
                 "values": [ familyData[7]['familyGender'] ]
               },
-              // 家族8 性別
+              // 家族8_性別
               {
-                "id" : 5739,
+                "id" : familySheetIdList['familyGender8'],
                 "values": [ familyData[8]['familyGender'] ]
               },
-              // 家族9 性別
+              // 家族9_性別
               {
-                "id" : 5754,
+                "id" : familySheetIdList['familyGender9'],
                 "values": [ familyData[9]['familyGender'] ]
               },
-              // 家族10 性別
+              // 家族10_性別
               {
-                "id" : 5769,
+                "id" : familySheetIdList['familyGender10'],
                 "values": [ familyData[10]['familyGender'] ]
               },
-              // 家族1 職業
+              // 家族1_職業
               {
-                "id" : 5652,
+                "id" : familySheetIdList['familyJob1'],
                 "values": [ familyData[1]['familyJob'] ]
               },
-              // 家族2 職業
+              // 家族2_職業
               {
-                "id" : 5667,
+                "id" : familySheetIdList['familyJob2'],
                 "values": [ familyData[2]['familyJob'] ]
               },
-              // 家族3 職業
+              // 家族3_職業
               {
-                "id" : 5682,
+                "id" : familySheetIdList['familyJob3'],
                 "values": [ familyData[3]['familyJob'] ]
               },
-              // 家族4 職業
+              // 家族4_職業
               {
-                "id" : 5697,
+                "id" : familySheetIdList['familyJob4'],
                 "values": [ familyData[4]['familyJob'] ]
               },
-              // 家族5 職業
+              // 家族5_職業
               {
-                "id" : 5712,
+                "id" : familySheetIdList['familyJob5'],
                 "values": [ familyData[5]['familyJob'] ]
               },
-              // 家族6 職業
+              // 家族6_職業
               {
-                "id" : 5727,
+                "id" : familySheetIdList['familyJob6'],
                 "values": [ familyData[6]['familyJob'] ]
               },
-              // 家族7 職業
+              // 家族7_職業
               {
-                "id" : 5617,
+                "id" : familySheetIdList['familyJob7'],
                 "values": [ familyData[7]['familyJob'] ]
               },
-              // 家族8 職業
+              // 家族8_職業
               {
-                "id" : 5742,
+                "id" : familySheetIdList['familyJob8'],
                 "values": [ familyData[8]['familyJob'] ]
               },
-              // 家族9 職業
+              // 家族9_職業
               {
-                "id" : 5757,
+                "id" : familySheetIdList['familyJob9'],
                 "values": [ familyData[9]['familyJob'] ]
               },
-              // 家族10 職業
+              // 家族10_職業
               {
-                "id" : 5772,
+                "id" : familySheetIdList['familyJob10'],
                 "values": [ familyData[10]['familyJob'] ]
               },
-              // 家族1 同居・別居
+              // 家族1_同居・別居の別
               {
-                "id" : 5653,
+                "id" : familySheetIdList['familyLiveTogether1'],
                 "values": [ familyData[1]['familyLiveTogether'] ]
               },
-              // 家族2 同居・別居
+              // 家族2_同居・別居の別
               {
-                "id" : 5668,
+                "id" : familySheetIdList['familyLiveTogether2'],
                 "values": [ familyData[2]['familyLiveTogether'] ]
               },
-              // 家族3 同居・別居
+              // 家族3_同居・別居の別
               {
-                "id" : 5683,
+                "id" : familySheetIdList['familyLiveTogether3'],
                 "values": [ familyData[3]['familyLiveTogether'] ]
               },
-              // 家族4 同居・別居
+              // 家族4_同居・別居の別
               {
-                "id" : 5698,
+                "id" : familySheetIdList['familyLiveTogether4'],
                 "values": [ familyData[4]['familyLiveTogether'] ]
               },
-              // 家族5 同居・別居
+              // 家族5_同居・別居の別
               {
-                "id" : 5713,
+                "id" : familySheetIdList['familyLiveTogether5'],
                 "values": [ familyData[5]['familyLiveTogether'] ]
               },
-              // 家族6 同居・別居
+              // 家族6_同居・別居の別
               {
-                "id" : 5728,
+                "id" : familySheetIdList['familyLiveTogether6'],
                 "values": [ familyData[6]['familyLiveTogether'] ]
               },
-              // 家族7 同居・別居
+              // 家族7_同居・別居の別
               {
-                "id" : 5618,
+                "id" : familySheetIdList['familyLiveTogether7'],
                 "values": [ familyData[7]['familyLiveTogether'] ]
               },
-              // 家族8 同居・別居
+              // 家族8_同居・別居の別
               {
-                "id" : 5743,
+                "id" : familySheetIdList['familyLiveTogether8'],
                 "values": [ familyData[8]['familyLiveTogether'] ]
               },
-              // 家族9 同居・別居
+              // 家族9_同居・別居の別
               {
-                "id" : 5758,
+                "id" : familySheetIdList['familyLiveTogether9'],
                 "values": [ familyData[9]['familyLiveTogether'] ]
               },
-              // 家族10 同居・別居
+              // 家族10_同居・別居の別
               {
-                "id" : 5773,
+                "id" : familySheetIdList['familyLiveTogether10'],
                 "values": [ familyData[10]['familyLiveTogether'] ]
               },
-              // 家族1 住所（郵便番号）
+              // 家族1_住所（郵便番号）
               {
-                "id" : 5654,
+                "id" : familySheetIdList['familyZipCode1'],
                 "values": [ familyData[1]['familyZipCode'] ]
               },
-              // 家族2 住所（郵便番号）
+              // 家族2_住所（郵便番号）
               {
-                "id" : 5669,
+                "id" : familySheetIdList['familyZipCode2'],
                 "values": [ familyData[2]['familyZipCode'] ]
               },
-              // 家族3 住所（郵便番号）
+              // 家族3_住所（郵便番号）
               {
-                "id" : 5684,
+                "id" : familySheetIdList['familyZipCode3'],
                 "values": [ familyData[3]['familyZipCode'] ]
               },
-              // 家族4 住所（郵便番号）
+              // 家族4_住所（郵便番号）
               {
-                "id" : 5699,
+                "id" : familySheetIdList['familyZipCode4'],
                 "values": [ familyData[4]['familyZipCode'] ]
               },
-              // 家族5 住所（郵便番号）
+              // 家族5_住所（郵便番号）
               {
-                "id" : 5714,
+                "id" : familySheetIdList['familyZipCode5'],
                 "values": [ familyData[5]['familyZipCode'] ]
               },
-              // 家族6 住所（郵便番号）
+              // 家族6_住所（郵便番号）
               {
-                "id" : 5729,
+                "id" : familySheetIdList['familyZipCode6'],
                 "values": [ familyData[6]['familyZipCode'] ]
               },
-              // 家族7 住所（郵便番号）
+              // 家族7_住所（郵便番号）
               {
-                "id" : 5619,
+                "id" : familySheetIdList['familyZipCode7'],
                 "values": [ familyData[7]['familyZipCode'] ]
               },
-              // 家族8 住所（郵便番号）
+              // 家族8_住所（郵便番号）
               {
-                "id" : 5744,
+                "id" : familySheetIdList['familyZipCode8'],
                 "values": [ familyData[8]['familyZipCode'] ]
               },
-              // 家族9 住所（郵便番号）
+              // 家族9_住所（郵便番号）
               {
-                "id" : 5759,
+                "id" : familySheetIdList['familyZipCode9'],
                 "values": [ familyData[9]['familyZipCode'] ]
               },
-              // 家族10 住所（郵便番号）
+              // 家族10_住所（郵便番号）
               {
-                "id" : 5774,
+                "id" : familySheetIdList['familyZipCode10'],
                 "values": [ familyData[10]['familyZipCode'] ]
               },
-              // 家族1 住所（都道府県）
+              // 家族1_住所（都道府県）
               {
-                "id" : 5884,
+                "id" : familySheetIdList['familyPref1'],
                 "values": [ familyData[1]['familyPref'] ]
               },
-              // 家族2 住所（都道府県）
+              // 家族2_住所（都道府県）
               {
-                "id" : 5885,
+                "id" : familySheetIdList['familyPref2'],
                 "values": [ familyData[2]['familyPref'] ]
               },
-              // 家族3 住所（都道府県）
+              // 家族3_住所（都道府県）
               {
-                "id" : 5886,
+                "id" : familySheetIdList['familyPref3'],
                 "values": [ familyData[3]['familyPref'] ]
               },
-              // 家族4 住所（都道府県）
+              // 家族4_住所（都道府県）
               {
-                "id" : 5887,
+                "id" : familySheetIdList['familyPref4'],
                 "values": [ familyData[4]['familyPref'] ]
               },
-              // 家族5 住所（都道府県）
+              // 家族5_住所（都道府県）
               {
-                "id" : 5888,
+                "id" : familySheetIdList['familyPref5'],
                 "values": [ familyData[5]['familyPref'] ]
               },
-              // 家族6 住所（都道府県）
+              // 家族6_住所（都道府県）
               {
-                "id" : 5889,
+                "id" : familySheetIdList['familyPref6'],
                 "values": [ familyData[6]['familyPref'] ]
               },
-              // 家族7 住所（都道府県）
+              // 家族7_住所（都道府県）
               {
-                "id" : 5890,
+                "id" : familySheetIdList['familyPref7'],
                 "values": [ familyData[7]['familyPref'] ]
               },
-              // 家族8 住所（都道府県）
+              // 家族8_住所（都道府県）
               {
-                "id" : 5891,
+                "id" : familySheetIdList['familyPref8'],
                 "values": [ familyData[8]['familyPref'] ]
               },
-              // 家族9 住所（都道府県）
+              // 家族9_住所（都道府県）
               {
-                "id" : 5892,
+                "id" : familySheetIdList['familyPref9'],
                 "values": [ familyData[9]['familyPref'] ]
               },
-              // 家族10 住所（都道府県）
+              // 家族10_住所（都道府県）
               {
-                "id" : 5893,
+                "id" : familySheetIdList['familyPref10'],
                 "values": [ familyData[10]['familyPref'] ]
               },
-              // 家族1 住所（市区町村）
+              // 家族1_住所（市区町村）
               {
-                "id" : 5656,
+                "id" : familySheetIdList['familyCity1'],
                 "values": [ familyData[1]['familyCity'] ]
               },
-              // 家族2 住所（市区町村）
+              // 家族2_住所（市区町村）
               {
-                "id" : 5671,
+                "id" : familySheetIdList['familyCity2'],
                 "values": [ familyData[2]['familyCity'] ]
               },
-              // 家族3 住所（市区町村）
+              // 家族3_住所（市区町村）
               {
-                "id" : 5686,
+                "id" : familySheetIdList['familyCity3'],
                 "values": [ familyData[3]['familyCity'] ]
               },
-              // 家族4 住所（市区町村）
+              // 家族4_住所（市区町村）
               {
-                "id" : 5701,
+                "id" : familySheetIdList['familyCity4'],
                 "values": [ familyData[4]['familyCity'] ]
               },
-              // 家族5 住所（市区町村）
+              // 家族5_住所（市区町村）
               {
-                "id" : 5716,
+                "id" : familySheetIdList['familyCity5'],
                 "values": [ familyData[5]['familyCity'] ]
               },
-              // 家族6 住所（市区町村）
+              // 家族6_住所（市区町村）
               {
-                "id" : 5731,
+                "id" : familySheetIdList['familyCity6'],
                 "values": [ familyData[6]['familyCity'] ]
               },
-              // 家族7 住所（市区町村）
+              // 家族7_住所（市区町村）
               {
-                "id" : 5621,
+                "id" : familySheetIdList['familyCity7'],
                 "values": [ familyData[7]['familyCity'] ]
               },
-              // 家族8 住所（市区町村）
+              // 家族8_住所（市区町村）
               {
-                "id" : 5746,
+                "id" : familySheetIdList['familyCity8'],
                 "values": [ familyData[8]['familyCity'] ]
               },
-              // 家族9 住所（市区町村）
+              // 家族9_住所（市区町村）
               {
-                "id" : 5761,
+                "id" : familySheetIdList['familyCity9'],
                 "values": [ familyData[9]['familyCity'] ]
               },
-              // 家族10 住所（市区町村）
+              // 家族10_住所（市区町村）
               {
-                "id" : 5776,
+                "id" : familySheetIdList['familyCity10'],
                 "values": [ familyData[10]['familyCity'] ]
               },
-              // 家族1 住所（丁目・番地）
+              // 家族1_住所（丁目・番地）
               {
-                "id" : 5657,
+                "id" : familySheetIdList['familyStreet1'],
                 "values": [ familyData[1]['familyStreet'] ]
               },
-              // 家族2 住所（丁目・番地）
+              // 家族2_住所（丁目・番地）
               {
-                "id" : 5672,
+                "id" : familySheetIdList['familyStreet2'],
                 "values": [ familyData[2]['familyStreet'] ]
               },
-              // 家族3 住所（丁目・番地）
+              // 家族3_住所（丁目・番地）
               {
-                "id" : 5687,
+                "id" : familySheetIdList['familyStreet3'],
                 "values": [ familyData[3]['familyStreet'] ]
               },
-              // 家族4 住所（丁目・番地）
+              // 家族4_住所（丁目・番地）
               {
-                "id" : 5702,
+                "id" : familySheetIdList['familyStreet4'],
                 "values": [ familyData[4]['familyStreet'] ]
               },
-              // 家族5 住所（丁目・番地）
+              // 家族5_住所（丁目・番地）
               {
-                "id" : 5717,
+                "id" : familySheetIdList['familyStreet5'],
                 "values": [ familyData[5]['familyStreet'] ]
               },
-              // 家族6 住所（丁目・番地）
+              // 家族6_住所（丁目・番地）
               {
-                "id" : 5732,
+                "id" : familySheetIdList['familyStreet6'],
                 "values": [ familyData[6]['familyStreet'] ]
               },
-              // 家族7 住所（丁目・番地）
+              // 家族7_住所（丁目・番地）
               {
-                "id" : 5622,
+                "id" : familySheetIdList['familyStreet7'],
                 "values": [ familyData[7]['familyStreet'] ]
               },
-              // 家族8 住所（丁目・番地）
+              // 家族8_住所（丁目・番地）
               {
-                "id" : 5747,
+                "id" : familySheetIdList['familyStreet8'],
                 "values": [ familyData[8]['familyStreet'] ]
               },
-              // 家族9 住所（丁目・番地）
+              // 家族9_住所（丁目・番地）
               {
-                "id" : 5762,
+                "id" : familySheetIdList['familyStreet9'],
                 "values": [ familyData[9]['familyStreet'] ]
               },
-              // 家族10 住所（丁目・番地）
+              // 家族10_住所（丁目・番地）
               {
-                "id" : 5777,
+                "id" : familySheetIdList['familyStreet10'],
                 "values": [ familyData[10]['familyStreet'] ]
               },
-              // 家族1 住所（建物名・部屋番号）
+              // 家族1_住所（建物名・部屋番号）
               {
-                "id" : 5658,
+                "id" : familySheetIdList['familyBuilding1'],
                 "values": [ familyData[1]['familyBuilding'] ]
               },
-              // 家族2 住所（建物名・部屋番号）
+              // 家族2_住所（建物名・部屋番号）
               {
-                "id" : 5673,
+                "id" : familySheetIdList['familyBuilding2'],
                 "values": [ familyData[2]['familyBuilding'] ]
               },
-              // 家族3 住所（建物名・部屋番号）
+              // 家族3_住所（建物名・部屋番号）
               {
-                "id" : 5688,
+                "id" : familySheetIdList['familyBuilding3'],
                 "values": [ familyData[3]['familyBuilding'] ]
               },
-              // 家族4 住所（建物名・部屋番号）
+              // 家族4_住所（建物名・部屋番号）
               {
-                "id" : 5703,
+                "id" : familySheetIdList['familyBuilding4'],
                 "values": [ familyData[4]['familyBuilding'] ]
               },
-              // 家族5 住所（建物名・部屋番号）
+              // 家族5_住所（建物名・部屋番号）
               {
-                "id" : 5718,
+                "id" : familySheetIdList['familyBuilding5'],
                 "values": [ familyData[5]['familyBuilding'] ]
               },
-              // 家族6 住所（建物名・部屋番号）
+              // 家族6_住所（建物名・部屋番号）
               {
-                "id" : 5733,
+                "id" : familySheetIdList['familyBuilding6'],
                 "values": [ familyData[6]['familyBuilding'] ]
               },
-              // 家族7 住所（建物名・部屋番号）
+              // 家族7_住所（建物名・部屋番号）
               {
-                "id" : 5623,
+                "id" : familySheetIdList['familyBuilding7'],
                 "values": [ familyData[7]['familyBuilding'] ]
               },
-              // 家族8 住所（建物名・部屋番号）
+              // 家族8_住所（建物名・部屋番号）
               {
-                "id" : 5748,
+                "id" : familySheetIdList['familyBuilding8'],
                 "values": [ familyData[8]['familyBuilding'] ]
               },
-              // 家族9 住所（建物名・部屋番号）
+              // 家族9_住所（建物名・部屋番号）
               {
-                "id" : 5763,
+                "id" : familySheetIdList['familyBuilding9'],
                 "values": [ familyData[9]['familyBuilding'] ]
               },
-              // 家族10 住所（建物名・部屋番号）
+              // 家族10_住所（建物名・部屋番号）
               {
-                "id" : 5778,
+                "id" : familySheetIdList['familyBuilding10'],
                 "values": [ familyData[10]['familyBuilding'] ]
               },
-              // 家族1 電話番号
+              // 家族1_電話番号
               {
-                "id" : 5651,
+                "id" : familySheetIdList['familyTelNumber1'],
                 "values": [ familyData[1]['familyTelNumber'] ]
               },
-              // 家族2 電話番号
+              // 家族2_電話番号
               {
-                "id" : 5666,
+                "id" : familySheetIdList['familyTelNumber2'],
                 "values": [ familyData[2]['familyTelNumber'] ]
               },
-              // 家族3 電話番号
+              // 家族3_電話番号
               {
-                "id" : 5681,
+                "id" : familySheetIdList['familyTelNumber3'],
                 "values": [ familyData[3]['familyTelNumber'] ]
               },
-              // 家族4 電話番号
+              // 家族4_電話番号
               {
-                "id" : 5696,
+                "id" : familySheetIdList['familyTelNumber4'],
                 "values": [ familyData[4]['familyTelNumber'] ]
               },
-              // 家族5 電話番号
+              // 家族5_電話番号
               {
-                "id" : 5711,
+                "id" : familySheetIdList['familyTelNumber5'],
                 "values": [ familyData[5]['familyTelNumber'] ]
               },
-              // 家族6 電話番号
+              // 家族6_電話番号
               {
-                "id" : 5726,
+                "id" : familySheetIdList['familyTelNumber6'],
                 "values": [ familyData[6]['familyTelNumber'] ]
               },
-              // 家族7 電話番号
+              // 家族7_電話番号
               {
-                "id" : 5616,
+                "id" : familySheetIdList['familyTelNumber7'],
                 "values": [ familyData[7]['familyTelNumber'] ]
               },
-              // 家族8 電話番号
+              // 家族8_電話番号
               {
-                "id" : 5741,
+                "id" : familySheetIdList['familyTelNumber8'],
                 "values": [ familyData[8]['familyTelNumber'] ]
               },
-              // 家族9 電話番号
+              // 家族9_電話番号
               {
-                "id" : 5756,
+                "id" : familySheetIdList['familyTelNumber9'],
                 "values": [ familyData[9]['familyTelNumber'] ]
               },
-              // 家族10 電話番号
+              // 家族10_電話番号
               {
-                "id" : 5771,
+                "id" : familySheetIdList['familyTelNumber10'],
                 "values": [ familyData[10]['familyTelNumber'] ]
               },
             ]
@@ -1902,93 +2963,96 @@ function createMember() {
       contactList.push(contact);
       addressList.push(address);
       emergencyContactList.push(emergencyContact);
-      bankList.push(bank);
+      bankList.push(bank);  
       academicList.push(academic);
       languageList.push(language);
       licenseList.push(license);
       familyList.push(family);
     }
 
-    // todo::「既に登録済み」のエラーコードが返却された際のエラーハンドリングを実装すること
-    const basicInfoResult = requestApi(basicInfoList, 0, "post");
+    const basicInfoResult = requestApi(basicInfoList, "post");
 
     // 社員情報の登録にタイムラグが存在するため待機時間を調整
-    Utilities.sleep(60000)
+    Utilities.sleep(61000)
 
-    // // 取得APIを取得
-    // const employees_api = kaonaviMemberApi(); // カオナビの全従業員情報API
-    // const member_list = employees_api['member_data']; // カオナビの全従業員情報リスト
-    // log(JSON.stringify(member_list, null, 5),'s');
+    const contactResult = requestApi(contactList, "patch", contactSheetIdList['sheetId']);
+    const addressResult = requestApi(addressList, "patch", addressSheetIdList['sheetId']);
+    const emergencyContactResult = requestApi(emergencyContactList, "patch", emergencyContactSheetIdList['sheetId']);
+    const bankResult = requestApi(bankList, "patch", bankSheetIdList['sheetId']);
+    const academicResult = requestApi(academicList, "patch", academicSheetIdList['sheetId']);
 
-    const contactResult = requestApi(contactList, 1, "patch");
-    const addressResult = requestApi(addressList, 2, "patch");
-    const emergencyContactResult = requestApi(emergencyContactList, 3, "patch");
-    const bankResult = requestApi(bankList, 4, "patch");
-    const academicResult = requestApi(academicList, 5, "patch");
-    // const languageResult = requestApi(languageList, 6, "patch");
-    const licenseResult = requestApi(licenseList, 7, "patch");
-    const familyResult = requestApi(familyList, 8, "patch");
+    // 更新系APIの分間あたりの最大リクエスト件数が5件のため待機時間を調整
+    Utilities.sleep(61000)
+
+    const languageResult = requestApi(languageList, "patch", languageSheetIdList['sheetId']);
+    const licenseResult = requestApi(licenseList, "patch", licenseSheetIdList['sheetId']);
+    const familyResult = requestApi(familyList, "patch", familySheetIdList['sheetId']);
 
     // 終了ログ
-  　log('入社_カオナビ連携登録', 'e');
+  　log(work, 'e');
 
     SpreadsheetApp.getUi().alert("カオナビへの社員情報登録が終了しました。");
 
-  }catch(e) {
-    console.log(e.message);
-    // SpreadsheetApp.getUi().alert("カオナビへの社員情報登録に失敗しました。\n入力した社員番号が誤っている、もしくは既に登録されています。");
+  } catch(e) {
+    log(work + "[エラーログ]", "s");
+    log(e.message, "error");
+    log(work + "[エラーログ]", "e");
+    SpreadsheetApp.getUi().alert("カオナビへの社員情報登録に失敗しました。\n入力した社員番号が誤っている、もしくは既に登録されています。");
   }
 }
 
-// 社員番号を照合し、連携登録対象の社員ID一覧データ配列を生成する
+/**
+ * 社員番号を照合し、連携登録対象の社員ID一覧データ配列を生成する
+ * 
+ * 
+ */
 function createKaonaviIdList() {
-  try{
-    // 社員番号入力_スプレッドシートに入力された従業員番号を取得する
-    let ss = SpreadsheetApp.getActive();
-    let sheet = ss.getActiveSheet();
-    let lastRow = sheet.getLastRow();  //最終行を取得
-    const inputHeaderLine = 8; //社員番号入力するまでの見出しの行数
+  // 社員番号入力_スプレッドシートに入力された従業員番号を取得する
+  let ss = SpreadsheetApp.getActive();
+  let sheet = ss.getActiveSheet();
+  let lastRow = sheet.getLastRow();  //最終行を取得
+  const inputHeaderLine = 8; //社員番号入力するまでの見出しの行数
+
+  // 履歴データ[登録用]から入力された従業員番号のidを取得する
+  let idList = [];  //空のリストを作成
+  let logss = SpreadsheetApp.openById(getProperties("storeHistorySpreadsheetsId"));
+  let logSheet = logss.getSheets()[0];
+  let logSheetLastRow = logSheet.getLastRow();
+  const logDate = logSheet.getRange(2,1,logSheetLastRow -1,4).getValues();  //履歴データ新規からデータを取得
   
-    // 履歴データ[登録用]から入力された従業員番号のidを取得する
-    let idList = [];  //空のリストを作成
-    let logss = SpreadsheetApp.openById(getProperties("storeHistorySpreadsheetsId"));
-    let logSheet = logss.getSheets()[0];
-    let logSheetLastRow = logSheet.getLastRow();
-    const logDate = logSheet.getRange(2,1,logSheetLastRow -1,4).getValues();  //履歴データ新規からデータを取得
-    
 
-    // 社員番号が入力されている場合のみ実行
-    if(lastRow > inputHeaderLine) {
-      // 入力された社員番号を取得
-      let employeeNumber = sheet.getRange(9,2,lastRow - inputHeaderLine,1).getValues();
+  // 社員番号が入力されている場合のみ実行
+  if(lastRow > inputHeaderLine) {
+    // 入力された社員番号を取得
+    let employeeNumber = sheet.getRange(9,2,lastRow - inputHeaderLine,1).getValues();
 
-      // 取得した社員番号分繰り返し実行
-      for(var i = 0; i < employeeNumber.length; i++) {
-        for(var j = 0; j < logDate.length; j++) {
-          // 履歴データ新規の中に、入力した社員番号が存在するか
-          if(logDate[j].includes(String(employeeNumber[i]))) {
-            // 存在した場合、リストにidを追加する
-            idList.push(logDate[j][3]);
-          }
+    // 取得した社員番号分繰り返し実行
+    for(var i = 0; i < employeeNumber.length; i++) {
+      for(var j = 0; j < logDate.length; j++) {
+        // 履歴データ新規の中に、入力した社員番号が存在するか
+        if(logDate[j].includes(String(employeeNumber[i]))) {
+          // 存在した場合、リストにidを追加する
+          idList.push(logDate[j][3]);
         }
       }
-      // 入力された社員番号数と取得出来た社員番号数が一致しない　もしくは　全て間違って入力している
-      if(idList.length !== employeeNumber.length || idList.length === 0) {
-        SpreadsheetApp.getUi().alert("誤った社員番号が入力されています。");
-        return false
-      }
-      
-      return idList
     }
-    SpreadsheetApp.getUi().alert("社員番号が入力されていません。");
-    return false
-
-  } catch(e) {
-    SpreadsheetApp.getUi().alert("履歴データからのデータ取得に失敗しました。");
+    // 入力された社員番号数と取得出来た社員番号数が一致しない　もしくは　全て間違って入力している
+    if(idList.length !== employeeNumber.length || idList.length === 0) {
+      return "履歴データに存在しない社員番号が入力されています。";
+    }
+    
+    // 連携登録対象社員情報を返却
+    return idList
+  } else {
+    return "社員番号が入力されていません。";
   }
 }
 
-// SmartHR_APIより社員IDを用いて社員情報を取得し、社員情報一覧配列データを生成する
+/**
+ * SmartHR_APIより社員IDを用いて社員情報を取得し、社員情報一覧配列データを生成する
+ * 
+ * 
+ */
 function createKaonaviEmployeeList(idList) {
     // SmartHR_API 環境値
     const AccessToken = getProperties("ACCESS_TOKEN")  //smartHRのアクセストークン
@@ -2023,18 +3087,43 @@ function createKaonaviEmployeeList(idList) {
     return responseList;
 
   } catch(e) {
-    SpreadsheetApp.getUi().alert("smartHRからのデータ取得に失敗しました。");
+    SpreadsheetApp.getUi().alert("smartHRからの社員情報データ取得に失敗しました。");
+    log(work + "[エラーログ]", "s");
+    log(e.message, "error");
+    log(work + "[エラーログ]", "e");
   }
+}
+
+/**
+ * カオナビ_シート情報をシート名で参照し、該当するシート情報が存在することを確認する
+ * 
+ * array sheetsInfo カオナビAPIで取得したシート情報一覧
+ * string 参照対象のシート名
+ * 
+ */
+function checkSheetName(sheetsInfo, targetSheetName) {
+  var list = {};
+  for (let i = 0; i < sheetsInfo.length; i++) {
+    if(sheetsInfo[i]['name'] == targetSheetName){
+      list['id'] = sheetsInfo[i]['id'];
+      list['custom_fields'] = sheetsInfo[i]['custom_fields'];
+    }
+  }
+  if (typeof list == "undefined") {
+    throw new Error("カオナビへの社員情報連携登録に失敗しました。\n連携登録対象のカオナビシート_" + targetSheetName + "が存在しません。");
+  }
+
+  return list;
 }
 
 /**
  * カオナビAPIへ値をリクエスト送信し、登録する社員の各種情報を登録する
  * 
- * array storeData
- * integer sheetType(0:基本情報 1:連絡先 2:住所 3:緊急連絡先 4:銀行口座 5:学歴 6:語学 7:免許・資格等 8:家族情報)
- * string methodType(post:メンバー新規登録 patch:各種シートへの情報登録)
+ * array storeData (登録データ)
+ * string methodType (post:メンバー新規登録 patch:各種シートへの情報登録)
+ * integer sheetId カオナビ_シートID
  */
-function requestApi(storeData, sheetType, methodType) {
+function requestApi(storeData, methodType, sheetId = null) {
   // カオナビAPI_トークン取得
   const token = getToken();
 
@@ -2051,38 +3140,14 @@ function requestApi(storeData, sheetType, methodType) {
     'payload': JSON.stringify(member_data),
     'method': methodType,
   }
-  
-  if (sheetType === 0) {
+
+  if (sheetId) {
+    // 1～8
+    let json = JSON.parse(UrlFetchApp.fetch('https://api.kaonavi.jp/api/v2.0/sheets/' + sheetId, apiOptions).getContentText())
+    return json
+  } else {
+    // 0
     let json = JSON.parse(UrlFetchApp.fetch('https://api.kaonavi.jp/api/v2.0/members', apiOptions).getContentText());
-    console.log(json);
-    return json
-  } else if (sheetType === 1) {
-    let json = JSON.parse(UrlFetchApp.fetch('https://api.kaonavi.jp/api/v2.0/sheets/2081', apiOptions).getContentText())
-    console.log(json);
-    return json
-  } else if (sheetType === 2) {
-    let json = JSON.parse(UrlFetchApp.fetch('https://api.kaonavi.jp/api/v2.0/sheets/2078', apiOptions).getContentText())
-    console.log(json);
-    return json
-  } else if (sheetType === 3) {
-    let json = JSON.parse(UrlFetchApp.fetch('https://api.kaonavi.jp/api/v2.0/sheets/2080', apiOptions).getContentText())
-    console.log(json);
-    return json
-  } else if (sheetType === 4) {
-    let json = JSON.parse(UrlFetchApp.fetch('https://api.kaonavi.jp/api/v2.0/sheets/2082', apiOptions).getContentText())
-    console.log(json);
-    return json
-  } else if (sheetType === 5) {
-    let json = JSON.parse(UrlFetchApp.fetch('https://api.kaonavi.jp/api/v2.0/sheets/2083', apiOptions).getContentText())
-    return json
-  } else if (sheetType === 6) {
-    let json = JSON.parse(UrlFetchApp.fetch('https://api.kaonavi.jp/api/v2.0/sheets/2084', apiOptions).getContentText())
-    return json
-  } else if(sheetType === 7) {
-    let json = JSON.parse(UrlFetchApp.fetch('https://api.kaonavi.jp/api/v2.0/sheets/2085', apiOptions).getContentText())
-    return json
-  } else if(sheetType === 8) {
-    let json = JSON.parse(UrlFetchApp.fetch('https://api.kaonavi.jp/api/v2.0/sheets/2086', apiOptions).getContentText())
     return json
   }
 }
