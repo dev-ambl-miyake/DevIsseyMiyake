@@ -724,10 +724,46 @@ function updateShrEmployee(id,processed_data,operation_type) {
 }
 
 /**
- * @param {strint}   id  従業員ID
- * @param {string}   operation_type  業種
+ * SmartHR_API "従業員-リストの取得"にリクエストを送信し、全従業員情報を一覧取得する
+ * 
+ * return json
+ */
+function callShrEmployeeListApi() {
+  // SmartHR_API 環境値
+  const AccessToken = getProperties("ACCESS_TOKEN");  //smartHRのアクセストークン
+  const SubDomain = getProperties("SUB_DOMAIN");  //smartHRのサブドメイン
+
+  // HTTPリクエストヘッダーの作成
+  const headers = {
+    //アクセストークンの設定
+    'Authorization': 'Bearer ' + AccessToken
+  }
+
+  // HTTPリクエストのオプションの設定
+  const params = {
+    'method': 'GET',  //GETメソッドでリクエスト
+    'headers' : headers  //HTTPリクエストヘッダー
+  }
+
+  // SmartHR_API 従業員_"リストの取得"にリクエストを送信しレスポンスを取得
+  const response = UrlFetchApp.fetch('https://' + SubDomain + '.daruma.space/api/v1/crews?page=1' + '&per_page=' + PER_PAGE, params);
+
+  // レスポンスを文字列で取得
+  const responseBody = response.getContentText();
+
+  // jsonオブジェクトに変換
+  const json = JSON.parse(responseBody);
+
+  return json;
+}
+
+/**
+ * 対象の従業員に登録されている家族情報を取得する
+ * 
+ * @param {string}   id  従業員ID
+ * 
+ * return json
 */
-// 対象の従業員に登録されている家族情報を取得する
 function callShrFamilyApi(id) {
   const ACCESS_TOKEN = getProperties("ACCESS_TOKEN");
   const SUB_DOMAIN = getProperties("SUB_DOMAIN");
@@ -748,11 +784,10 @@ function callShrFamilyApi(id) {
   // 家族情報APIにリクエストを送信
   const response = UrlFetchApp.fetch(baseUrl + '/api/v1/crews/' + id + '/dependents?page=1&per_page=10', params)
 
-  // fetch()からはHTTPResponseオブジェクト型の値が返却される
-  // ここではresponseという変数に格納しています
-
   // レスポンスボディを取得
   const responseBody = response.getContentText()
+
+  // jsonオブジェクトに変換
   const json = JSON.parse(responseBody)
 
   return json
