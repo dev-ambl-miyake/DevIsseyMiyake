@@ -38,6 +38,20 @@ let no_proclamation = [
 ];
 
 // 兼務発令コード
+let kenmu_codes = [
+  '8000',
+  '8100',
+  '8200',
+];
+
+// 兼務解除発令コード
+let release_kenmu_codes = [
+  '8020',
+  '8120',
+  '8220',
+];
+
+// 兼務発令コード
 let kenmu_proclamation = [
   '8000',
   '8020',
@@ -49,7 +63,7 @@ let kenmu_proclamation = [
 
 // 発令（カオナビ）メイン処理
 function proclamationKaonaviMain() {
-  try{
+  // try{
     var work = '発令(カオナビ更新)';
     // 開始ログ
     log(work, 's');
@@ -207,28 +221,47 @@ function proclamationKaonaviMain() {
     log('3. カオナビへのデータ更新（所属/役職履歴）', 's');
     // 1.本務経歴データ・発令履歴兼務データのインポート
     //clear
-    // 2.「不要発令」「所属名/兼務所属名が空」の列削除
+    // 2.「不要発令」「所属名が空」「退職休職」の列削除
     //clear
 
     // 社員番号が一致するものを配列に集める
     for (let i = 0; i < kaonavi_honmu_keireki_data.length; i++) {
       // 社員番号を取り出す
-      var his_emp_code = kaonavi_honmu_keireki_data[i][0];
-      var emp_data = []; // 同じ社員番号行を格納する配列
+      let his_emp_code = kaonavi_honmu_keireki_data[i][0];
+      let emp_data = []; // 同じ社員番号行を格納する配列
+      let sub_emp_data = []; // 同じ社員番号行を格納する配列
       for(let n = 0; n < kaonavi_honmu_keireki_data.length; n++){
         // 社員番号一致で配列にする
-        if(his_emp_code == kaonavi_honmu_keireki_data[n][0]){
+        if(his_emp_code == kaonavi_honmu_keireki_data[n][0] && i != n){
           if(emp_data.length === 0){
-            emp_data = kaonavi_honmu_keireki_data[n];
+            emp_data = [kaonavi_honmu_keireki_data[n]];
             var num = n;
           } else {
-            emp_data.push(emp_data,kaonavi_honmu_keireki_data[n]);
+            emp_data.push(emp_data,[kaonavi_honmu_keireki_data[n]]);
             var num = n;
           }
           i = num; // 結合しただけiを進める
         }
       }
-      console.log(emp_data);
+      // 発令履歴兼務データから同じ社員番号の二次元配列を作成
+      for(let j = 0; j < kaonavi_kenmu_rireki_data.length; j++){
+        // 社員番号一致で配列にする
+        if(his_emp_code == kaonavi_kenmu_rireki_data[j][0]){
+          if(sub_emp_data.length === 0){
+            sub_emp_data = [kaonavi_kenmu_rireki_data[j]];
+          } else {
+            sub_emp_data.push(sub_emp_data,[kaonavi_honmu_keireki_data[j]]);
+          }
+        }
+      }
+      // 社員番号一致している配列を1レコードづつループさせる
+      createRecord(emp_data,sub_emp_data);
+
+      // 本務レコード区分名が「兼務」/「本務・出向」で条件分岐
+
+      // 「本務・出向」の場合のメソッド
+
+      // 「兼務」の場合のメソッド
       throw new Error('next→社員番号一致した配列を回してカスタムフィールドを作る');
     }
 
@@ -268,14 +301,14 @@ function proclamationKaonaviMain() {
     sendMail(work);
     // 終了ログ
     log('発令' + 'エラー内容：'+e.message, 'e');
-  }catch(e){
-    // メール本文に記載するエラー内容
-    var error_message = 'エラー内容：'+e.message;
-    // 失敗メールを送信
-    sendMail(work,error_message);
-    // 終了ログ
-    log('発令' + 'エラー内容：'+e.message, 'e');
-  }
+  // }catch(e){
+  //   // メール本文に記載するエラー内容
+  //   var error_message = 'エラー内容：'+e.message;
+  //   // 失敗メールを送信
+  //   sendMail(work,error_message);
+  //   // 終了ログ
+  //   log('発令' + 'エラー内容：'+e.message, 'e');
+  // }
 }
 
 /**
@@ -399,6 +432,13 @@ function changeDataToKaonavi(csv_data,operation_type) {
           i = i - 1;
       }
     }
+    // 本務レコード区分名が「退職」「休職・復職」の行削除
+    for (let i = 0; i < csv_data.length; i++) {
+      if(csv_data[i][3] == '退職' || csv_data[i][3] == '休職・復職'){
+          csv_data.splice(i,1); 
+          i = i - 1;
+      }
+    }
     // 不要発令コード行削除
     for (let i = 0; i < csv_data.length; i++) {
       if(no_proclamation.includes(csv_data[i][4])){
@@ -440,6 +480,105 @@ function matchEmpCode(emp_code,member_list) {
     throw new Error("カオナビに該当のIDが見つかりませんでした。");
   }
   return id;
+}
+
+/**
+ * 所属・役職履歴の1レコードを作成する
+ * @param {array} emp_data  社員番号が一致している二次元配列(本務経歴)
+ * @param {array} sub_emp_data  社員番号が一致している二次元配列(発令履歴兼務データ)
+ * @return {array} payload カオナビ更新Json
+ */
+function createRecord(emp_data,sub_emp_data) {
+  // 社員番号一致している配列を1レコードづつループさせる
+  for(let i = 0; i < emp_data.length; i++){
+    // 本務情報に兼務情報が結合された一次元配列を返す
+    merge_data = mergeRecord(emp_data[i],sub_emp_data);
+
+    // 「本務・出向」の場合のメソッド
+
+    // 「兼務」の場合のメソッド
+  }
+
+}
+
+/**
+ * 所属・役職履歴の1レコードを作成する
+ * @param {array} emp_data[i]  社員番号が一致している一次元配列(本務経歴データ)
+ * * @param {array} sub_emp_data  社員番号が一致している二次元配列(発令履歴兼務データ)
+ * @return {array} payload カオナビ更新Json
+ */
+function mergeRecord(emp_data,sub_emp_data) {
+  // 本務レコード区分名が「兼務」/「本務・出向」で条件分岐
+  if(emp_data[3] == '本務' || emp_data[3] == '出向'){
+    // 発令履歴兼務データから同じ社員番号の二次元配列を作成
+      let connect_data = [];　// 結合データ
+
+      for(let i = 0; i < sub_emp_data.length; i++){
+        if(typeof(sub_emp_data) === "undefined"){
+          continue;
+        }
+        console.log(sub_emp_data[i]);
+        // 「発令日より古い」「兼務(社内),兼務(社外)」を作成
+        let date = new Date(emp_data[2]);//発令日（本務経歴）
+        let sub_date = new Date(sub_emp_data[i][2]);//兼務発令日（発令履歴兼務）
+        // 「発令日より兼務発令日が古い」
+        if(date.getTime() > sub_date.getTime()){
+          if(connect_data.length === 0){
+            connect_data = [sub_emp_data[i]];
+          } else {
+            connect_data.push(connect_data,[sub_emp_data[i]]);
+          }
+        }
+      }
+      // 一致するレコードがない場合、本務経歴データをそのまま返却
+      if(connect_data.length === 0){
+        return emp_data;
+      } else{
+        let all_kenmu_array = []; // 兼務発令の配列
+        let all_kenmu_kaijo_array = []; // 兼務解除発令の配列
+
+        let kenmu_array = []; // 最新日付4つまでの兼務発令配列
+        let kenmu_kaijo_array = []; // 最新日付4つまでの兼務解除発令配列
+        if(connect_data.length >= 2){
+          // 兼務発令の配列と兼務解除発令の配列を作る
+          for(let n = 0; n < connect_data.length; n++){
+            console.log('fff');
+            if(kenmu_codes.includes(connect_data[n][7])){
+              if(all_kenmu_array.length === 0){
+                all_kenmu_array = [connect_data[n]];
+              } else {
+                all_kenmu_array.push(all_kenmu_array,[connect_data[n]]);
+                all_kenmu_array.sort(function(a, b) {
+                  return new Date(b[2]) - new Date(a[2]);
+                });
+              }
+            }
+            else if(all_kenmu_kaijo_array.includes(connect_data[n][7])){
+              if(all_kenmu_kaijo_array.length === 0){
+                all_kenmu_kaijo_array = [connect_data[n]];
+              } else {
+                all_kenmu_kaijo_array.push(all_kenmu_kaijo_array,[connect_data[n]]);
+                all_kenmu_kaijo_array.sort(function(a, b) {
+                  return new Date(b[2]) - new Date(a[2]);
+                });
+              }
+            }
+          }
+          console.log(all_kenmu_array);
+          console.log(all_kenmu_kaijo_array);
+          // 兼務レコード最新4レコードまで取得
+        }
+      }
+
+      throw new Error("aaaa");
+      // 兼務コードから最新の兼務4つ抽出
+
+      // 兼務解除コードから最新の兼務4つ抽出
+
+  } 
+  else if(emp_data[3] == '兼務'){
+
+  }
 }
 
 

@@ -1,15 +1,20 @@
 function myFunction() {
-  var k_array = ['a','b'];
-  var a_array = ['c','d'];
-  var newArray = [];
-  var newArray = newArray.push(k_array,a_array);
+let arr = [['e','2020-8-31'],['c','2020-8-1'],['a','2020-8-20'],['d','2020-8-10'],['b','2020-8-30']];
+ 
+  arr.sort(function(a, b) {return new Date(b[1]) - new Date(a[1]);} );
+ 
+  console.log(arr);
   
-  Logger.log(newArray);
+  // Logger.log(newArray);
 // const member_sheets_api = kaonaviMemberSheetsApi(); // カオナビの基本情報シート情報
 // const member_custom_list = member_sheets_api['custom_fields']; // カオナビの基本情報シートカスタム項目リスト
 
+// console.log(member_sheets_api);
+
 // const department_api = kaonaviDepartmentApi(); // カオナビの所属ツリーAPI
 // var department_list = department_api['department_data'];
+
+// log(JSON.stringify(department_list),'s');
 
 // var str1 = '(総)品質管理';
 // var str2 = '(販)販売';

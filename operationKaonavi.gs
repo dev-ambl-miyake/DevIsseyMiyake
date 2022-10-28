@@ -163,7 +163,8 @@ function kaonaviTaskApi() {
  * @param {jsonstring} member_data 連想配列をjson文字列に変換した値
  */
 function kaonaviUpdateApi(member_data) {
-
+// console.log(typeof(member_data));
+// console.log(member_data);
   const token = getToken();
   var apiUrl = 'https://api.kaonavi.jp/api/v2.0/members';
   
