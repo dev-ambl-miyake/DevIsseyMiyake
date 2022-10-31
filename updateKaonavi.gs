@@ -232,12 +232,12 @@ function proclamationKaonaviMain() {
       let sub_emp_data = []; // 同じ社員番号行を格納する配列
       for(let n = 0; n < kaonavi_honmu_keireki_data.length; n++){
         // 社員番号一致で配列にする
-        if(his_emp_code == kaonavi_honmu_keireki_data[n][0] && i != n){
+        if(his_emp_code == kaonavi_honmu_keireki_data[n][0]){
           if(emp_data.length === 0){
             emp_data = [kaonavi_honmu_keireki_data[n]];
             var num = n;
           } else {
-            emp_data.push(emp_data,[kaonavi_honmu_keireki_data[n]]);
+            emp_data.push(kaonavi_honmu_keireki_data[n]);
             var num = n;
           }
           i = num; // 結合しただけiを進める
@@ -250,7 +250,7 @@ function proclamationKaonaviMain() {
           if(sub_emp_data.length === 0){
             sub_emp_data = [kaonavi_kenmu_rireki_data[j]];
           } else {
-            sub_emp_data.push(sub_emp_data,[kaonavi_honmu_keireki_data[j]]);
+            sub_emp_data.push(kaonavi_kenmu_rireki_data[j]);
           }
         }
       }
@@ -517,7 +517,6 @@ function mergeRecord(emp_data,sub_emp_data) {
         if(typeof(sub_emp_data) === "undefined"){
           continue;
         }
-        console.log(sub_emp_data[i]);
         // 「発令日より古い」「兼務(社内),兼務(社外)」を作成
         let date = new Date(emp_data[2]);//発令日（本務経歴）
         let sub_date = new Date(sub_emp_data[i][2]);//兼務発令日（発令履歴兼務）
@@ -526,7 +525,7 @@ function mergeRecord(emp_data,sub_emp_data) {
           if(connect_data.length === 0){
             connect_data = [sub_emp_data[i]];
           } else {
-            connect_data.push(connect_data,[sub_emp_data[i]]);
+            connect_data.push(sub_emp_data[i]);
           }
         }
       }
@@ -542,38 +541,57 @@ function mergeRecord(emp_data,sub_emp_data) {
         if(connect_data.length >= 2){
           // 兼務発令の配列と兼務解除発令の配列を作る
           for(let n = 0; n < connect_data.length; n++){
-            console.log('fff');
             if(kenmu_codes.includes(connect_data[n][7])){
+              
               if(all_kenmu_array.length === 0){
                 all_kenmu_array = [connect_data[n]];
               } else {
-                all_kenmu_array.push(all_kenmu_array,[connect_data[n]]);
+                all_kenmu_array.push(connect_data[n]);
                 all_kenmu_array.sort(function(a, b) {
                   return new Date(b[2]) - new Date(a[2]);
                 });
               }
             }
-            else if(all_kenmu_kaijo_array.includes(connect_data[n][7])){
+            else if(release_kenmu_codes.includes(connect_data[n][7])){
               if(all_kenmu_kaijo_array.length === 0){
                 all_kenmu_kaijo_array = [connect_data[n]];
               } else {
-                all_kenmu_kaijo_array.push(all_kenmu_kaijo_array,[connect_data[n]]);
+                all_kenmu_kaijo_array.push(connect_data[n]);
                 all_kenmu_kaijo_array.sort(function(a, b) {
                   return new Date(b[2]) - new Date(a[2]);
                 });
               }
             }
           }
+          // 4レコード以上の場合切り捨て
+          for(let y = 0; all_kenmu_array.length > 4; y++){
+            if(all_kenmu_array.length > 4){
+              all_kenmu_array.pop();
+            }
+          }
+          for(let m = 0; all_kenmu_kaijo_array.length > 4; m++){
+            if(all_kenmu_kaijo_array.length > 4){
+              all_kenmu_kaijo_array.pop();
+            }
+          }
+          // 兼務レコードが兼務解除レコードより古い場合削除
+          for(let n = 0; n < all_kenmu_array.length; n++){
+            let kenmu_dep = all_kenmu_array[n][12]; // 兼務所属名
+            let kenmu_date = new Date(all_kenmu_array[n][2]); // 兼務発令日
           console.log(all_kenmu_array);
-          console.log(all_kenmu_kaijo_array);
-          // 兼務レコード最新4レコードまで取得
+            for(let j = 0; j < all_kenmu_kaijo_array.length; j++){
+              let kenmu_kaijo_dep = all_kenmu_kaijo_array[j][12]; // 兼務所属名
+              let kenmu_kaijo_date = new Date(all_kenmu_kaijo_array[j][2]);
+              if(kenmu_date.getTime() < kenmu_kaijo_date.getTime() && kenmu_dep == kenmu_kaijo_dep){
+                all_kenmu_array.splice(n, 1);
+                n = n - 1;
+              }
+            }
+          }
         }
       }
-
-      throw new Error("aaaa");
-      // 兼務コードから最新の兼務4つ抽出
-
-      // 兼務解除コードから最新の兼務4つ抽出
+      
+      throw new Error("next→payoad作成");
 
   } 
   else if(emp_data[3] == '兼務'){

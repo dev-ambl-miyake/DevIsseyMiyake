@@ -1,10 +1,19 @@
 function myFunction() {
-let arr = [['e','2020-8-31'],['c','2020-8-1'],['a','2020-8-20'],['d','2020-8-10'],['b','2020-8-30']];
- 
-  arr.sort(function(a, b) {return new Date(b[1]) - new Date(a[1]);} );
- 
-  console.log(arr);
-  
+let kaonavi_honmu_keireki_data = [[1,2,3,4,5],[1,7,8,9,10],[1,12,13,14,15],[1,7,8,9,10],[1,7,8,9,10],[1,7,8,9,10],[1,7,8,9,10]];
+// for(let y = 0; kaonavi_honmu_keireki_data.length > 4; y++){
+//   if(kaonavi_honmu_keireki_data.length > 4){
+//     kaonavi_honmu_keireki_data.pop();
+//     console.log(kaonavi_honmu_keireki_data.length);  
+//   }
+// }
+
+let kenmu_date = new Date('2010/01/01'); // 兼務発令日
+let kenmu_kaijo_date = new Date('2020/01/01'); // 兼務発令日
+
+if(kenmu_date.getTime() < kenmu_kaijo_date.getTime()){
+  console.log('兼務解除の方が新しい'); 
+}
+// console.log(kaonavi_honmu_keireki_data);  
   // Logger.log(newArray);
 // const member_sheets_api = kaonaviMemberSheetsApi(); // カオナビの基本情報シート情報
 // const member_custom_list = member_sheets_api['custom_fields']; // カオナビの基本情報シートカスタム項目リスト
