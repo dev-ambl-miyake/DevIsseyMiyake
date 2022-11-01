@@ -305,15 +305,15 @@ function createMember() {
     const languageSheetList = checkSheetName(sheets_list, kaonaviLanguageSheetName);
     var languageSheetData = [];
     for (var languageSheetKey = 0; languageSheetKey < languageSheetList['custom_fields'].length; languageSheetKey++) {
-      // if (languageSheetList['custom_fields'][languageSheetKey]['name'] == "英語（社内テスト）_テスト名") {
-      //   languageSheetData['mail'] = languageSheetList['custom_fields'][languageSheetKey]['id'];
-      // }
-      // if (languageSheetList['custom_fields'][languageSheetKey]['name'] == "英語（社内テスト）_スコア") {
-      //   languageSheetData['telNumber'] = languageSheetList['custom_fields'][languageSheetKey]['id'];
-      // }
-      // if (languageSheetList['custom_fields'][languageSheetKey]['name'] == "英語（社内テスト）_受験日") {
-      //   languageSheetData['telNumber'] = languageSheetList['custom_fields'][languageSheetKey]['id'];
-      // }
+      if (languageSheetList['custom_fields'][languageSheetKey]['name'] == "英語（社内テスト）_テスト名") {
+        languageSheetData['inhouseEnglishTestName'] = languageSheetList['custom_fields'][languageSheetKey]['id'];
+      }
+      if (languageSheetList['custom_fields'][languageSheetKey]['name'] == "英語（社内テスト）_スコア") {
+        languageSheetData['inhouseEnglishTestScore'] = languageSheetList['custom_fields'][languageSheetKey]['id'];
+      }
+      if (languageSheetList['custom_fields'][languageSheetKey]['name'] == "英語（社内テスト）_受験日") {
+        languageSheetData['inhouseEnglishTestDate'] = languageSheetList['custom_fields'][languageSheetKey]['id'];
+      }
       if (languageSheetList['custom_fields'][languageSheetKey]['name'] == "英語_試験名") {
         languageSheetData['englishTestName'] = languageSheetList['custom_fields'][languageSheetKey]['id'];
       }
@@ -347,6 +347,9 @@ function createMember() {
       'englishTestName' : languageSheetData['englishTestName'],
       'englishTestScore' : languageSheetData['englishTestScore'],
       'englishTestDate' : languageSheetData['englishTestDate'],
+      'inhouseEnglishTestName' : languageSheetData['inhouseEnglishTestName'],
+      'inhouseEnglishTestScore' : languageSheetData['inhouseEnglishTestScore'],
+      'inhouseEnglishTestDate' : languageSheetData['inhouseEnglishTestDate'],
       'otherLanguageName1' : languageSheetData['otherLanguageName1'],
       'otherLanguageScore1' : languageSheetData['otherLanguageScore1'],
       'otherLanguageAcquisitionDate1' : languageSheetData['otherLanguageAcquisitionDate1'],
@@ -1037,8 +1040,8 @@ function createMember() {
       var academicHistoryData = [];
       // 英語
       var englishData = [];
-      // 英語(スピーキング)
-      var englishSpeakingData = [];
+      // 英語(社内テスト)
+      var inhouseEnglishData = [];
       // その他外国語
       var otherLanguageData = [];
       // 語学
@@ -1064,9 +1067,9 @@ function createMember() {
           if (employeesData[l]['custom_fields'][cl]['template']['group_id'] == getProperties("englishGroupId")) {
             englishData.push(employeesData[l]['custom_fields'][cl]);
           }
-          // 英語(スピーキング)
-          if (employeesData[l]['custom_fields'][cl]['template']['group_id'] == getProperties("englishSpeakingGroupId")) {
-            englishSpeakingData.push(employeesData[l]['custom_fields'][cl]);
+          // 英語(社内テスト)
+          if (employeesData[l]['custom_fields'][cl]['template']['group_id'] == getProperties("inhouseEnglishGroupId")) {
+            inhouseEnglishData.push(employeesData[l]['custom_fields'][cl]);
           }
           // その他外国語
           if (employeesData[l]['custom_fields'][cl]['template']['group_id'] == getProperties("otherLanguageGroupId")) {
@@ -1360,9 +1363,9 @@ function createMember() {
       }
 
       // 語学
-      // var inhouseEnglishTestName = null;
-      // var inhouseEnglishTestScore = null;
-      // var inhouseEnglishTestDate = null;
+      var inhouseEnglishTestName = null;
+      var inhouseEnglishTestScore = null;
+      var inhouseEnglishTestDate = null;
       var englishTestName = null;
       var englishTestScore = null;
       var englishTestDate = null;
@@ -1374,20 +1377,24 @@ function createMember() {
       var otherLanguageAcquisitionDate2 = null;
 
       // 抽出した語学データを変数へ代入
-      if (englishSpeakingData.length > 0) {
-        for (var esl = 0; esl < englishSpeakingData.length; esl++) {
-          // // 英語（社内テスト）_テスト名
-          // if (englishSpeakingData[ahl]['template']['name'] == "バーサントスコア") {
-          //   inhouseEnglishTestName = englishSpeakingData[esl]['value'];
-          // }
-          // // 英語（社内テスト）_スコア
-          // if (englishSpeakingData[ahl]['template']['name'] == "バーサント受験日") {
-          //   inhouseEnglishTestScore = englishSpeakingData[esl]['value'];
-          // }
-          // // 英語（社内テスト）_受験日
-          // if (englishSpeakingData[ahl]['template']['name'] == "P360受験日") {
-          //   inhouseEnglishTestDate = englishSpeakingData[esl]['value'];
-          // }
+      if (inhouseEnglishData.length > 0) {
+        for (var esl = 0; esl < inhouseEnglishData.length; esl++) {
+          // 英語（社内テスト）_テスト名
+          if (inhouseEnglishData[esl]['template']['name'] == "テスト名") {
+            for (var ieelm = 0; ieelm < inhouseEnglishData[esl]['template']['elements'].length; ieelm++) {
+              if (inhouseEnglishData[esl]['value'] == inhouseEnglishData[esl]['template']['elements'][ieelm]['id']) {
+                inhouseEnglishTestName = inhouseEnglishData[esl]['template']['elements'][ieelm]['name'];
+              }
+            }
+          }
+          // 英語（社内テスト）_スコア
+          if (inhouseEnglishData[esl]['template']['name'] == "スコア") {
+            inhouseEnglishTestScore = inhouseEnglishData[esl]['value'];
+          }
+          // 英語（社内テスト）_受験日
+          if (inhouseEnglishData[esl]['template']['name'] == "受験日") {
+            inhouseEnglishTestDate = inhouseEnglishData[esl]['value'];
+          }
         }
       }
       if (englishData.length > 0) {
@@ -2079,24 +2086,22 @@ function createMember() {
         "code" : employeeNumber,  // 社員番号
         "records" : [
           {
-            // 英語（社内テスト）_テスト名・英語（社内テスト）_スコア・英語（社内テスト）_受験日の３つは、
-            // SmartHR側のP360 or バーサントのどちらの情報を登録するべきか要確認
             "custom_fields" : [
               // 英語（社内テスト）_テスト名
-              // {
-              //   "id" : 5589,
-              //   "values": [ bankCode ]
-              // },
+              {
+                "id" : languageSheetIdList['inhouseEnglishTestName'],
+                "values": [ inhouseEnglishTestName ]
+              },
               // 英語（社内テスト）_スコア
               // {
-              //   "id" : 5590,
-              //   "values": [ bankBranchCode ]
+              //   "id" : languageSheetIdList['inhouseEnglishTestScore'],
+              //   "values": [ inhouseEnglishTestScore ]
               // },
               // 英語（社内テスト）_受験日
-              // {
-              //   "id" : 5591,
-              //   "values": [ accountType ]
-              // },
+              {
+                "id" : languageSheetIdList['inhouseEnglishTestDate'],
+                "values": [ inhouseEnglishTestDate ]
+              },
               // 英語_試験名
               {
                 "id" : languageSheetIdList['englishTestName'],
@@ -2973,7 +2978,7 @@ function createMember() {
     const basicInfoResult = requestApi(basicInfoList, "post");
 
     // 社員情報の登録にタイムラグが存在するため待機時間を調整
-    Utilities.sleep(61000)
+    Utilities.sleep(90000);
 
     const contactResult = requestApi(contactList, "patch", contactSheetIdList['sheetId']);
     const addressResult = requestApi(addressList, "patch", addressSheetIdList['sheetId']);
@@ -2982,7 +2987,7 @@ function createMember() {
     const academicResult = requestApi(academicList, "patch", academicSheetIdList['sheetId']);
 
     // 更新系APIの分間あたりの最大リクエスト件数が5件のため待機時間を調整
-    Utilities.sleep(61000)
+    Utilities.sleep(60000);
 
     const languageResult = requestApi(languageList, "patch", languageSheetIdList['sheetId']);
     const licenseResult = requestApi(licenseList, "patch", licenseSheetIdList['sheetId']);
@@ -2991,13 +2996,13 @@ function createMember() {
     // 終了ログ
   　log(work, 'e');
 
-    SpreadsheetApp.getUi().alert("カオナビへの社員情報登録が終了しました。");
+    SpreadsheetApp.getUi().alert("カオナビへの社員情報登録が完了しました。");
 
   } catch(e) {
     log(work + "[エラーログ]", "s");
     log(e.message, "error");
     log(work + "[エラーログ]", "e");
-    SpreadsheetApp.getUi().alert("カオナビへの社員情報登録に失敗しました。\n入力した社員番号が誤っている、もしくは既に登録されています。");
+    SpreadsheetApp.getUi().alert("カオナビへの社員情報登録に失敗しました。");
   }
 }
 
