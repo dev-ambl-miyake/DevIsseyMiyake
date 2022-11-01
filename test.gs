@@ -1,5 +1,5 @@
 function myFunction() {
-let kaonavi_honmu_keireki_data = [[1,2,3,4,5],[1,7,8,9,10],[1,12,13,14,15],[1,7,8,9,10],[1,7,8,9,10],[1,7,8,9,10],[1,7,8,9,10]];
+// let kaonavi_honmu_keireki_data = [[1,2,3,4,5],[1,7,8,9,10],[1,12,13,14,15],[1,7,8,9,10],[1,7,8,9,10],[1,7,8,9,10],[1,7,8,9,10]];
 // for(let y = 0; kaonavi_honmu_keireki_data.length > 4; y++){
 //   if(kaonavi_honmu_keireki_data.length > 4){
 //     kaonavi_honmu_keireki_data.pop();
@@ -7,8 +7,16 @@ let kaonavi_honmu_keireki_data = [[1,2,3,4,5],[1,7,8,9,10],[1,12,13,14,15],[1,7,
 //   }
 // }
 
-let kenmu_date = new Date('2010/01/01'); // 兼務発令日
-let kenmu_kaijo_date = new Date('2020/01/01'); // 兼務発令日
+//現在時刻を取得
+  let kenmu_date = new Date('2010/01/01'); // 兼務発令日
+  let kenmu_kaijo_date = new Date('2020/01/01'); // 兼務発令日
+
+  //日付を昨日に設定
+    kenmu_date.setDate(kenmu_date.getDate()-1);
+
+  //日付の出力
+  console.log(Utilities.formatDate(kenmu_date, 'Asia/Tokyo', 'yyyy/MM/dd')); //2022/08/19
+
 
 if(kenmu_date.getTime() < kenmu_kaijo_date.getTime()){
   console.log('兼務解除の方が新しい'); 
