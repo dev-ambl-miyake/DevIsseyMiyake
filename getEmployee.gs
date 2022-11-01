@@ -80,96 +80,64 @@ function getEmployeeList(idList) {
   }
 }
 
-// function getFamiliy(idList) {
-//   //エラー発生時の例外処理
-//   try{
-//     // 開始ログ
-//     commonFunction.log('smartHRから情報取得', 's');
-//     const AccessToken = 'R4CrXND4R4xkpcv6WMPQJNxzg7ke4YhP'  //smartHRのアクセストークン
-//     const SubDomain = 'a6207dec84a2577ef2a94ee1'  //smartHRのサブドメイン
-
-//     //HTTPリクエストヘッダーの作成
-//     const headers = {
-//       //アクセストークンの設定
-//       'Authorization': 'Bearer ' + AccessToken
-//     }
-
-//     //HTTPリクエストのオプションの設定
-//     const params = {
-//       'method': 'GET',  //GETメソッドでリクエスト
-//       'headers' : headers  //HTTPリクエストヘッダー
-//     }
-
-//     let json = [];
-
-//     //idList総数繰り返し取得
-//     for(let i = 0; i < idList.length; i++) {
-
-//       //従業員リスト取得APIにリクエストを送信
-//       const response = UrlFetchApp.fetch('https://'+SubDomain+'.daruma.space/api/v1/crews/' + idList[i] + '/dependents' , params)
-
-//       //レスポンスを文字列で取得
-//       const responseBody = response.getContentText()
-
-//       //jsonオブジェクトに変換
-//       json.push(JSON.parse(responseBody))
-
-//     }
-
-//     // 終了ログ
-//     commonFunction.log('smartHRから情報取得', 'e');
-
-//     return json
-//   }catch(e) {
-//     SpreadsheetApp.getUi().alert("smartHRから情報取得中にエラーが発生しました。");
-//   }
-// }
-
-// function createHistory() {
-//   // スプレットシート起動時に履歴データの更新を行う
-//   storeEmployee.getEmployee();
-// }
-
-function getCheckValue() {
+/**
+ * 更新対象社員選択_スプレッドシート上でチェックのついている社員情報行を配列で取得する
+ * 
+ * @return [array] selectedRowList
+ */
+function getSelectedRow() {
   let ss = SpreadsheetApp.getActiveSpreadsheet();
   let sheet = ss.getActiveSheet();
   let lastRow = sheet.getLastRow();  //最終行を取得
   let headerLine = 8;  //ヘッダーの行数
 
-  //表示されている情報を取得
+  // スプレッドシート上に存在する社員情報を範囲指定
   let range = sheet.getRange(9,2,lastRow - headerLine,6);
-  //値を取得
+  // 範囲指定された行数分のセルデータを配列として取得
   let values = range.getValues();
 
-  let checkValue = [];
+  let selectedRowList = [];
 
   //取得した値の中で、checkboxにチェックが付いているもののみ取得
   for(let i = 0; i < values.length; i++) {
     if(values[i][0]) {
-      checkValue.push(values[i]);
+      selectedRowList.push(values[i]);
     }
   }
 
-  return checkValue
+  return selectedRowList;
 }
 
-function getSmarthrId(checkValue) {
-  // 履歴データ[登録用]_スプレッドシート情報取得
-  let ss = SpreadsheetApp.openById(getProperties("storeHistorySpreadsheetsId"));
-  let sheet = ss.getSheets()[0];
-  let lastRow = sheet.getLastRow();
-  const range = sheet.getRange(2,1,lastRow, 4).getValues();  //履歴データ新規からデータを取得
 
-  let idList = [];
+/**
+ * SmartHR_APIで取得した社員情報全件の中に、
+ * 更新対象社員選択_スプレッドシート上で選択された社員情報が存在するか照合する
+ * 
+ * @param [array] selectedEmployeeList
+ * 
+ * @return [array] employeeIdList
+ */
+function checkEmployeeCode(selectedEmployeeList) {
+  // 社員情報全件取得
+  const employeeList = callShrEmployeeListApi();
 
-  for(let i = 0; i < checkValue.length; i++) {
-    for(let j = 0; j < range.length; j++) {
-      if(range[j].includes(checkValue[i][2])) {
-        idList.push(range[j][3])  //idのみ
+  let employeeIdList = [];
+
+  for(var sel = 0; sel < selectedEmployeeList.length; sel++) {
+    for(var el = 0; el < employeeList.length; el++) {
+      if (employeeList[el]['emp_code'] == selectedEmployeeList[sel][2]) {
+        employeeIdList.push(employeeList[el]['id']);
+        break;
       }
     }
   }
-  return idList
+
+  // 選択された社員件数と照合一致した社員件数が同じであれば返却
+  if (selectedEmployeeList.length == employeeIdList.length) {
+    return employeeIdList;
+  } else {
+    throw new Error("選択された社員の中に、SmartHRに登録されていない社員情報(社員番号)が存在します。");
+  }
 }
 
 /**
@@ -200,7 +168,6 @@ function changeStatus(serviceType) {
       else {
         sheet.getRange(headerLine + i + 1, 6).setValue("済");
       }
-      
     }
   }
 }
