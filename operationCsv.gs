@@ -33,7 +33,7 @@ function import_csv(operation_type = 5) {
     var define = define_proclamation_history()
     // 発令　本務経歴
   }else if (operation_type === 3.5) {
-    var define = define_main_history()
+    var define = define_main_hstory()
   // 標準報酬月額
   } else if (operation_type === 4) {
     var define = define_monthly_salary()
@@ -87,7 +87,6 @@ function import_csv(operation_type = 5) {
 
 /*
   //　業務種別ごとにCSVを出力する
-
   // array data
   // integer operation_type
     // 1: 入社
@@ -135,6 +134,13 @@ function export_csv(data, operation_type = 5) {
     var title_row = title_store_employee_insurance()
     // smartHRAPIよりデータ取得
     var import_data = data;
+  // 銀行
+  } else if (operation_type === 1.6) {
+    var define = define_store_employee_bank()
+    // 見出し行
+    var title_row = title_store_employee_bank()
+    // smartHRAPIよりデータ取得
+    var import_data = data;
   // 変更申請
   // 社員基本
   } else if (operation_type === 2.1) {
@@ -170,6 +176,13 @@ function export_csv(data, operation_type = 5) {
     var define = define_update_employee_insurance()
     // 見出し行
     var title_row = title_update_employee_insurance()
+    // smartHRAPIよりデータ取得
+    var import_data = data;
+  // 銀行
+  } else if (operation_type === 2.6) {
+    var define = define_update_employee_bank()
+    // 見出し行
+    var title_row = title_update_employee_bank()
     // smartHRAPIよりデータ取得
     var import_data = data;
   // 源泉徴収票
@@ -269,6 +282,17 @@ function title_store_employee_insurance() {
   return title_row
 }
 
+// 入社_銀行CSV_列名
+function title_store_employee_bank() {
+  // 見出し行
+  const title_row = [
+    [
+      "データ区分", "コード", "振込銀行区分", "口座SEQ", "振込依頼銀行コード", "振込銀行コード", "振込支店コード", "口座種別", "口座番号", "名義人漢字", "名義人ｶﾅ", "新規コード", "定額"
+    ]
+  ]
+  return title_row
+}
+
 // 変更申請_社員基本CSV_列名
 function title_update_employee_base() {
   // 見出し行
@@ -320,6 +344,17 @@ function title_update_employee_insurance() {
   const title_row = [
     [
       "データ区分", "社員コード", "基礎年金番号1", "基礎年金番号2", "雇用保険番号1", "雇用保険番号2", "雇用保険番号3"
+    ]
+  ]
+  return title_row
+}
+
+// 変更申請_銀行CSV_列名
+function title_update_employee_bank() {
+  // 見出し行
+  const title_row = [
+    [
+      "データ区分", "コード", "振込銀行区分", "口座SEQ", "振込依頼銀行コード", "振込銀行コード", "振込支店コード", "口座種別", "口座番号", "名義人漢字", "名義人ｶﾅ", "新規コード", "定額"
     ]
   ]
   return title_row
@@ -942,6 +977,14 @@ function define_store_employee_insurance() {
   }
   return define
 }
+// 業務_入社_銀行
+function define_store_employee_bank() {
+  const define = { 
+    'export_folder_id': getProperties("obicExportCsvFolderId"), // OBIC出力CSV格納ディレクトリ
+    'export_file_name': getProperties("obicBankCsvFileName"), // OBIC出力CSV格納ディレクトリファイル名
+  }
+  return define
+}
 // 業務_変更申請_社員基本
 function define_update_employee_base() {
   const define = { 
@@ -982,6 +1025,14 @@ function define_update_employee_insurance() {
   }
   return define
 }
+// 業務_変更申請_銀行
+function define_update_employee_bank() {
+  const define = { 
+    'export_folder_id': getProperties("obicExportCsvFolderId"), // OBIC出力CSV格納ディレクトリ
+    'export_file_name': getProperties("obicBankCsvFileName"), // OBIC出力CSV格納ディレクトリファイル名
+  }
+  return define
+}
 // 業務_発令_現職本務データ
 function define_announcement() {
   const define = { 
@@ -1015,7 +1066,7 @@ function define_proclamation_history() {
   return define
 }
 // 業務_発令_本務経歴
-function define_main_history() {
+function define_main_hstory() {
   const define = { 
     'import_folder_id': getProperties("obicCsvFolderId"),
     'import_file_name': getProperties("honmuKeirekiCsv"),
@@ -1039,4 +1090,26 @@ function define_tax_withoutholding() {
     'export_file_name': getProperties("shrCsvFileName"), // SHR出力CSV格納ディレクトリ
   }
   return define
+}
+
+/**
+ * 指定したドライブフォルダ内のファイルをすべて削除する
+ * 正確にはゴミ箱へファイルを移動する
+ * 
+ * @param [string] folderId
+ */
+function deleteCsv(folderId) {
+  //フォルダを取得
+  const folder = DriveApp.getFolderById(folderId);
+  //フォルダ内のすべてのファイルを取得
+  var files = folder.getFiles();
+
+  //各ファイルに対して繰り返し
+  while (files.hasNext()) {
+    //ファイルを取得
+    var file = files.next();
+
+    //ゴミ箱へ移動
+    file.setTrashed(true);　
+  }
 }
