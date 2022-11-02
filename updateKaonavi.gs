@@ -88,6 +88,12 @@ let kenmu_proclamation = [
   '8220'
 ];
 
+// グレード・レベル発令コード
+let grade_codes = [
+  '2020',
+  '2030',
+];
+
 // 発令（カオナビ）メイン処理
 function proclamationKaonaviMain() {
   try{
@@ -330,7 +336,7 @@ function proclamationKaonaviMain() {
       let dep_his_payload = createRecord(emp_data,sub_emp_data,sheets_name);
       custom_member_dep_array.push(dep_his_payload);
     }
-    // 所属・役職履歴の更新
+    // 配属履歴の更新
     kaonaviSheetsUpdateApi(sheets_id,custom_member_dep_array);
     log('3. カオナビへのデータ更新（配属履歴）', 'e');
 
@@ -376,11 +382,45 @@ function proclamationKaonaviMain() {
       let dep_his_payload = createRecord(emp_data,sub_emp_data,sheets_name);
       custom_member_pos_array.push(dep_his_payload);
     }
-    // 所属・役職履歴の更新
+    // 役職履歴の更新
     kaonaviSheetsUpdateApi(sheets_id,custom_member_pos_array);
     log('3. カオナビへのデータ更新（役職履歴）', 'e');
 
-    throw new Error('next→グレード履歴の更新のみ');
+
+    log('3. カオナビへのデータ更新（グレード履歴）', 's');
+    // 本務経歴データを再インポート
+    let csv_main_grade_history = import_csv(operation_type = 3.5);
+    
+    // 発令名「グレード変更」のレコードに抽出
+    let kaonavi_honmu_keireki_grade_data = changeDataToKaonavi(csv_main_grade_history, operation_type = 3.6);
+    var sheets_name = 'グレード履歴';
+    var sheets_id = matchSheets(sheets_name);
+    var custom_grade_array = [];
+    // 社員番号が一致するものを配列に集める
+    for (let i = 0; i < kaonavi_honmu_keireki_grade_data.length; i++) {
+      // 社員番号を取り出す
+      let his_emp_code = kaonavi_honmu_keireki_grade_data[i][0];
+      let emp_data = []; // 同じ社員番号行を格納する配列
+      let sub_emp_data = []; // 同じ社員番号行を格納する配列
+      for(let n = 0; n < kaonavi_honmu_keireki_grade_data.length; n++){
+        // 社員番号一致で配列にする
+        if(his_emp_code == kaonavi_honmu_keireki_grade_data[n][0]){
+          if(emp_data.length === 0){
+            emp_data = [kaonavi_honmu_keireki_grade_data[n]];
+            var num = n;
+          } else {
+            emp_data.push(kaonavi_honmu_keireki_grade_data[n]);
+            var num = n;
+          }
+          i = num; // 結合しただけiを進める
+        }
+      }
+      let grade_payload = createRecord(emp_data,null,sheets_name);
+      custom_grade_array.push(grade_payload);
+    }
+    // グレード履歴の更新
+    kaonaviSheetsUpdateApi(sheets_id,custom_grade_array);
+    log('3. カオナビへのデータ更新（グレード履歴）', 'e');
     
     log(work, 'e');
 
@@ -515,7 +555,7 @@ function changeDataToKaonavi(csv_data,operation_type) {
       csv_data[i][0] = '0'+ csv_data[i][0];
     }
 
-    // 退職日（yyyy/mm/dd → yyyy-mm-dd）
+    // 発令日（yyyy/mm/dd → yyyy-mm-dd）
     for (let i = 0; i < csv_data.length; i++) {
       csv_data[i][2] = csv_data[i][2].replace(/\//g, '-');
     }
@@ -547,7 +587,7 @@ function changeDataToKaonavi(csv_data,operation_type) {
           i = i - 1;
       }
     }
-    // 退職日（yyyy/mm/dd → yyyy-mm-dd）
+    // 発令日（yyyy/mm/dd → yyyy-mm-dd）
     for (let i = 0; i < csv_data.length; i++) {
       csv_data[i][2] = csv_data[i][2].replace(/\//g, '-');
     }
@@ -558,8 +598,27 @@ function changeDataToKaonavi(csv_data,operation_type) {
     //       i = i - 1;
     //   }
     // }
+  }else if(operation_type == 3.6){
+    // 社員コード（4桁→5桁）
+    for (let i = 0; i < csv_data.length; i++) {
+      csv_data[i][0] = '0'+ csv_data[i][0];
+    }
+
+    // 発令日（yyyy/mm/dd → yyyy-mm-dd）
+    for (let i = 0; i < csv_data.length; i++) {
+      csv_data[i][2] = csv_data[i][2].replace(/\//g, '-');
+    }
+
+    // 「グレードレベル（G）変更、グレードレベル（L）変更」発令コード抽出
+    csv_grade_data = [];
+    for (let i = 0; i < csv_data.length; i++) {
+      if(grade_codes.includes(csv_data[i][4])){
+        csv_grade_data.push(csv_data[i]);
+      }
+    }
+    csv_data = csv_grade_data;
   }
-    return csv_data
+  return csv_data
 }
 
 
@@ -597,40 +656,47 @@ function matchEmpCode(emp_code,member_list) {
 function createRecord(emp_data,sub_emp_data,sheet_name) {
   // payload作成
   let custom_array = [];
-  // 社員番号一致している配列を1レコードづつループさせる
-  for(let i = 0; i < emp_data.length; i++){
-    // 本務情報に兼務情報が結合された一次元配列を返す
-    if(emp_data[i][3] == '本務' || emp_data[i][3] == '出向'){
-      merge_data = mergeRecord(emp_data[i],sub_emp_data,sheet_name);
-      // payloadにカスタムフィールドをプッシュする
-    } 
-    else if(emp_data[i][3] == '兼務'){
-      // 「兼務」の場合のメソッド
-      // （本務経歴）該当兼務レコードより昔かつその中で一番新しい日付の本務レコードを取得する
-      let connect_data = [];
+  if(sheet_name == 'グレード履歴'){
+    for(let i = 0; i < emp_data.length; i++){
+      merge_data = mergeRecord(emp_data[i],null,sheet_name);
+      custom_array.push(merge_data);
+    }
+  } else {
+    // 社員番号一致している配列を1レコードづつループさせる
+    for(let i = 0; i < emp_data.length; i++){
+      // 本務情報に兼務情報が結合された一次元配列を返す
+      if(emp_data[i][3] == '本務' || emp_data[i][3] == '出向'){
+        merge_data = mergeRecord(emp_data[i],sub_emp_data,sheet_name);
+        // payloadにカスタムフィールドをプッシュする
+      } 
+      else if(emp_data[i][3] == '兼務'){
+        // 「兼務」の場合のメソッド
+        // （本務経歴）該当兼務レコードより昔かつその中で一番新しい日付の本務レコードを取得する
+        let connect_data = [];
 
-      for(let n = 0; n < emp_data.length; n++){
-        let date = new Date(emp_data[i][2]);//兼務区分発令日（本務経歴）
-        let sub_date = new Date(emp_data[n][2]);//本務経歴発令日（発令履歴兼務）
-        if(date.getTime() > sub_date.getTime() && honmu_sec.includes(emp_data[n][3])){
-          if(connect_data.length === 0){
-            connect_data = [emp_data[n]];
-          } else {
-            connect_data.push(emp_data[n]);
-            connect_data.sort(function(a, b) {
-              return new Date(b[2]) - new Date(a[2]);
-            });
+        for(let n = 0; n < emp_data.length; n++){
+          let date = new Date(emp_data[i][2]);//兼務区分発令日（本務経歴）
+          let sub_date = new Date(emp_data[n][2]);//本務経歴発令日（発令履歴兼務）
+          if(date.getTime() > sub_date.getTime() && honmu_sec.includes(emp_data[n][3])){
+            if(connect_data.length === 0){
+              connect_data = [emp_data[n]];
+            } else {
+              connect_data.push(emp_data[n]);
+              connect_data.sort(function(a, b) {
+                return new Date(b[2]) - new Date(a[2]);
+              });
+            }
           }
         }
-      }
-      for(let y = 0; connect_data.length > 1; y++){
-        if(connect_data.length > 1){
-          connect_data.shift();
+        for(let y = 0; connect_data.length > 1; y++){
+          if(connect_data.length > 1){
+            connect_data.shift();
+          }
         }
+        merge_data = mergeRecord(connect_data[0],sub_emp_data,sheet_name);
       }
-      merge_data = mergeRecord(connect_data[0],sub_emp_data,sheet_name);
+      custom_array.push(merge_data);
     }
-    custom_array.push(merge_data);
   }
 
   custom_array.flat();
@@ -652,651 +718,774 @@ function createRecord(emp_data,sub_emp_data,sheet_name) {
  * @return {array} custom_fields payloadのカスタムフィールド部分オブジェクトを返却
  */
 function mergeRecord(emp_data,sub_emp_data,sheet_name) {
-  // 本務レコード区分名が「兼務」/「本務・出向」で条件分岐
-  // 発令履歴兼務データから同じ社員番号の二次元配列を作成
-  let connect_data = [];　// 結合データ
-  let all_kenmu_array = []; // 兼務発令の配列
-  let all_kenmu_kaijo_array = []; // 兼務解除発令の配列
+  if(sheet_name == 'グレード履歴'){
+    // 本務経歴データを再インポート
+    let csv_main_grade_history = import_csv(operation_type = 3.5);
+    let kaonavi_honmu_keireki_grade_data = changeDataToKaonavi(csv_main_grade_history, operation_type = 3.6);
 
-  for(let i = 0; i < sub_emp_data.length; i++){
-    if(typeof(sub_emp_data) === "undefined"){
-      continue;
-    }
-    // 「発令日より古い」「兼務(社内),兼務(社外)」を作成
-    let date = new Date(emp_data[2]);//発令日（本務経歴）
-    let sub_date = new Date(sub_emp_data[i][2]);//兼務発令日（発令履歴兼務）
-    // 「発令日より兼務発令日が古い」
-    if(date.getTime() > sub_date.getTime()){
-      if(connect_data.length === 0){
-        connect_data = [sub_emp_data[i]];
-      } else {
-        connect_data.push(sub_emp_data[i]);
-      }
-    }
-  }
-  // 一致するレコードがない場合、本務経歴データをそのまま返却
-  let kenmu_array = []; // 最新日付4つまでの兼務発令配列
-  let kenmu_kaijo_array = []; // 最新日付4つまでの兼務解除発令配列
-  // 兼務発令の配列と兼務解除発令の配列を作る
-  for(let n = 0; n < connect_data.length; n++){
-    if(kenmu_codes.includes(connect_data[n][7])){
-      if(all_kenmu_array.length === 0){
-        all_kenmu_array = [connect_data[n]];
-      } else {
-        all_kenmu_array.push(connect_data[n]);
-        all_kenmu_array.sort(function(a, b) {
+    // レコードの発令日より新しい発令をまとめて、その中で一番古い発令の前日を代入する
+    var grade_end_list = [];
+    for (let i = 0; i < kaonavi_honmu_keireki_grade_data.length; i++) {
+      var old_ago_day = new Date(emp_data[2]);
+      var old_end_day = new Date(kaonavi_honmu_keireki_grade_data[i][2]);
+      // old_ago_day.setDate(old_ago_day.getDate()-1);
+      // old_ago_day = Utilities.formatDate(old_ago_day, 'Asia/Tokyo', 'yyyy-MM-dd');
+
+      if(old_ago_day.getTime() < old_end_day.getTime() ){
+        grade_end_list.push(kaonavi_honmu_keireki_grade_data[i]);
+        grade_end_list.sort(function(a, b) {
           return new Date(b[2]) - new Date(a[2]);
         });
       }
     }
-    else if(release_kenmu_codes.includes(connect_data[n][7])){
-      if(all_kenmu_kaijo_array.length === 0){
-        all_kenmu_kaijo_array = [connect_data[n]];
-      } else {
-        all_kenmu_kaijo_array.push(connect_data[n]);
-        all_kenmu_kaijo_array.sort(function(a, b) {
-          return new Date(b[2]) - new Date(a[2]);
-        });
+    for(let y = 0; grade_end_list.length > 1; y++){
+      if(grade_end_list.length > 1){
+        grade_end_list.shift();
       }
     }
-  }
-  // 4レコード以上の場合切り捨て
-  for(let y = 0; all_kenmu_array.length > 4; y++){
-    if(all_kenmu_array.length > 4){
-      all_kenmu_array.pop();
+    if(typeof(grade_end_list[0]) === "undefined"){
+      var end_date = '';
+    } else{
+      var end_date = new Date(grade_end_list[0][2]);
+      end_date.setDate(end_date.getDate()-1);
+      end_date = Utilities.formatDate(end_date, 'Asia/Tokyo', 'yyyy-MM-dd');
     }
-  }
-  for(let m = 0; all_kenmu_kaijo_array.length > 4; m++){
-    if(all_kenmu_kaijo_array.length > 4){
-      all_kenmu_kaijo_array.pop();
-    }
-  }
-  // 兼務レコードが兼務解除レコードより古い場合削除
-  for(let n = 0; n < all_kenmu_array.length; n++){
-    // 削除したレコードで配列が空になってた場合、break
-    if(all_kenmu_array.length === 0){
-      break;
-    }
-    let kenmu_dep = all_kenmu_array[n][12]; // 兼務所属名
-    let kenmu_date = new Date(all_kenmu_array[n][2]); // 兼務発令日
 
-    for(let j = 0; j < all_kenmu_kaijo_array.length; j++){
-      let kenmu_kaijo_dep = all_kenmu_kaijo_array[j][12]; // 兼務所属名
-      let kenmu_kaijo_date = new Date(all_kenmu_kaijo_array[j][2]);
-      if(kenmu_date.getTime() < kenmu_kaijo_date.getTime() && kenmu_dep == kenmu_kaijo_dep){
-        all_kenmu_array.splice(n, 1);
-        n = n - 1;
+
+
+    for (let i = 0; i < sheets_list.length; i++) {
+      if(sheets_list[i]['name'] == 'グレード履歴'){
+        grade_list = sheets_list[i]['custom_fields'];
+      }
+    }
+    if(typeof grade_list == "undefined"){
+      throw new Error("グレード履歴シートが見つかりませんでした。");
+    }
+
+    for (let i = 0; i < grade_list.length; i++) {
+      // 取得APIリストのnameがカスタム項目名と一致するか
+      if(grade_list[i]['name'] == '開始日'){
+        var date_id = grade_list[i]['id']; // 項目名IDを宣言
         break;
       }
     }
+    // 項目名IDが未定義なら空で宣言
+    if(typeof date_id == "undefined"){
+      var date_id = '';
+    }
+
+    // カスタム（終了日）のnameが一致するまでループし、template_idを取得する
+    for (let i = 0; i < grade_list.length; i++) {
+      // 取得APIリストのnameがカスタム項目名と一致するか
+      if(grade_list[i]['name'] == '終了日'){
+        var end_date_id = grade_list[i]['id']; // 項目名IDを宣言
+        break;
+      }
+    }
+    // 項目名IDが未定義なら空で宣言
+    if(typeof end_date_id == "undefined"){
+      var end_date_id = '';
+    }
+
+    // カスタム（終了日）のnameが一致するまでループし、template_idを取得する
+    for (let i = 0; i < grade_list.length; i++) {
+      // 取得APIリストのnameがカスタム項目名と一致するか
+      if(grade_list[i]['name'] == 'グレード'){
+        var grade_id = grade_list[i]['id']; // 項目名IDを宣言
+        break;
+      }
+    }
+    // 項目名IDが未定義なら空で宣言
+    if(typeof grade_id == "undefined"){
+      var grade_id = '';
+    }
+
+    // カスタム（終了日）のnameが一致するまでループし、template_idを取得する
+    for (let i = 0; i < grade_list.length; i++) {
+      // 取得APIリストのnameがカスタム項目名と一致するか
+      if(grade_list[i]['name'] == 'レベル'){
+        var level_id = grade_list[i]['id']; // 項目名IDを宣言
+        break;
+      }
+    }
+    // 項目名IDが未定義なら空で宣言
+    if(typeof level_id == "undefined"){
+      var level_id = '';
+    }
+
+    // グレード履歴JSON作成
+    var custom_fields = 
+      {
+        custom_fields : [
+          // 開始日
+          {
+            id : date_id,
+            values : [emp_data[2]]
+          },
+          // 終了日
+          {
+            id : end_date_id,
+            values : [end_date]
+          },
+          // グレード名
+          {
+            id : grade_id,
+            values : [emp_data[11]]
+          },
+          // レベル名
+          {
+            id : level_id,
+            values : [emp_data[15]]
+          }
+        ]
+      }
+  } else{
+    // 本務レコード区分名が「兼務」/「本務・出向」で条件分岐
+    // 発令履歴兼務データから同じ社員番号の二次元配列を作成
+    let connect_data = [];　// 結合データ
+    let all_kenmu_array = []; // 兼務発令の配列
+    let all_kenmu_kaijo_array = []; // 兼務解除発令の配列
+
+    for(let i = 0; i < sub_emp_data.length; i++){
+      if(typeof(sub_emp_data) === "undefined"){
+        continue;
+      }
+      // 「発令日より古い」「兼務(社内),兼務(社外)」を作成
+      let date = new Date(emp_data[2]);//発令日（本務経歴）
+      let sub_date = new Date(sub_emp_data[i][2]);//兼務発令日（発令履歴兼務）
+      // 「発令日より兼務発令日が古い」
+      if(date.getTime() > sub_date.getTime()){
+        if(connect_data.length === 0){
+          connect_data = [sub_emp_data[i]];
+        } else {
+          connect_data.push(sub_emp_data[i]);
+        }
+      }
+    }
+    // 一致するレコードがない場合、本務経歴データをそのまま返却
+    let kenmu_array = []; // 最新日付4つまでの兼務発令配列
+    let kenmu_kaijo_array = []; // 最新日付4つまでの兼務解除発令配列
+    // 兼務発令の配列と兼務解除発令の配列を作る
+    for(let n = 0; n < connect_data.length; n++){
+      if(kenmu_codes.includes(connect_data[n][7])){
+        if(all_kenmu_array.length === 0){
+          all_kenmu_array = [connect_data[n]];
+        } else {
+          all_kenmu_array.push(connect_data[n]);
+          all_kenmu_array.sort(function(a, b) {
+            return new Date(b[2]) - new Date(a[2]);
+          });
+        }
+      }
+      else if(release_kenmu_codes.includes(connect_data[n][7])){
+        if(all_kenmu_kaijo_array.length === 0){
+          all_kenmu_kaijo_array = [connect_data[n]];
+        } else {
+          all_kenmu_kaijo_array.push(connect_data[n]);
+          all_kenmu_kaijo_array.sort(function(a, b) {
+            return new Date(b[2]) - new Date(a[2]);
+          });
+        }
+      }
+    }
+    // 4レコード以上の場合切り捨て
+    for(let y = 0; all_kenmu_array.length > 4; y++){
+      if(all_kenmu_array.length > 4){
+        all_kenmu_array.pop();
+      }
+    }
+    for(let m = 0; all_kenmu_kaijo_array.length > 4; m++){
+      if(all_kenmu_kaijo_array.length > 4){
+        all_kenmu_kaijo_array.pop();
+      }
+    }
+    // 兼務レコードが兼務解除レコードより古い場合削除
+    for(let n = 0; n < all_kenmu_array.length; n++){
+      // 削除したレコードで配列が空になってた場合、break
+      if(all_kenmu_array.length === 0){
+        break;
+      }
+      let kenmu_dep = all_kenmu_array[n][12]; // 兼務所属名
+      let kenmu_date = new Date(all_kenmu_array[n][2]); // 兼務発令日
+
+      for(let j = 0; j < all_kenmu_kaijo_array.length; j++){
+        let kenmu_kaijo_dep = all_kenmu_kaijo_array[j][12]; // 兼務所属名
+        let kenmu_kaijo_date = new Date(all_kenmu_kaijo_array[j][2]);
+        if(kenmu_date.getTime() < kenmu_kaijo_date.getTime() && kenmu_dep == kenmu_kaijo_dep){
+          all_kenmu_array.splice(n, 1);
+          n = n - 1;
+          break;
+        }
+      }
+    }
+      //配列の上に本務経歴データを結合する
+      all_kenmu_array.unshift(emp_data);
+
+      // custom_fields作成
+      // 兼務データを更新分作成
+      if(typeof(all_kenmu_array[1]) === "undefined"){
+        // 発令履歴兼務（32レコード分のからデータを追加）
+        all_kenmu_array.push(['','','','','','','','','','','','','','','','','','','','','','','','','','','','','','','','']);
+      }
+
+      if(typeof(all_kenmu_array[2]) === "undefined"){
+        // 発令履歴兼務（32レコード分のからデータを追加）
+        all_kenmu_array.push(['','','','','','','','','','','','','','','','','','','','','','','','','','','','','','','','']);
+      }
+
+      if(typeof(all_kenmu_array[3]) === "undefined"){
+        // 発令履歴兼務（32レコード分のからデータを追加）
+        all_kenmu_array.push(['','','','','','','','','','','','','','','','','','','','','','','','','','','','','','','','']);
+      }
+
+      if(typeof(all_kenmu_array[4]) === "undefined"){
+        // 発令履歴兼務（32レコード分のからデータを追加）
+        all_kenmu_array.push(['','','','','','','','','','','','','','','','','','','','','','','','','','','','','','','','']);
+      }
+
+      if(sheet_name == '所属・役職履歴'){
+        // 発令日の前日取得
+        // 入社区分なら取得しない
+        if(join_sec.includes(all_kenmu_array[0][5])){
+          var old_ago_day = '';
+        } else {
+          var old_ago_day = new Date(all_kenmu_array[0][2]);
+          old_ago_day.setDate(old_ago_day.getDate()-1);
+          old_ago_day = Utilities.formatDate(old_ago_day, 'Asia/Tokyo', 'yyyy-MM-dd')
+        }
+        for (let i = 0; i < sheets_list.length; i++) {
+          if(sheets_list[i]['name'] == '所属・役職履歴'){
+            dep_history_list = sheets_list[i]['custom_fields'];
+          }
+        }
+        if(typeof dep_history_list == "undefined"){
+          throw new Error("所属・役職履歴シートが見つかりませんでした。");
+        }
+
+        // カスタム（配属開始日）のnameが一致するまでループし、template_idを取得する
+        for (let i = 0; i < dep_history_list.length; i++) {
+          // 取得APIリストのnameがカスタム項目名と一致するか
+          if(dep_history_list[i]['name'] == '配属開始日'){
+            var plo_date_id = dep_history_list[i]['id']; // 項目名IDを宣言
+            break;
+          }
+        }
+        // 項目名IDが未定義なら空で宣言
+        if(typeof plo_date_id == "undefined"){
+          var plo_date_id = '';
+        }
+
+        // カスタム（配属終了日）のnameが一致するまでループし、template_idを取得する
+        for (let i = 0; i < dep_history_list.length; i++) {
+          // 取得APIリストのnameがカスタム項目名と一致するか
+          if(dep_history_list[i]['name'] == '配属終了日'){
+            var plo_end_date_id = dep_history_list[i]['id']; // 項目名IDを宣言
+            break;
+          }
+        }
+        // 項目名IDが未定義なら空で宣言
+        if(typeof plo_end_date_id == "undefined"){
+          var plo_end_date_id = '';
+        }
+
+        // カスタム（本務所属履歴）のnameが一致するまでループし、template_idを取得する
+        for (let i = 0; i < dep_history_list.length; i++) {
+          // 取得APIリストのnameがカスタム項目名と一致するか
+          if(dep_history_list[i]['name'] == '本務所属履歴'){
+            var main_bussiness_his_id = dep_history_list[i]['id']; // 項目名IDを宣言
+            break;
+          }
+        }
+        // 項目名IDが未定義なら空で宣言
+        if(typeof main_bussiness_his_id == "undefined"){
+          var main_bussiness_his_id = '';
+        }
+
+        // カスタム（本務役職履歴）のnameが一致するまでループし、template_idを取得する
+        for (let i = 0; i < dep_history_list.length; i++) {
+          // 取得APIリストのnameがカスタム項目名と一致するか
+          if(dep_history_list[i]['name'] == '本務役職履歴'){
+            var main_position_his_id = dep_history_list[i]['id']; // 項目名IDを宣言
+            break;
+          }
+        }
+        // 項目名IDが未定義なら空で宣言
+        if(typeof main_position_his_id == "undefined"){
+          var main_position_his_id = '';
+        }
+
+        // カスタム（兼務所属履歴1）のnameが一致するまでループし、template_idを取得する
+        for (let i = 0; i < dep_history_list.length; i++) {
+          // 取得APIリストのnameがカスタム項目名と一致するか
+          if(dep_history_list[i]['name'] == '兼務所属履歴1'){
+            var sub_bussiness_his1_id = dep_history_list[i]['id']; // 項目名IDを宣言
+            break;
+          }
+        }
+        // 項目名IDが未定義なら空で宣言
+        if(typeof sub_bussiness_his1_id == "undefined"){
+          var sub_bussiness_his1_id = '';
+        }
+
+        // カスタム（兼務役職履歴1）のnameが一致するまでループし、template_idを取得する
+        for (let i = 0; i < dep_history_list.length; i++) {
+          // 取得APIリストのnameがカスタム項目名と一致するか
+          if(dep_history_list[i]['name'] == '兼務役職履歴1'){
+            var sub_position_his1_id = dep_history_list[i]['id']; // 項目名IDを宣言
+            break;
+          }
+        }
+        // 項目名IDが未定義なら空で宣言
+        if(typeof sub_position_his1_id == "undefined"){
+          var sub_position_his1_id = '';
+        }
+
+        // カスタム（兼務所属履歴2）のnameが一致するまでループし、template_idを取得する
+        for (let i = 0; i < dep_history_list.length; i++) {
+          // 取得APIリストのnameがカスタム項目名と一致するか
+          if(dep_history_list[i]['name'] == '兼務所属履歴2'){
+            var sub_bussiness_his2_id = dep_history_list[i]['id']; // 項目名IDを宣言
+            break;
+          }
+        }
+        // 項目名IDが未定義なら空で宣言
+        if(typeof sub_bussiness_his2_id == "undefined"){
+          var sub_bussiness_his2_id = '';
+        }
+
+        // カスタム（兼務役職履歴2）のnameが一致するまでループし、template_idを取得する
+        for (let i = 0; i < dep_history_list.length; i++) {
+          // 取得APIリストのnameがカスタム項目名と一致するか
+          if(dep_history_list[i]['name'] == '兼務役職履歴2'){
+            var sub_position_his2_id = dep_history_list[i]['id']; // 項目名IDを宣言
+            break;
+          }
+        }
+        // 項目名IDが未定義なら空で宣言
+        if(typeof sub_position_his2_id == "undefined"){
+          var sub_position_his2_id = '';
+        }
+
+        // カスタム（兼務所属履歴3）のnameが一致するまでループし、template_idを取得する
+        for (let i = 0; i < dep_history_list.length; i++) {
+          // 取得APIリストのnameがカスタム項目名と一致するか
+          if(dep_history_list[i]['name'] == '兼務所属履歴3'){
+            var sub_bussiness_his3_id = dep_history_list[i]['id']; // 項目名IDを宣言
+            break;
+          }
+        }
+        // 項目名IDが未定義なら空で宣言
+        if(typeof sub_bussiness_his3_id == "undefined"){
+          var sub_bussiness_his3_id = '';
+        }
+
+        // カスタム（兼務役職履歴3）のnameが一致するまでループし、template_idを取得する
+        for (let i = 0; i < dep_history_list.length; i++) {
+          // 取得APIリストのnameがカスタム項目名と一致するか
+          if(dep_history_list[i]['name'] == '兼務役職履歴3'){
+            var sub_position_his3_id = dep_history_list[i]['id']; // 項目名IDを宣言
+            break;
+          }
+        }
+        // 項目名IDが未定義なら空で宣言
+        if(typeof sub_position_his3_id == "undefined"){
+          var sub_position_his3_id = '';
+        }
+
+        // カスタム（兼務所属履歴4）のnameが一致するまでループし、template_idを取得する
+        for (let i = 0; i < dep_history_list.length; i++) {
+          // 取得APIリストのnameがカスタム項目名と一致するか
+          if(dep_history_list[i]['name'] == '兼務所属履歴4'){
+            var sub_bussiness_his4_id = dep_history_list[i]['id']; // 項目名IDを宣言
+            break;
+          }
+        }
+        // 項目名IDが未定義なら空で宣言
+        if(typeof sub_bussiness_his4_id == "undefined"){
+          var sub_bussiness_his4_id = '';
+        }
+
+        // カスタム（兼務役職履歴4）のnameが一致するまでループし、template_idを取得する
+        for (let i = 0; i < dep_history_list.length; i++) {
+          // 取得APIリストのnameがカスタム項目名と一致するか
+          if(dep_history_list[i]['name'] == '兼務役職履歴4'){
+            var sub_position_his4_id = dep_history_list[i]['id']; // 項目名IDを宣言
+            break;
+          }
+        }
+        // 項目名IDが未定義なら空で宣言
+        if(typeof sub_position_his4_id == "undefined"){
+          var sub_position_his4_id = '';
+        }
+
+
+        var custom_fields = 
+        {
+          custom_fields : [
+            // 配属開始日
+            {
+              id : plo_date_id,
+              values : [all_kenmu_array[0][2]]
+            },
+            // 配属終了日
+            {
+              id : plo_end_date_id,
+              values : [old_ago_day]
+            },
+            // 本務所属履歴
+            {
+              id : main_bussiness_his_id,
+              values : [all_kenmu_array[0][6]]
+            },
+            // 本務役職履歴
+            {
+              id : main_position_his_id,
+              values : [all_kenmu_array[0][17]]
+            },
+            // 兼務所属履歴1
+            {
+              id : sub_bussiness_his1_id,
+              values : [all_kenmu_array[1][12]]
+            },
+            // 兼務役職履歴1
+            {
+              id : sub_position_his1_id,
+              values : [all_kenmu_array[1][24]]
+            },
+            // 兼務所属履歴2
+            {
+              id : sub_bussiness_his2_id,
+              values : [all_kenmu_array[2][12]]
+            },
+            // 兼務役職履歴2
+            {
+              id : sub_position_his2_id,
+              values : [all_kenmu_array[2][24]]
+            },
+            // 兼務所属履歴3
+            {
+              id : sub_bussiness_his3_id,
+              values : [all_kenmu_array[3][12]]
+            },
+            // 兼務役職履歴3
+            {
+              id : sub_position_his3_id,
+              values : [all_kenmu_array[3][24]]
+            },
+            // 兼務所属履歴4
+            {
+              id : sub_bussiness_his4_id,
+              values : [all_kenmu_array[4][12]]
+            },
+            // 兼務役職履歴4
+            {
+              id : sub_position_his4_id,
+              values : [all_kenmu_array[4][24]]
+            },
+          ]
+        }
+      } else if(sheet_name == '配属履歴'){
+        // 発令日の前日取得
+        // 入社区分なら取得しない
+        if(join_sec.includes(all_kenmu_array[0][5])){
+          var old_ago_day = '';
+        } else {
+          var old_ago_day = new Date(all_kenmu_array[0][2]);
+          old_ago_day.setDate(old_ago_day.getDate()-1);
+          old_ago_day = Utilities.formatDate(old_ago_day, 'Asia/Tokyo', 'yyyy-MM-dd')
+        }
+        for (let i = 0; i < sheets_list.length; i++) {
+          if(sheets_list[i]['name'] == '配属履歴'){
+            dep_his_list = sheets_list[i]['custom_fields'];
+          }
+        }
+        if(typeof dep_his_list == "undefined"){
+          throw new Error("配属履歴シートが見つかりませんでした。");
+        }
+
+        // カスタム（配属開始日）のnameが一致するまでループし、template_idを取得する
+        for (let i = 0; i < dep_his_list.length; i++) {
+          // 取得APIリストのnameがカスタム項目名と一致するか
+          if(dep_his_list[i]['name'] == '配属開始日'){
+            var plo_date_id = dep_his_list[i]['id']; // 項目名IDを宣言
+            break;
+          }
+        }
+        // 項目名IDが未定義なら空で宣言
+        if(typeof plo_date_id == "undefined"){
+          var plo_date_id = '';
+        }
+
+        // カスタム（配属終了日）のnameが一致するまでループし、template_idを取得する
+        for (let i = 0; i < dep_his_list.length; i++) {
+          // 取得APIリストのnameがカスタム項目名と一致するか
+          if(dep_his_list[i]['name'] == '配属終了日'){
+            var plo_end_date_id = dep_his_list[i]['id']; // 項目名IDを宣言
+            break;
+          }
+        }
+        // 項目名IDが未定義なら空で宣言
+        if(typeof plo_end_date_id == "undefined"){
+          var plo_end_date_id = '';
+        }
+
+        // カスタム（本務所属履歴）のnameが一致するまでループし、template_idを取得する
+        for (let i = 0; i < dep_his_list.length; i++) {
+          // 取得APIリストのnameがカスタム項目名と一致するか
+          if(dep_his_list[i]['name'] == '本務所属履歴'){
+            var main_bussiness_dep_his_id = dep_his_list[i]['id']; // 項目名IDを宣言
+            break;
+          }
+        }
+        // 項目名IDが未定義なら空で宣言
+        if(typeof main_bussiness_dep_his_id == "undefined"){
+          var main_bussiness_dep_his_id = '';
+        }
+
+        // カスタム（兼務所属履歴1）のnameが一致するまでループし、template_idを取得する
+        for (let i = 0; i < dep_his_list.length; i++) {
+          // 取得APIリストのnameがカスタム項目名と一致するか
+          if(dep_his_list[i]['name'] == '兼務所属履歴1'){
+            var sub_bussiness_dep_his_id1 = dep_his_list[i]['id']; // 項目名IDを宣言
+            break;
+          }
+        }
+        // 項目名IDが未定義なら空で宣言
+        if(typeof sub_bussiness_dep_his_id1 == "undefined"){
+          var sub_bussiness_dep_his_id1 = '';
+        }
+
+        // カスタム（兼務所属履歴2）のnameが一致するまでループし、template_idを取得する
+        for (let i = 0; i < dep_his_list.length; i++) {
+          // 取得APIリストのnameがカスタム項目名と一致するか
+          if(dep_his_list[i]['name'] == '兼務所属履歴2'){
+            var sub_bussiness_dep_his_id2 = dep_his_list[i]['id']; // 項目名IDを宣言
+            break;
+          }
+        }
+        // 項目名IDが未定義なら空で宣言
+        if(typeof sub_bussiness_dep_his_id2 == "undefined"){
+          var sub_bussiness_dep_his_id2 = '';
+        }
+
+        // カスタム（兼務所属履歴3）のnameが一致するまでループし、template_idを取得する
+        for (let i = 0; i < dep_his_list.length; i++) {
+          // 取得APIリストのnameがカスタム項目名と一致するか
+          if(dep_his_list[i]['name'] == '兼務所属履歴3'){
+            var sub_bussiness_dep_his_id3 = dep_his_list[i]['id']; // 項目名IDを宣言
+            break;
+          }
+        }
+        // 項目名IDが未定義なら空で宣言
+        if(typeof sub_bussiness_dep_his_id3 == "undefined"){
+          var sub_bussiness_dep_his_id3 = '';
+        }
+
+        // カスタム（兼務所属履歴4）のnameが一致するまでループし、template_idを取得する
+        for (let i = 0; i < dep_his_list.length; i++) {
+          // 取得APIリストのnameがカスタム項目名と一致するか
+          if(dep_his_list[i]['name'] == '兼務所属履歴4'){
+            var sub_bussiness_dep_his_id4 = dep_his_list[i]['id']; // 項目名IDを宣言
+            break;
+          }
+        }
+        // 項目名IDが未定義なら空で宣言
+        if(typeof sub_bussiness_dep_his_id4 == "undefined"){
+          var sub_bussiness_dep_his_id4 = '';
+        }
+
+        var custom_fields = 
+        {
+          custom_fields : [
+            // 配属開始日
+            {
+              id : plo_date_id,
+              values : [all_kenmu_array[0][2]]
+            },
+            // 配属終了日
+            {
+              id : plo_end_date_id,
+              values : [old_ago_day]
+            },
+            // 本務所属履歴
+            {
+              id : main_bussiness_dep_his_id,
+              values : [all_kenmu_array[0][6]]
+            },
+            // 兼務所属履歴1
+            {
+              id : sub_bussiness_dep_his_id1,
+              values : [all_kenmu_array[1][12]]
+            },
+            // 兼務所属履歴2
+            {
+              id : sub_bussiness_dep_his_id2,
+              values : [all_kenmu_array[2][12]]
+            },
+            // 兼務所属履歴3
+            {
+              id : sub_bussiness_dep_his_id3,
+              values : [all_kenmu_array[3][12]]
+            },
+            // 兼務所属履歴4
+            {
+              id : sub_bussiness_dep_his_id4,
+              values : [all_kenmu_array[4][12]]
+            },
+          ]
+        }
+      } else if(sheet_name == '役職履歴'){
+        // 発令日の前日取得
+        // 入社区分なら取得しない
+        if(join_sec.includes(all_kenmu_array[0][5])){
+          var old_ago_day = '';
+        } else {
+          var old_ago_day = new Date(all_kenmu_array[0][2]);
+          old_ago_day.setDate(old_ago_day.getDate()-1);
+          old_ago_day = Utilities.formatDate(old_ago_day, 'Asia/Tokyo', 'yyyy-MM-dd')
+        }
+        for (let i = 0; i < sheets_list.length; i++) {
+          if(sheets_list[i]['name'] == '役職履歴'){
+            pos_his_list = sheets_list[i]['custom_fields'];
+          }
+        }
+        if(typeof pos_his_list == "undefined"){
+          throw new Error("役職履歴シートが見つかりませんでした。");
+        }
+
+        // カスタム（配属開始日）のnameが一致するまでループし、template_idを取得する
+        for (let i = 0; i < pos_his_list.length; i++) {
+          // 取得APIリストのnameがカスタム項目名と一致するか
+          if(pos_his_list[i]['name'] == '役職開始日'){
+            var plo_date_id = pos_his_list[i]['id']; // 項目名IDを宣言
+            break;
+          }
+        }
+        // 項目名IDが未定義なら空で宣言
+        if(typeof plo_date_id == "undefined"){
+          var plo_date_id = '';
+        }
+
+        // カスタム（配属終了日）のnameが一致するまでループし、template_idを取得する
+        for (let i = 0; i < pos_his_list.length; i++) {
+          // 取得APIリストのnameがカスタム項目名と一致するか
+          if(pos_his_list[i]['name'] == '役職終了日'){
+            var plo_end_date_id = pos_his_list[i]['id']; // 項目名IDを宣言
+            break;
+          }
+        }
+        // 項目名IDが未定義なら空で宣言
+        if(typeof plo_end_date_id == "undefined"){
+          var plo_end_date_id = '';
+        }
+
+        // カスタム（本務役職履歴）のnameが一致するまでループし、template_idを取得する
+        for (let i = 0; i < pos_his_list.length; i++) {
+          // 取得APIリストのnameがカスタム項目名と一致するか
+          if(pos_his_list[i]['name'] == '本務役職履歴'){
+            var main_bussiness_pos_his_id = pos_his_list[i]['id']; // 項目名IDを宣言
+            break;
+          }
+        }
+        // 項目名IDが未定義なら空で宣言
+        if(typeof main_bussiness_pos_his_id == "undefined"){
+          var main_bussiness_pos_his_id = '';
+        }
+
+        // カスタム（兼務所属履歴1）のnameが一致するまでループし、template_idを取得する
+        for (let i = 0; i < pos_his_list.length; i++) {
+          // 取得APIリストのnameがカスタム項目名と一致するか
+          if(pos_his_list[i]['name'] == '兼務役職履歴1'){
+            var sub_bussiness_pos_his_id1 = pos_his_list[i]['id']; // 項目名IDを宣言
+            break;
+          }
+        }
+        // 項目名IDが未定義なら空で宣言
+        if(typeof sub_bussiness_pos_his_id1 == "undefined"){
+          var sub_bussiness_pos_his_id1 = '';
+        }
+
+        // カスタム（兼務所属履歴2）のnameが一致するまでループし、template_idを取得する
+        for (let i = 0; i < pos_his_list.length; i++) {
+          // 取得APIリストのnameがカスタム項目名と一致するか
+          if(pos_his_list[i]['name'] == '兼務役職履歴2'){
+            var sub_bussiness_pos_his_id2 = pos_his_list[i]['id']; // 項目名IDを宣言
+            break;
+          }
+        }
+        // 項目名IDが未定義なら空で宣言
+        if(typeof sub_bussiness_pos_his_id2 == "undefined"){
+          var sub_bussiness_pos_his_id2 = '';
+        }
+
+        // カスタム（兼務所属履歴3）のnameが一致するまでループし、template_idを取得する
+        for (let i = 0; i < pos_his_list.length; i++) {
+          // 取得APIリストのnameがカスタム項目名と一致するか
+          if(pos_his_list[i]['name'] == '兼務役職履歴3'){
+            var sub_bussiness_pos_his_id3 = pos_his_list[i]['id']; // 項目名IDを宣言
+            break;
+          }
+        }
+        // 項目名IDが未定義なら空で宣言
+        if(typeof sub_bussiness_pos_his_id3 == "undefined"){
+          var sub_bussiness_pos_his_id3 = '';
+        }
+
+        // カスタム（兼務所属履歴4）のnameが一致するまでループし、template_idを取得する
+        for (let i = 0; i < pos_his_list.length; i++) {
+          // 取得APIリストのnameがカスタム項目名と一致するか
+          if(pos_his_list[i]['name'] == '兼務役職履歴4'){
+            var sub_bussiness_pos_his_id4 = pos_his_list[i]['id']; // 項目名IDを宣言
+            break;
+          }
+        }
+        // 項目名IDが未定義なら空で宣言
+        if(typeof sub_bussiness_pos_his_id4 == "undefined"){
+          var sub_bussiness_pos_his_id4 = '';
+        }
+
+        var custom_fields = 
+        {
+          custom_fields : [
+            // 配属開始日
+            {
+              id : plo_date_id,
+              values : [all_kenmu_array[0][2]]
+            },
+            // 配属終了日
+            {
+              id : plo_end_date_id,
+              values : [old_ago_day]
+            },
+            // 本務所属履歴
+            {
+              id : main_bussiness_pos_his_id,
+              values : [all_kenmu_array[0][17]]
+            },
+            // 兼務所属履歴1
+            {
+              id : sub_bussiness_pos_his_id1,
+              values : [all_kenmu_array[1][24]]
+            },
+            // 兼務所属履歴2
+            {
+              id : sub_bussiness_pos_his_id2,
+              values : [all_kenmu_array[2][24]]
+            },
+            // 兼務所属履歴3
+            {
+              id : sub_bussiness_pos_his_id3,
+              values : [all_kenmu_array[3][24]]
+            },
+            // 兼務所属履歴4
+            {
+              id : sub_bussiness_pos_his_id4,
+              values : [all_kenmu_array[4][24]]
+            },
+          ]
+        }
+      }
   }
-    //配列の上に本務経歴データを結合する
-    all_kenmu_array.unshift(emp_data);
-
-    // custom_fields作成
-    // 兼務データを更新分作成
-    if(typeof(all_kenmu_array[1]) === "undefined"){
-      // 発令履歴兼務（32レコード分のからデータを追加）
-      all_kenmu_array.push(['','','','','','','','','','','','','','','','','','','','','','','','','','','','','','','','']);
-    }
-
-    if(typeof(all_kenmu_array[2]) === "undefined"){
-      // 発令履歴兼務（32レコード分のからデータを追加）
-      all_kenmu_array.push(['','','','','','','','','','','','','','','','','','','','','','','','','','','','','','','','']);
-    }
-
-    if(typeof(all_kenmu_array[3]) === "undefined"){
-      // 発令履歴兼務（32レコード分のからデータを追加）
-      all_kenmu_array.push(['','','','','','','','','','','','','','','','','','','','','','','','','','','','','','','','']);
-    }
-
-    if(typeof(all_kenmu_array[4]) === "undefined"){
-      // 発令履歴兼務（32レコード分のからデータを追加）
-      all_kenmu_array.push(['','','','','','','','','','','','','','','','','','','','','','','','','','','','','','','','']);
-    }
-
-    if(sheet_name == '所属・役職履歴'){
-      // 発令日の前日取得
-      // 入社区分なら取得しない
-      if(join_sec.includes(all_kenmu_array[0][5])){
-        var old_ago_day = '';
-      } else {
-        var old_ago_day = new Date(all_kenmu_array[0][2]);
-        old_ago_day.setDate(old_ago_day.getDate()-1);
-        old_ago_day = Utilities.formatDate(old_ago_day, 'Asia/Tokyo', 'yyyy-MM-dd')
-      }
-      for (let i = 0; i < sheets_list.length; i++) {
-        if(sheets_list[i]['name'] == '所属・役職履歴'){
-          dep_history_list = sheets_list[i]['custom_fields'];
-        }
-      }
-      if(typeof dep_history_list == "undefined"){
-        throw new Error("所属・役職履歴シートが見つかりませんでした。");
-      }
-
-      // カスタム（配属開始日）のnameが一致するまでループし、template_idを取得する
-      for (let i = 0; i < dep_history_list.length; i++) {
-        // 取得APIリストのnameがカスタム項目名と一致するか
-        if(dep_history_list[i]['name'] == '配属開始日'){
-          var plo_date_id = dep_history_list[i]['id']; // 項目名IDを宣言
-          break;
-        }
-      }
-      // 項目名IDが未定義なら空で宣言
-      if(typeof plo_date_id == "undefined"){
-        var plo_date_id = '';
-      }
-
-      // カスタム（配属終了日）のnameが一致するまでループし、template_idを取得する
-      for (let i = 0; i < dep_history_list.length; i++) {
-        // 取得APIリストのnameがカスタム項目名と一致するか
-        if(dep_history_list[i]['name'] == '配属終了日'){
-          var plo_end_date_id = dep_history_list[i]['id']; // 項目名IDを宣言
-          break;
-        }
-      }
-      // 項目名IDが未定義なら空で宣言
-      if(typeof plo_end_date_id == "undefined"){
-        var plo_end_date_id = '';
-      }
-
-      // カスタム（本務所属履歴）のnameが一致するまでループし、template_idを取得する
-      for (let i = 0; i < dep_history_list.length; i++) {
-        // 取得APIリストのnameがカスタム項目名と一致するか
-        if(dep_history_list[i]['name'] == '本務所属履歴'){
-          var main_bussiness_his_id = dep_history_list[i]['id']; // 項目名IDを宣言
-          break;
-        }
-      }
-      // 項目名IDが未定義なら空で宣言
-      if(typeof main_bussiness_his_id == "undefined"){
-        var main_bussiness_his_id = '';
-      }
-
-      // カスタム（本務役職履歴）のnameが一致するまでループし、template_idを取得する
-      for (let i = 0; i < dep_history_list.length; i++) {
-        // 取得APIリストのnameがカスタム項目名と一致するか
-        if(dep_history_list[i]['name'] == '本務役職履歴'){
-          var main_position_his_id = dep_history_list[i]['id']; // 項目名IDを宣言
-          break;
-        }
-      }
-      // 項目名IDが未定義なら空で宣言
-      if(typeof main_position_his_id == "undefined"){
-        var main_position_his_id = '';
-      }
-
-      // カスタム（兼務所属履歴1）のnameが一致するまでループし、template_idを取得する
-      for (let i = 0; i < dep_history_list.length; i++) {
-        // 取得APIリストのnameがカスタム項目名と一致するか
-        if(dep_history_list[i]['name'] == '兼務所属履歴1'){
-          var sub_bussiness_his1_id = dep_history_list[i]['id']; // 項目名IDを宣言
-          break;
-        }
-      }
-      // 項目名IDが未定義なら空で宣言
-      if(typeof sub_bussiness_his1_id == "undefined"){
-        var sub_bussiness_his1_id = '';
-      }
-
-      // カスタム（兼務役職履歴1）のnameが一致するまでループし、template_idを取得する
-      for (let i = 0; i < dep_history_list.length; i++) {
-        // 取得APIリストのnameがカスタム項目名と一致するか
-        if(dep_history_list[i]['name'] == '兼務役職履歴1'){
-          var sub_position_his1_id = dep_history_list[i]['id']; // 項目名IDを宣言
-          break;
-        }
-      }
-      // 項目名IDが未定義なら空で宣言
-      if(typeof sub_position_his1_id == "undefined"){
-        var sub_position_his1_id = '';
-      }
-
-      // カスタム（兼務所属履歴2）のnameが一致するまでループし、template_idを取得する
-      for (let i = 0; i < dep_history_list.length; i++) {
-        // 取得APIリストのnameがカスタム項目名と一致するか
-        if(dep_history_list[i]['name'] == '兼務所属履歴2'){
-          var sub_bussiness_his2_id = dep_history_list[i]['id']; // 項目名IDを宣言
-          break;
-        }
-      }
-      // 項目名IDが未定義なら空で宣言
-      if(typeof sub_bussiness_his2_id == "undefined"){
-        var sub_bussiness_his2_id = '';
-      }
-
-      // カスタム（兼務役職履歴2）のnameが一致するまでループし、template_idを取得する
-      for (let i = 0; i < dep_history_list.length; i++) {
-        // 取得APIリストのnameがカスタム項目名と一致するか
-        if(dep_history_list[i]['name'] == '兼務役職履歴2'){
-          var sub_position_his2_id = dep_history_list[i]['id']; // 項目名IDを宣言
-          break;
-        }
-      }
-      // 項目名IDが未定義なら空で宣言
-      if(typeof sub_position_his2_id == "undefined"){
-        var sub_position_his2_id = '';
-      }
-
-      // カスタム（兼務所属履歴3）のnameが一致するまでループし、template_idを取得する
-      for (let i = 0; i < dep_history_list.length; i++) {
-        // 取得APIリストのnameがカスタム項目名と一致するか
-        if(dep_history_list[i]['name'] == '兼務所属履歴3'){
-          var sub_bussiness_his3_id = dep_history_list[i]['id']; // 項目名IDを宣言
-          break;
-        }
-      }
-      // 項目名IDが未定義なら空で宣言
-      if(typeof sub_bussiness_his3_id == "undefined"){
-        var sub_bussiness_his3_id = '';
-      }
-
-      // カスタム（兼務役職履歴3）のnameが一致するまでループし、template_idを取得する
-      for (let i = 0; i < dep_history_list.length; i++) {
-        // 取得APIリストのnameがカスタム項目名と一致するか
-        if(dep_history_list[i]['name'] == '兼務役職履歴3'){
-          var sub_position_his3_id = dep_history_list[i]['id']; // 項目名IDを宣言
-          break;
-        }
-      }
-      // 項目名IDが未定義なら空で宣言
-      if(typeof sub_position_his3_id == "undefined"){
-        var sub_position_his3_id = '';
-      }
-
-      // カスタム（兼務所属履歴4）のnameが一致するまでループし、template_idを取得する
-      for (let i = 0; i < dep_history_list.length; i++) {
-        // 取得APIリストのnameがカスタム項目名と一致するか
-        if(dep_history_list[i]['name'] == '兼務所属履歴4'){
-          var sub_bussiness_his4_id = dep_history_list[i]['id']; // 項目名IDを宣言
-          break;
-        }
-      }
-      // 項目名IDが未定義なら空で宣言
-      if(typeof sub_bussiness_his4_id == "undefined"){
-        var sub_bussiness_his4_id = '';
-      }
-
-      // カスタム（兼務役職履歴4）のnameが一致するまでループし、template_idを取得する
-      for (let i = 0; i < dep_history_list.length; i++) {
-        // 取得APIリストのnameがカスタム項目名と一致するか
-        if(dep_history_list[i]['name'] == '兼務役職履歴4'){
-          var sub_position_his4_id = dep_history_list[i]['id']; // 項目名IDを宣言
-          break;
-        }
-      }
-      // 項目名IDが未定義なら空で宣言
-      if(typeof sub_position_his4_id == "undefined"){
-        var sub_position_his4_id = '';
-      }
-
-
-      var custom_fields = 
-      {
-        custom_fields : [
-          // 配属開始日
-          {
-            id : plo_date_id,
-            values : [all_kenmu_array[0][2]]
-          },
-          // 配属終了日
-          {
-            id : plo_end_date_id,
-            values : [old_ago_day]
-          },
-          // 本務所属履歴
-          {
-            id : main_bussiness_his_id,
-            values : [all_kenmu_array[0][6]]
-          },
-          // 本務役職履歴
-          {
-            id : main_position_his_id,
-            values : [all_kenmu_array[0][17]]
-          },
-          // 兼務所属履歴1
-          {
-            id : sub_bussiness_his1_id,
-            values : [all_kenmu_array[1][12]]
-          },
-          // 兼務役職履歴1
-          {
-            id : sub_position_his1_id,
-            values : [all_kenmu_array[1][24]]
-          },
-          // 兼務所属履歴2
-          {
-            id : sub_bussiness_his2_id,
-            values : [all_kenmu_array[2][12]]
-          },
-          // 兼務役職履歴2
-          {
-            id : sub_position_his2_id,
-            values : [all_kenmu_array[2][24]]
-          },
-          // 兼務所属履歴3
-          {
-            id : sub_bussiness_his3_id,
-            values : [all_kenmu_array[3][12]]
-          },
-          // 兼務役職履歴3
-          {
-            id : sub_position_his3_id,
-            values : [all_kenmu_array[3][24]]
-          },
-          // 兼務所属履歴4
-          {
-            id : sub_bussiness_his4_id,
-            values : [all_kenmu_array[4][12]]
-          },
-          // 兼務役職履歴4
-          {
-            id : sub_position_his4_id,
-            values : [all_kenmu_array[4][24]]
-          },
-        ]
-      }
-    } else if(sheet_name == '配属履歴'){
-      // 発令日の前日取得
-      // 入社区分なら取得しない
-      if(join_sec.includes(all_kenmu_array[0][5])){
-        var old_ago_day = '';
-      } else {
-        var old_ago_day = new Date(all_kenmu_array[0][2]);
-        old_ago_day.setDate(old_ago_day.getDate()-1);
-        old_ago_day = Utilities.formatDate(old_ago_day, 'Asia/Tokyo', 'yyyy-MM-dd')
-      }
-      for (let i = 0; i < sheets_list.length; i++) {
-        if(sheets_list[i]['name'] == '配属履歴'){
-          dep_his_list = sheets_list[i]['custom_fields'];
-        }
-      }
-      if(typeof dep_his_list == "undefined"){
-        throw new Error("配属履歴シートが見つかりませんでした。");
-      }
-
-      // カスタム（配属開始日）のnameが一致するまでループし、template_idを取得する
-      for (let i = 0; i < dep_his_list.length; i++) {
-        // 取得APIリストのnameがカスタム項目名と一致するか
-        if(dep_his_list[i]['name'] == '配属開始日'){
-          var plo_date_id = dep_his_list[i]['id']; // 項目名IDを宣言
-          break;
-        }
-      }
-      // 項目名IDが未定義なら空で宣言
-      if(typeof plo_date_id == "undefined"){
-        var plo_date_id = '';
-      }
-
-      // カスタム（配属終了日）のnameが一致するまでループし、template_idを取得する
-      for (let i = 0; i < dep_his_list.length; i++) {
-        // 取得APIリストのnameがカスタム項目名と一致するか
-        if(dep_his_list[i]['name'] == '配属終了日'){
-          var plo_end_date_id = dep_his_list[i]['id']; // 項目名IDを宣言
-          break;
-        }
-      }
-      // 項目名IDが未定義なら空で宣言
-      if(typeof plo_end_date_id == "undefined"){
-        var plo_end_date_id = '';
-      }
-
-      // カスタム（本務所属履歴）のnameが一致するまでループし、template_idを取得する
-      for (let i = 0; i < dep_his_list.length; i++) {
-        // 取得APIリストのnameがカスタム項目名と一致するか
-        if(dep_his_list[i]['name'] == '本務所属履歴'){
-          var main_bussiness_dep_his_id = dep_his_list[i]['id']; // 項目名IDを宣言
-          break;
-        }
-      }
-      // 項目名IDが未定義なら空で宣言
-      if(typeof main_bussiness_dep_his_id == "undefined"){
-        var main_bussiness_dep_his_id = '';
-      }
-
-      // カスタム（兼務所属履歴1）のnameが一致するまでループし、template_idを取得する
-      for (let i = 0; i < dep_his_list.length; i++) {
-        // 取得APIリストのnameがカスタム項目名と一致するか
-        if(dep_his_list[i]['name'] == '兼務所属履歴1'){
-          var sub_bussiness_dep_his_id1 = dep_his_list[i]['id']; // 項目名IDを宣言
-          break;
-        }
-      }
-      // 項目名IDが未定義なら空で宣言
-      if(typeof sub_bussiness_dep_his_id1 == "undefined"){
-        var sub_bussiness_dep_his_id1 = '';
-      }
-
-      // カスタム（兼務所属履歴2）のnameが一致するまでループし、template_idを取得する
-      for (let i = 0; i < dep_his_list.length; i++) {
-        // 取得APIリストのnameがカスタム項目名と一致するか
-        if(dep_his_list[i]['name'] == '兼務所属履歴2'){
-          var sub_bussiness_dep_his_id2 = dep_his_list[i]['id']; // 項目名IDを宣言
-          break;
-        }
-      }
-      // 項目名IDが未定義なら空で宣言
-      if(typeof sub_bussiness_dep_his_id2 == "undefined"){
-        var sub_bussiness_dep_his_id2 = '';
-      }
-
-      // カスタム（兼務所属履歴3）のnameが一致するまでループし、template_idを取得する
-      for (let i = 0; i < dep_his_list.length; i++) {
-        // 取得APIリストのnameがカスタム項目名と一致するか
-        if(dep_his_list[i]['name'] == '兼務所属履歴3'){
-          var sub_bussiness_dep_his_id3 = dep_his_list[i]['id']; // 項目名IDを宣言
-          break;
-        }
-      }
-      // 項目名IDが未定義なら空で宣言
-      if(typeof sub_bussiness_dep_his_id3 == "undefined"){
-        var sub_bussiness_dep_his_id3 = '';
-      }
-
-      // カスタム（兼務所属履歴4）のnameが一致するまでループし、template_idを取得する
-      for (let i = 0; i < dep_his_list.length; i++) {
-        // 取得APIリストのnameがカスタム項目名と一致するか
-        if(dep_his_list[i]['name'] == '兼務所属履歴4'){
-          var sub_bussiness_dep_his_id4 = dep_his_list[i]['id']; // 項目名IDを宣言
-          break;
-        }
-      }
-      // 項目名IDが未定義なら空で宣言
-      if(typeof sub_bussiness_dep_his_id4 == "undefined"){
-        var sub_bussiness_dep_his_id4 = '';
-      }
-
-      var custom_fields = 
-      {
-        custom_fields : [
-          // 配属開始日
-          {
-            id : plo_date_id,
-            values : [all_kenmu_array[0][2]]
-          },
-          // 配属終了日
-          {
-            id : plo_end_date_id,
-            values : [old_ago_day]
-          },
-          // 本務所属履歴
-          {
-            id : main_bussiness_dep_his_id,
-            values : [all_kenmu_array[0][6]]
-          },
-          // 兼務所属履歴1
-          {
-            id : sub_bussiness_dep_his_id1,
-            values : [all_kenmu_array[1][12]]
-          },
-          // 兼務所属履歴2
-          {
-            id : sub_bussiness_dep_his_id2,
-            values : [all_kenmu_array[2][12]]
-          },
-          // 兼務所属履歴3
-          {
-            id : sub_bussiness_dep_his_id3,
-            values : [all_kenmu_array[3][12]]
-          },
-          // 兼務所属履歴4
-          {
-            id : sub_bussiness_dep_his_id4,
-            values : [all_kenmu_array[4][12]]
-          },
-        ]
-      }
-    } else if(sheet_name == '役職履歴'){
-      // 発令日の前日取得
-      // 入社区分なら取得しない
-      if(join_sec.includes(all_kenmu_array[0][5])){
-        var old_ago_day = '';
-      } else {
-        var old_ago_day = new Date(all_kenmu_array[0][2]);
-        old_ago_day.setDate(old_ago_day.getDate()-1);
-        old_ago_day = Utilities.formatDate(old_ago_day, 'Asia/Tokyo', 'yyyy-MM-dd')
-      }
-      for (let i = 0; i < sheets_list.length; i++) {
-        if(sheets_list[i]['name'] == '役職履歴'){
-          pos_his_list = sheets_list[i]['custom_fields'];
-        }
-      }
-      if(typeof pos_his_list == "undefined"){
-        throw new Error("役職履歴シートが見つかりませんでした。");
-      }
-
-      // カスタム（配属開始日）のnameが一致するまでループし、template_idを取得する
-      for (let i = 0; i < pos_his_list.length; i++) {
-        // 取得APIリストのnameがカスタム項目名と一致するか
-        if(pos_his_list[i]['name'] == '役職開始日'){
-          var plo_date_id = pos_his_list[i]['id']; // 項目名IDを宣言
-          break;
-        }
-      }
-      // 項目名IDが未定義なら空で宣言
-      if(typeof plo_date_id == "undefined"){
-        var plo_date_id = '';
-      }
-
-      // カスタム（配属終了日）のnameが一致するまでループし、template_idを取得する
-      for (let i = 0; i < pos_his_list.length; i++) {
-        // 取得APIリストのnameがカスタム項目名と一致するか
-        if(pos_his_list[i]['name'] == '役職終了日'){
-          var plo_end_date_id = pos_his_list[i]['id']; // 項目名IDを宣言
-          break;
-        }
-      }
-      // 項目名IDが未定義なら空で宣言
-      if(typeof plo_end_date_id == "undefined"){
-        var plo_end_date_id = '';
-      }
-
-      // カスタム（本務役職履歴）のnameが一致するまでループし、template_idを取得する
-      for (let i = 0; i < pos_his_list.length; i++) {
-        // 取得APIリストのnameがカスタム項目名と一致するか
-        if(pos_his_list[i]['name'] == '本務役職履歴'){
-          var main_bussiness_pos_his_id = pos_his_list[i]['id']; // 項目名IDを宣言
-          break;
-        }
-      }
-      // 項目名IDが未定義なら空で宣言
-      if(typeof main_bussiness_pos_his_id == "undefined"){
-        var main_bussiness_pos_his_id = '';
-      }
-
-      // カスタム（兼務所属履歴1）のnameが一致するまでループし、template_idを取得する
-      for (let i = 0; i < pos_his_list.length; i++) {
-        // 取得APIリストのnameがカスタム項目名と一致するか
-        if(pos_his_list[i]['name'] == '兼務役職履歴1'){
-          var sub_bussiness_pos_his_id1 = pos_his_list[i]['id']; // 項目名IDを宣言
-          break;
-        }
-      }
-      // 項目名IDが未定義なら空で宣言
-      if(typeof sub_bussiness_pos_his_id1 == "undefined"){
-        var sub_bussiness_pos_his_id1 = '';
-      }
-
-      // カスタム（兼務所属履歴2）のnameが一致するまでループし、template_idを取得する
-      for (let i = 0; i < pos_his_list.length; i++) {
-        // 取得APIリストのnameがカスタム項目名と一致するか
-        if(pos_his_list[i]['name'] == '兼務役職履歴2'){
-          var sub_bussiness_pos_his_id2 = pos_his_list[i]['id']; // 項目名IDを宣言
-          break;
-        }
-      }
-      // 項目名IDが未定義なら空で宣言
-      if(typeof sub_bussiness_pos_his_id2 == "undefined"){
-        var sub_bussiness_pos_his_id2 = '';
-      }
-
-      // カスタム（兼務所属履歴3）のnameが一致するまでループし、template_idを取得する
-      for (let i = 0; i < pos_his_list.length; i++) {
-        // 取得APIリストのnameがカスタム項目名と一致するか
-        if(pos_his_list[i]['name'] == '兼務役職履歴3'){
-          var sub_bussiness_pos_his_id3 = pos_his_list[i]['id']; // 項目名IDを宣言
-          break;
-        }
-      }
-      // 項目名IDが未定義なら空で宣言
-      if(typeof sub_bussiness_pos_his_id3 == "undefined"){
-        var sub_bussiness_pos_his_id3 = '';
-      }
-
-      // カスタム（兼務所属履歴4）のnameが一致するまでループし、template_idを取得する
-      for (let i = 0; i < pos_his_list.length; i++) {
-        // 取得APIリストのnameがカスタム項目名と一致するか
-        if(pos_his_list[i]['name'] == '兼務役職履歴4'){
-          var sub_bussiness_pos_his_id4 = pos_his_list[i]['id']; // 項目名IDを宣言
-          break;
-        }
-      }
-      // 項目名IDが未定義なら空で宣言
-      if(typeof sub_bussiness_pos_his_id4 == "undefined"){
-        var sub_bussiness_pos_his_id4 = '';
-      }
-
-      var custom_fields = 
-      {
-        custom_fields : [
-          // 配属開始日
-          {
-            id : plo_date_id,
-            values : [all_kenmu_array[0][2]]
-          },
-          // 配属終了日
-          {
-            id : plo_end_date_id,
-            values : [old_ago_day]
-          },
-          // 本務所属履歴
-          {
-            id : main_bussiness_pos_his_id,
-            values : [all_kenmu_array[0][17]]
-          },
-          // 兼務所属履歴1
-          {
-            id : sub_bussiness_pos_his_id1,
-            values : [all_kenmu_array[1][24]]
-          },
-          // 兼務所属履歴2
-          {
-            id : sub_bussiness_pos_his_id2,
-            values : [all_kenmu_array[2][24]]
-          },
-          // 兼務所属履歴3
-          {
-            id : sub_bussiness_pos_his_id3,
-            values : [all_kenmu_array[3][24]]
-          },
-          // 兼務所属履歴4
-          {
-            id : sub_bussiness_pos_his_id4,
-            values : [all_kenmu_array[4][24]]
-          },
-        ]
-      }
-    }
   return custom_fields;
 }
 

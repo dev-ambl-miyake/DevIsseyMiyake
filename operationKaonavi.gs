@@ -141,7 +141,7 @@ function kaonaviSheetsApi() {
 function kaonaviTaskApi() {
 
   const token = getToken();
-  var apiUrl = 'https://api.kaonavi.jp/api/v2.0/tasks/10435';
+  var apiUrl = 'https://api.kaonavi.jp/api/v2.0/tasks/10564';
 
   //APIに必要な情報(全従業員情報取得)
   var apiOptions = {
@@ -155,6 +155,7 @@ function kaonaviTaskApi() {
   //APIからの返答
   let response = UrlFetchApp.fetch(apiUrl, apiOptions).getContentText();
   let json = JSON.parse(response);
+  console.log(json);
   return json;
 }
 

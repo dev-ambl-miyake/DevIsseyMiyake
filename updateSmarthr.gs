@@ -50,6 +50,13 @@ function proclamationShrMain() {
     } 
     log('3. SmartHRへのデータ更新’（現職本務）', 'e');
 
+    // 3. カオナビへのデータ更新（兼務）
+    log('3. カオナビへのデータ更新（兼務）', 's');
+    for (let i = 0; i < smartHR_data.length; i++) {
+      callShrApi(smartHR_data[i],operation_type = 3.3);
+    } 
+    log('3. カオナビへのデータ更新（兼務）', 'e');
+
     // 3. SmartHRへのデータ更新（通勤手当）
     log('3. SmartHRへのデータ更新（通勤手当）', 's');
     for (let i = 0; i < smartHR_tsukin_data.length; i++) {
@@ -143,40 +150,6 @@ function changeDataToSHR(csv_data,operation_type) {
         }
       }
     }
-    // // 「、」「。」「・」で分割する正規表現
-    // let regex = /[。、・]/;
-    // // 交通機関を4レコードに分割
-    // for (let i = 0; i < csv_data.length; i++) {
-    //   // 「、」「。」「・」で分割する
-    //   var traffic_array = csv_data[i][18].split(regex);
-
-    //   csv_data[i][18] = traffic_array[0]; //通勤経路1_交通機関
-    //   csv_data[i][26] = traffic_array[1]; //通勤経路2_交通機関
-    //   csv_data[i][27] = traffic_array[2]; //通勤経路3_交通機関
-    //   csv_data[i][28] = traffic_array[3]; //通勤経路4_交通機関
-    // }
-
-    // // （経由）利用駅を4レコードに分割
-    // for (let i = 0; i < csv_data.length; i++) {
-    //   // 「、」「。」「・」で分割する
-    //   var via_array = csv_data[i][20].split(regex);
-
-    //   csv_data[i][20] = via_array[0]; //通勤経路1_（経由）利用駅
-    //   csv_data[i][29] = via_array[1]; //通勤経路2_（経由）利用駅
-    //   csv_data[i][30] = via_array[2]; //通勤経路3_（経由）利用駅
-    //   csv_data[i][31] = via_array[3]; //通勤経路4_（経由）利用駅
-    // }
-
-    // // 備考を4レコードに分割
-    // for (let i = 0; i < csv_data.length; i++) {
-    //   // 「、」「。」「・」で分割する
-    //   var remarks_array = csv_data[i][22].split('　');
-
-    //   csv_data[i][22] = remarks_array[0]; //通勤経路1_備考
-    //   csv_data[i][32] = remarks_array[1]; //通勤経路2_備考
-    //   csv_data[i][33] = remarks_array[2]; //通勤経路3_備考
-    //   csv_data[i][34] = remarks_array[3]; //通勤経路4_備考
-    // }
   }
 
     return csv_data
