@@ -28,6 +28,7 @@ function createCSV() {
     let familyDataList = [];
     let taxDataList = [];
     let insuranceDataList = [];
+    let bankDataList = [];
 
     // 連携登録対象の人数分、各CSVファイルを出力
     for(var l = 0; l < employeesData.length; l++) {
@@ -73,9 +74,9 @@ function createCSV() {
         var gender = 2;
       }
       // 生年月日
-      var birthDate = employeesData[l]['birth_at'].replace(/-/g, '-');
+      var birthDate = employeesData[l]['birth_at'].replace(/-/g, '/');
       // 入社年月日
-      var enteredDate = employeesData[l]['entered_at'] ? employeesData[l]['entered_at'].replace(/-/g, '-') : null;  // ハイフンをスラッシュに変換
+      var enteredDate = employeesData[l]['entered_at'] ? employeesData[l]['entered_at'].replace(/-/g, '/') : null;  // ハイフンをスラッシュに変換
       // 電話番号
       var telNumber = employeesData[l]['tel_number'] ? employeesData[l]['tel_number'] : null;
       // メールアドレス
@@ -156,7 +157,7 @@ function createCSV() {
           // 性別区分
           'gender' : familyApiData[fl]['gender'] == "male" ? 1 : 2,
           // 生年月日
-          'birthDate' : familyApiData[fl]['birth_at'] ? familyApiData[fl]['birth_at'].replace(/-/g, '-') : null,
+          'birthDate' : familyApiData[fl]['birth_at'] ? familyApiData[fl]['birth_at'].replace(/-/g, '/') : null,
           // 税扶養区分
           // 税法上の扶養状況が扶養されている場合1, 扶養されていない、又は配偶者特別控除対象者、又は不明の場合0
           'taxLawSupportType' : familyApiData[fl]['tax_law_support_type'] == "supported" ? 1 : 0,
@@ -224,7 +225,48 @@ function createCSV() {
       var insuredPersonNumber2 = employeesData[l]['emp_ins_insured_person_number'] ? employeesData[l]['emp_ins_insured_person_number'].substring(5, 11) : null;
       // 雇用保険番号3
       var insuredPersonNumber3 = employeesData[l]['emp_ins_insured_person_number'] ? employeesData[l]['emp_ins_insured_person_number'].substring(12, 13) : null;
-      
+
+      /* 銀行 */
+      // 振込依頼銀行コード
+      if (employeesData[l]['bank_accounts'][0]['bank_code']) {
+        // 三菱UFJ
+        if (employeesData[l]['bank_accounts'][0]['bank_code'] == "0005") {
+          var transferBankCode = 2;
+        // みずほ
+        } else if (employeesData[l]['bank_accounts'][0]['bank_code'] == "0001") {
+          var transferBankCode = 3;
+        // 三菱UFJ・みずほ以外
+        } else {
+          var transferBankCode = 1;
+        }
+      } else {
+        var transferBankCode = null;
+      }
+      // 振込銀行コード
+      var bankCode = employeesData[l]['bank_accounts'][0]['bank_code'] ? employeesData[l]['bank_accounts'][0]['bank_code'] : null;
+      // 振込支店コード
+      var branchCode = employeesData[l]['bank_accounts'][0]['bank_branch_code'] ? employeesData[l]['bank_accounts'][0]['bank_branch_code'] : null;
+      // 口座種別
+      if (employeesData[l]['bank_accounts'][0]['account_type']) {
+        // 普通
+        if (employeesData[l]['bank_accounts'][0]['account_type'] == "saving") {
+          var accountType = 1;
+        // 当座
+        } else if (employeesData[l]['bank_accounts'][0]['account_type'] == "checking ") {
+          var accountType = 2;
+        // 貯蓄
+        } else {
+          var accountType = 3;
+        }
+      } else {
+        var accountType = null;
+      }
+      // 口座番号
+      var account_number = employeesData[l]['bank_accounts'][0]['account_number'] ? employeesData[l]['bank_accounts'][0]['account_number'] : null;
+      // 名義人ｶﾅ
+      var accountHolderName = employeesData[l]['bank_accounts'][0]['account_holder_name'] ? zenkana2Hankana(employeesData[l]['bank_accounts'][0]['account_holder_name']) : null;
+
+
       // 社員基本_配列に値をセット
       let baseData = [
         "100",  // データ区分(固定値)
@@ -340,6 +382,40 @@ function createCSV() {
         insuredPersonNumber3,  // 雇用保険番号3
       ]
       insuranceDataList.push(insuranceData);
+
+      // 銀行_配列に値をセット
+      let bankData1 = [
+        "875",  // データ区分(固定値)
+        employeeCode,  // 社員番号
+        0,  // 振込銀行区分 0:給与,1:賞与
+        1,  // 口座SEQ
+        transferBankCode,  // 振込依頼銀行コード 三菱UFJ,みずほ以外の銀行コード:1,三菱UFJ：2,みずほ：3,
+        bankCode,  // 振込銀行コード
+        branchCode, // 振込支店コード
+        accountType, // 口座種別 1:普通,2:当座,3:預り金
+        account_number, // 口座番号
+        name,  // 名義人漢字
+        accountHolderName,  // 名義人ｶﾅ
+        0,  // 新規コード
+        0,  // 定額
+      ]
+      let bankData2 = [
+        "875",  // データ区分(固定値)
+        employeeCode,  // 社員番号
+        1,  // 振込銀行区分 0:給与,1:賞与
+        1,  // 口座SEQ
+        transferBankCode,  // 振込依頼銀行コード 三菱UFJ,みずほ以外の銀行コード:1,三菱UFJ：2,みずほ：3,
+        bankCode,  // 振込銀行コード
+        branchCode, // 振込支店コード
+        accountType, // 口座種別 1:普通,2:当座,3:預り金
+        account_number, // 口座番号
+        name,  // 名義人漢字
+        accountHolderName,  // 名義人ｶﾅ
+        0,  // 新規コード
+        0,  // 定額
+      ]
+      bankDataList.push(bankData1);
+      bankDataList.push(bankData2);
     }
 
     // CSVファイル出力先ドライブフォルダ内に既に存在するファイルを削除
@@ -351,6 +427,7 @@ function createCSV() {
     export_csv(familyDataList, operation_type = 1.3);
     export_csv(taxDataList, operation_type = 1.4);
     export_csv(insuranceDataList, operation_type = 1.5);
+    export_csv(bankDataList, operation_type = 1.6);
 
     // 終了ログ
   　log(work, 'e');
