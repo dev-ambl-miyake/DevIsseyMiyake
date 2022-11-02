@@ -30,25 +30,27 @@ function storeHistory(json) {
   const employeeNumber = storeHistorySheet.getRange(2,1,storeHistoryLastRow,1).getValues();
   
   if(lock.tryLock(1 * 1000)) {
-    // 更新対象社員選択_スプレッドシートの範囲を指定
-    let updateEmployeeSheetDataArea = updateEmployeeSheet.getRange(9,2,updateEmployeeSheet.getLastRow()-8,6);
-    let sheetData = updateEmployeeSheetDataArea.getValues();
+    if (updateEmployeeSheet.getLastRow()-8 > 0) {
+      // 更新対象社員選択_スプレッドシートの範囲を指定
+      let updateEmployeeSheetDataArea = updateEmployeeSheet.getRange(9,2,updateEmployeeSheet.getLastRow()-8,6);
+      let sheetData = updateEmployeeSheetDataArea.getValues();
 
-    // 更新対象社員選択_スプレッドシートの見出しの行番目を定義
-    let headerLine = 8;
+      // 更新対象社員選択_スプレッドシートの見出しの行番目を定義
+      let headerLine = 8;
 
-    // 現在日時を起点とした2か月前の日付値を定義
-    let twoMonthAgo = new Date();
-    twoMonthAgo.setMonth(twoMonthAgo.getMonth() - 2);
-    let twoMonthsAgoDate = Utilities.formatDate(twoMonthAgo, 'Asia/Tokyo', 'yyyy/MM/dd HH:mm:ss');
+      // 現在日時を起点とした2か月前の日付値を定義
+      let twoMonthAgo = new Date();
+      twoMonthAgo.setMonth(twoMonthAgo.getMonth() - 2);
+      let twoMonthsAgoDate = Utilities.formatDate(twoMonthAgo, 'Asia/Tokyo', 'yyyy/MM/dd HH:mm:ss');
 
-    for(let sdl = 0; sdl < sheetData.length; sdl++) {
-      var targetDate = new Date(sheetData[sdl][5]);
-      var shrUpdatedDate = Utilities.formatDate(targetDate, 'Asia/Tokyo', 'yyyy/MM/dd HH:mm:ss');
+      for(let sdl = 0; sdl < sheetData.length; sdl++) {
+        var targetDate = new Date(sheetData[sdl][5]);
+        var shrUpdatedDate = Utilities.formatDate(targetDate, 'Asia/Tokyo', 'yyyy/MM/dd HH:mm:ss');
 
-      // smartHR_更新日時と現在日時を比較し、2か月以上経過している行を削除
-      if (shrUpdatedDate < twoMonthsAgoDate) {
-        updateEmployeeSheet.deleteRow(headerLine + sdl + 1);
+        // smartHR_更新日時と現在日時を比較し、2か月以上経過している行を削除
+        if (shrUpdatedDate < twoMonthsAgoDate) {
+          updateEmployeeSheet.deleteRow(headerLine + sdl + 1);
+        }
       }
     }
     
