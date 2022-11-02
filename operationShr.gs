@@ -23,6 +23,14 @@ var custom_responseBody = UrlFetchApp.fetch(custom_response).getContentText();
 // 雇用形態のJsonリスト
 var custom_json = JSON.parse(custom_responseBody);
 
+// 雇用形態のリストをAPIで取得
+var dep_response = 
+"https://"+SUB_DOMAIN+".daruma.space/api/v1/departments?page="+"1"+"&per_page="+"100"+"&access_token="+ACCESS_TOKEN;
+var dep_responseBody = UrlFetchApp.fetch(dep_response).getContentText();
+// 雇用形態のJsonリスト
+var dep_json = JSON.parse(dep_responseBody);
+
+
 /**
  * @param {array}   processed_data  加工配列データ
  * @param {string}   operation_type  業種
@@ -60,6 +68,10 @@ function callShrApi(processed_data,operation_type) {
         if(operation_type == 3.1){
           var emp_code = processed_data[0]; // [0]→発令_現職本務の社員番号列
         }
+        // 発令_所属
+        if(operation_type == 3.3){
+          var emp_code = processed_data[0]; // [0]→発令_現職本務の社員番号列
+        }
         // 発令_通勤手当
         else if(operation_type == 3.2){
           var emp_code = processed_data[1]; // [1]→発令_通勤手当の社員番号列
@@ -74,7 +86,7 @@ function callShrApi(processed_data,operation_type) {
 
 
       // 発令
-      if(operation_type == 3.1 || operation_type == 3.2){
+      if(operation_type == 3.1 || operation_type == 3.2 || operation_type == 3.3){
         // 社員が一致していれば更新
         if(emp_code == api_emp_code){
           // SHR固有ID
@@ -114,10 +126,10 @@ function updateShrEmployee(id,processed_data,operation_type) {
   // 現職本務データの連携
   if(operation_type == 3.1){
     // 雇用形態のnameが一致するまでループし、employment_type_idを取得
-    if(processed_data[16] != ""){
+    if(processed_data[17] != ""){
       for (let i = 0; i < emp_json.length; i++) {
-        if(processed_data[16] == emp_json[i]['name']){
-          processed_data[16] = emp_json[i]['id']
+        if(processed_data[17] == emp_json[i]['name']){
+          processed_data[17] = emp_json[i]['id']
           break;
         }
       }
@@ -692,6 +704,244 @@ function updateShrEmployee(id,processed_data,operation_type) {
           "value": processed_data[34],
         },
       ]
+    }
+    var payload = JSON.stringify(payload);
+  } else if(operation_type == 3.3){
+    // ループで各従業員の更新JSONを作成し、連結する
+    // 現職本務データループ中に現職兼務をループして、兼務情報を取得
+    // 兼務情報をループ
+    let csv_sub_business = import_csv(operation_type = 3.3)
+    let shr_kenmu_data = changeDataToSHR(csv_sub_business, operation_type = 3.3);
+    var count = 0;
+    labelIn:
+    for (let n = 0; n < shr_kenmu_data.length; n++) {
+      // 現職本務の1レコードと社員番号が一致するか、一致してたらカウント
+      if(shr_kenmu_data[n][5] == ''){
+        continue labelIn;
+      }
+      
+      if(processed_data[0] == shr_kenmu_data[n][0] && count == 0){
+        processed_data[24] = shr_kenmu_data[n][5]; // 兼務2
+        count = count + 1;
+      }
+      else if(processed_data[0] == shr_kenmu_data[n][0] && count == 1){
+        processed_data[25] = shr_kenmu_data[n][5]; // 兼務3
+        count = count + 1;
+      }
+      else if(processed_data[0] == shr_kenmu_data[n][0] && count == 2){
+        processed_data[26] = shr_kenmu_data[n][5]; // 兼務4
+        count = count + 1;
+      }
+      else if(processed_data[0] == shr_kenmu_data[n][0] && count == 3){
+        processed_data[27] = shr_kenmu_data[n][5]; // 兼務4
+        count = count + 1;
+        break;
+      }
+    }
+    // 更新JSONを作成
+    // 兼務情報が1つもない場合
+    if(typeof(processed_data[24]) == "undefined"){
+      for (let i = 0; i < dep_json.length; i++) {
+        if(processed_data[3] == dep_json[i]['name']){
+          processed_data[3] = dep_json[i]['id']
+          break;
+        }
+      }
+      var count = 0;
+    }
+    
+    // 兼務情報が1つの場合
+    if(typeof(processed_data[24]) != "undefined" && typeof processed_data[25] == "undefined"){
+      for (let i = 0; i < dep_json.length; i++) {
+        if(processed_data[3] == dep_json[i]['name']){
+          processed_data[3] = dep_json[i]['id']
+          break;
+        }
+      }
+      for (let i = 0; i < dep_json.length; i++) {
+        if(processed_data[24] == dep_json[i]['name']){
+          processed_data[24] = dep_json[i]['id']
+          break;
+        }
+      }
+      var count = 1;
+    }
+
+    // 兼務情報が2つの場合
+    if(typeof(processed_data[24]) != "undefined" && typeof processed_data[25] != "undefined" && typeof processed_data[26] == "undefined"){
+      for (let i = 0; i < dep_json.length; i++) {
+        if(processed_data[3] == dep_json[i]['name']){
+          processed_data[3] = dep_json[i]['id']
+          break;
+        }
+      }
+      for (let i = 0; i < dep_json.length; i++) {
+        if(processed_data[24] == dep_json[i]['name']){
+          processed_data[24] = dep_json[i]['id']
+          break;
+        }
+      }
+      for (let i = 0; i < dep_json.length; i++) {
+        if(processed_data[25] == dep_json[i]['name']){
+          processed_data[25] = dep_json[i]['id']
+          break;
+        }
+      }
+
+      var count = 2;
+    }
+
+    // 兼務情報が3つの場合
+    if(typeof(processed_data[24]) != "undefined" && typeof processed_data[25] != "undefined" && typeof processed_data[26] != "undefined" && typeof processed_data[27] == "undefined"){
+      for (let i = 0; i < dep_json.length; i++) {
+        if(processed_data[3] == dep_json[i]['name']){
+          processed_data[3] = dep_json[i]['id']
+          break;
+        }
+      }
+      for (let i = 0; i < dep_json.length; i++) {
+        if(processed_data[24] == dep_json[i]['name']){
+          processed_data[24] = dep_json[i]['id']
+          break;
+        }
+      }
+      for (let i = 0; i < dep_json.length; i++) {
+        if(processed_data[25] == dep_json[i]['name']){
+          processed_data[25] = dep_json[i]['id']
+          break;
+        }
+      }
+      for (let i = 0; i < dep_json.length; i++) {
+        if(processed_data[26] == dep_json[i]['name']){
+          processed_data[26] = dep_json[i]['id']
+          break;
+        }
+      }
+      var count = 3;
+    }
+
+    // 兼務情報が4つの場合
+    if(typeof(processed_data[24]) != "undefined" && typeof processed_data[25] != "undefined" && typeof processed_data[26] != "undefined" && typeof processed_data[27] != "undefined"){
+      for (let i = 0; i < dep_json.length; i++) {
+        if(processed_data[3] == dep_json[i]['name']){
+          processed_data[3] = dep_json[i]['id']
+          break;
+        }
+      }
+      for (let i = 0; i < dep_json.length; i++) {
+        if(processed_data[24] == dep_json[i]['name']){
+          processed_data[24] = dep_json[i]['id']
+          break;
+        }
+      }
+      for (let i = 0; i < dep_json.length; i++) {
+        if(processed_data[25] == dep_json[i]['name']){
+          processed_data[25] = dep_json[i]['id']
+          break;
+        }
+      }
+      for (let i = 0; i < dep_json.length; i++) {
+        if(processed_data[26] == dep_json[i]['name']){
+          processed_data[26] = dep_json[i]['id']
+          break;
+        }
+      }
+      for (let i = 0; i < dep_json.length; i++) {
+        if(processed_data[27] == dep_json[i]['name']){
+          processed_data[27] = dep_json[i]['id']
+          break;
+        }
+      }
+      var count = 4;
+    }
+
+    if(count == 0){
+      // 本務兼務のみ登録
+      var payload = {
+        'department_ids': [processed_data[3]] // 社員コード
+      }
+    } else if(count == 1) {
+        // 兼務が1つの更新Json作成
+        // 更新Json作成
+        var payload = {
+          'department_ids': [processed_data[3],processed_data[24]] // 社員コード
+        }
+    } else if(count == 2) {
+        // 兼務が2つの更新Json作成
+        // 更新Json作成
+        var payload = {
+          'department_ids': [processed_data[3],processed_data[24],processed_data[25]] // 社員コード
+        }
+    } else if(count == 3) {
+        // 兼務が3つの更新Json作成
+        // 更新Json作成
+        var payload = {
+          'department_ids': [processed_data[3],processed_data[24],processed_data[25],] // 社員コード
+        }
+        var payload = JSON.stringify(payload);
+        // HTTPリクエストのオプションを設定
+        const params = {
+          'method': 'PATCH', // PATCHメソッドでリクスト
+          "contentType" : "application/json",
+          'headers': headers, // HTTPリクエストヘッダー
+          'payload': payload // HTTPリクエストボディ(JSONパラメータ)
+        }
+
+        // 従業員部分更新APIにリクエストを送信
+        const response = UrlFetchApp.fetch(baseUrl + '/api/v1/crews/' + id, params)
+
+        // レスポンスボディを取得
+        const responseBody = response.getContentText()
+        const json = JSON.parse(responseBody)
+
+        // 二回に分けて送信
+        var payload = {
+          'department_ids': [processed_data[26]] // 社員コード
+        }
+        var payload = JSON.stringify(payload);
+
+        // 従業員部分更新APIにリクエストを送信
+        const response2 = UrlFetchApp.fetch(baseUrl + '/api/v1/crews/' + id, params)
+
+        // レスポンスボディを取得
+        const responseBody2 = response2.getContentText();
+        const json2 = JSON.parse(responseBody2);
+        return;
+    } else if(count == 4) {
+        // 兼務が3つの更新Json作成
+        // 更新Json作成
+        var payload = {
+          'department_ids': [processed_data[3],processed_data[24],processed_data[25]] // 社員コード
+        }
+        var payload = JSON.stringify(payload);
+        // HTTPリクエストのオプションを設定
+        const params = {
+          'method': 'PATCH', // PATCHメソッドでリクスト
+          "contentType" : "application/json",
+          'headers': headers, // HTTPリクエストヘッダー
+          'payload': payload // HTTPリクエストボディ(JSONパラメータ)
+        }
+
+        // 従業員部分更新APIにリクエストを送信
+        const response = UrlFetchApp.fetch(baseUrl + '/api/v1/crews/' + id, params)
+
+        // レスポンスボディを取得
+        const responseBody = response.getContentText()
+        const json = JSON.parse(responseBody)
+
+        // 二回に分けて送信
+        var payload = {
+          'department_ids': [processed_data[26],processed_data[27]] // 社員コード
+        }
+        var payload = JSON.stringify(payload);
+
+        // 従業員部分更新APIにリクエストを送信
+        const response2 = UrlFetchApp.fetch(baseUrl + '/api/v1/crews/' + id, params)
+
+        // レスポンスボディを取得
+        const responseBody2 = response2.getContentText()
+        const json2 = JSON.parse(responseBody2)
+        return;
     }
     var payload = JSON.stringify(payload);
   } else if(operation_type == 4){
