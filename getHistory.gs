@@ -107,7 +107,7 @@ function storeHistory(json) {
       // 更新対象社員選択_スプレッドシートの更新
       let updateEmployeeLastRow = updateEmployeeSheet.getLastRow();  // 値が存在(入力)している最終行を取得
       let updateEmployeeSortData = updateEmployeeSheet.getRange(9,2,updateEmployeeLastRow-8,6);
-      // updateEmployeeSortData.sort({column: 7, ascending: false}); // smartHR更新日時でソート
+      updateEmployeeSortData.sort({column: 7, ascending: false}); // smartHR更新日時でソート
       updateEmployeeSheet.getRange(9,2,updateEmployeeLastRow-8).insertCheckboxes(); // チェックボックス作成
     }
 
