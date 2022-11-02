@@ -1,27 +1,21 @@
 function myFunction() {
-// let kaonavi_honmu_keireki_data = [[1,2,3,4,5],[1,7,8,9,10],[1,12,13,14,15],[1,7,8,9,10],[1,7,8,9,10],[1,7,8,9,10],[1,7,8,9,10]];
-// for(let y = 0; kaonavi_honmu_keireki_data.length > 4; y++){
-//   if(kaonavi_honmu_keireki_data.length > 4){
-//     kaonavi_honmu_keireki_data.pop();
-//     console.log(kaonavi_honmu_keireki_data.length);  
-//   }
-// }
+// 取得APIをグローバル変数で管理
+//何ページ分取得するか（登録されている社員数に依存する）
+var LAST_PAGE = 2;
+//1ページ最大100件まで
+var PER_PAGE = 100;
 
-//現在時刻を取得
-  let kenmu_date = new Date('2010/01/01'); // 兼務発令日
-  let kenmu_kaijo_date = new Date('2020/01/01'); // 兼務発令日
+// SmartHRのアクセストークンとサブドメインの宣言
+const ACCESS_TOKEN = getProperties("ACCESS_TOKEN");
+const SUB_DOMAIN = getProperties("SUB_DOMAIN");
 
-  //日付を昨日に設定
-    kenmu_date.setDate(kenmu_date.getDate()-1);
-
-  //日付の出力
-  console.log(Utilities.formatDate(kenmu_date, 'Asia/Tokyo', 'yyyy/MM/dd')); //2022/08/19
-
-
-if(kenmu_date.getTime() < kenmu_kaijo_date.getTime()){
-  console.log('兼務解除の方が新しい'); 
-}
-// console.log(kaonavi_honmu_keireki_data);  
+// 雇用形態のリストをAPIで取得
+var dep_response = 
+"https://"+SUB_DOMAIN+".daruma.space/api/v1/departments?page="+"1"+"&per_page="+"100"+"&access_token="+ACCESS_TOKEN;
+var dep_responseBody = UrlFetchApp.fetch(dep_response).getContentText();
+// 雇用形態のJsonリスト
+var dep_json = JSON.parse(dep_responseBody);
+console.log(dep_json);  
   // Logger.log(newArray);
 // const member_sheets_api = kaonaviMemberSheetsApi(); // カオナビの基本情報シート情報
 // const member_custom_list = member_sheets_api['custom_fields']; // カオナビの基本情報シートカスタム項目リスト

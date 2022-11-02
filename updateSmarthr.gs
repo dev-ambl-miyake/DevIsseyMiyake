@@ -43,7 +43,7 @@ function proclamationShrMain() {
     let smartHR_tsukin_data = changeDataToSHR(csv_travel_allowance, operation_type = 3.2);
     log('2. CSVファイルより対象データ取得', 'e');
 
-    // 3. SmartHRへのデータ更新’（現職本務）
+    // // 3. SmartHRへのデータ更新’（現職本務）
     log('3. SmartHRへのデータ更新’（現職本務）', 's');
     for (let i = 0; i < smartHR_data.length; i++) {
       callShrApi(smartHR_data[i],operation_type = 3.1);
@@ -148,6 +148,31 @@ function changeDataToSHR(csv_data,operation_type) {
           csv_data.splice(n,1); // 結合した分の配列の要素番号を削除
           break; // 4回一致した場合ループ終了
         }
+      }
+    }
+  }else if(operation_type == 3.3){
+  // 文字加工
+    // 社員コード（4桁→5桁）
+    for (let i = 0; i < csv_data.length; i++) {
+      csv_data[i][0] = '0'+ csv_data[i][0];
+    }
+
+    // 所属略名（加工方法IMIに要確認）
+    for (let i = 0; i < csv_data.length; i++) {
+      if(csv_data[i][5] == '国内・海外ビジネス担当'){
+        csv_data[i][5] = '国内・海外ビジネス';
+      }
+      if(csv_data[i][5] == '管理・財務担当'){
+        csv_data[i][5] = '管理・財務';
+      }
+      if(csv_data[i][5] == '生産・製造技術開発担当'){
+        csv_data[i][5] = '生産・製造技術開発';
+      }
+      if(csv_data[i][5] == 'コミュニケーションデザイン担当'){
+        csv_data[i][5] = 'コミュニケーションデザイン';
+      }
+      if(csv_data[i][5] == 'プロダクト開発担当'){
+        csv_data[i][5] = 'プロダクト開発';
       }
     }
   }
