@@ -210,7 +210,7 @@ function createCSV() {
       // 障害区分
       if (!employeesData[l]['handicapped_type']) {
         var handicappedType = 0;
-      } else if (employeesData[l]['handicapped_type'] == "ordinary_handicapped ") {
+      } else if (employeesData[l]['handicapped_type'] == "ordinary_handicapped") {
         var handicappedType = 1;
       } else {
         var handicappedType = 2;
