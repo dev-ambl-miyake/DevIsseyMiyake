@@ -1483,10 +1483,10 @@ function createMember() {
             }
           }
           // 取得年月日
-          if (licenseData[ll]['template']['name'] == "免許・資格取得年月日①") {
+          if (licenseData[ll]['template']['name'] == "取得年月日①") {
             licenseAcquisitionDate1 = licenseData[ll]['value'];
           }
-          if (licenseData[ll]['template']['name'] == "免許・資格取得年月日②") {
+          if (licenseData[ll]['template']['name'] == "取得年月日②") {
             licenseAcquisitionDate2 = licenseData[ll]['value'];
           }
         }
@@ -1509,10 +1509,10 @@ function createMember() {
             }
           }
           // 取得年月日
-          if (knowledgeData[kl]['template']['name'] == "知識・技能取得年月日①") {
+          if (knowledgeData[kl]['template']['name'] == "取得年月日①") {
             knowledgeAcquisitionDate1 = knowledgeData[kl]['value'];
           }
-          if (knowledgeData[kl]['template']['name'] == "知識・技能取得年月日②") {
+          if (knowledgeData[kl]['template']['name'] == "取得年月日②") {
             knowledgeAcquisitionDate2 = knowledgeData[kl]['value'];
           }
         }
