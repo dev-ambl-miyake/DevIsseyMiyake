@@ -87,7 +87,6 @@ function import_csv(operation_type = 5) {
 
 /*
   //　業務種別ごとにCSVを出力する
-
   // array data
   // integer operation_type
     // 1: 入社
@@ -135,6 +134,13 @@ function export_csv(data, operation_type = 5) {
     var title_row = title_store_employee_insurance()
     // smartHRAPIよりデータ取得
     var import_data = data;
+  // 銀行
+  } else if (operation_type === 1.6) {
+    var define = define_store_employee_bank()
+    // 見出し行
+    var title_row = title_store_employee_bank()
+    // smartHRAPIよりデータ取得
+    var import_data = data;
   // 変更申請
   // 社員基本
   } else if (operation_type === 2.1) {
@@ -170,6 +176,13 @@ function export_csv(data, operation_type = 5) {
     var define = define_update_employee_insurance()
     // 見出し行
     var title_row = title_update_employee_insurance()
+    // smartHRAPIよりデータ取得
+    var import_data = data;
+  // 銀行
+  } else if (operation_type === 2.6) {
+    var define = define_update_employee_bank()
+    // 見出し行
+    var title_row = title_update_employee_bank()
     // smartHRAPIよりデータ取得
     var import_data = data;
   // 源泉徴収票
@@ -269,6 +282,17 @@ function title_store_employee_insurance() {
   return title_row
 }
 
+// 入社_銀行CSV_列名
+function title_store_employee_bank() {
+  // 見出し行
+  const title_row = [
+    [
+      "データ区分", "コード", "振込銀行区分", "口座SEQ", "振込依頼銀行コード", "振込銀行コード", "振込支店コード", "口座種別", "口座番号", "名義人漢字", "名義人ｶﾅ", "新規コード", "定額"
+    ]
+  ]
+  return title_row
+}
+
 // 変更申請_社員基本CSV_列名
 function title_update_employee_base() {
   // 見出し行
@@ -320,6 +344,17 @@ function title_update_employee_insurance() {
   const title_row = [
     [
       "データ区分", "社員コード", "基礎年金番号1", "基礎年金番号2", "雇用保険番号1", "雇用保険番号2", "雇用保険番号3"
+    ]
+  ]
+  return title_row
+}
+
+// 変更申請_銀行CSV_列名
+function title_update_employee_bank() {
+  // 見出し行
+  const title_row = [
+    [
+      "データ区分", "コード", "振込銀行区分", "口座SEQ", "振込依頼銀行コード", "振込銀行コード", "振込支店コード", "口座種別", "口座番号", "名義人漢字", "名義人ｶﾅ", "新規コード", "定額"
     ]
   ]
   return title_row
@@ -393,14 +428,6 @@ function processing_monthly_salary_data(csv_data) {
       var month = array[i][2].slice(-2); // 月の抽出
         array[i][2] = year + '/' + month + '/' + '01';
     }
-
-    // 社保FD用氏名（姓,名）
-    for (let i = 0; i < array.length; i++) {
-      if(array[i][4] != ''){
-        array[i][5] = array[i][4].split('　')[0]; // 姓
-        array[i][6] = array[i][4].split('　')[1]; // 名
-      }
-    }
   return array
 }
 // 源泉徴収票_インポートデータを出力用データ構造配列に加工
@@ -415,7 +442,6 @@ function processing_tax_withoutholding_data(csv_data) {
     }
 
     // csvの見出行を削除
-    csv_data.shift();
     csv_data.shift();
 
     // csvの不要列の削除
@@ -557,7 +583,7 @@ function processing_tax_withoutholding_data(csv_data) {
       // 控除対象扶養親族（区分）3
       for (let i = 0; i < array.length; i++) {
         if(array[i][72] == "00"){
-          array[i][672] = 0;
+          array[i][72] = 0;
         }
       }
 
@@ -593,6 +619,80 @@ function processing_tax_withoutholding_data(csv_data) {
       for (let i = 0; i < array.length; i++) {
         if(array[i][87] == "00"){
           array[i][87] = 0;
+        }
+      }
+
+      // 住宅控除区分(1回目)
+      for (let i = 0; i < array.length; i++) {
+        if(array[i][48] == "01"){
+          array[i][48] = "住";
+        } else if(array[i][48] == "02"){
+          array[i][48] = "認";
+        } else if(array[i][48] == "03"){
+          array[i][48] = "増";
+        } else if(array[i][48] == "04"){
+          array[i][48] = "震";
+        } else if(array[i][48] == "11"){
+          array[i][48] = "住(特)";
+        } else if(array[i][48] == "12"){
+          array[i][48] = "認(特)";
+        } else if(array[i][48] == "13"){
+          array[i][48] = "増(特)";
+        } else if(array[i][48] == "14"){
+          array[i][48] = "震(特)";
+        } else if(array[i][48] == "21"){
+          array[i][48] = "住(特)(特)";
+        } else if(array[i][48] == "22"){
+          array[i][48] = "認(特)(特)";
+        } else if(array[i][48] == "23"){
+          array[i][48] = "増(特)(特)";
+        } else if(array[i][48] == "24"){
+          array[i][48] = "震(特)(特)";
+        } else if(array[i][48] == "31"){
+          array[i][48] = "住(特)(特)(特)";
+        } else if(array[i][48] == "32"){
+          array[i][48] = "認(特)(特)(特)";
+        } else if(array[i][48] == "33"){
+          array[i][48] = "増(特)(特)(特)";
+        } else if(array[i][48] == "34"){
+          array[i][48] = "震(特)(特)(特)";
+        }
+      }
+
+      // 住宅控除区分(2回目)
+      for (let i = 0; i < array.length; i++) {
+        if(array[i][54] == "01"){
+          array[i][54] = "住";
+        } else if(array[i][54] == "02"){
+          array[i][54] = "認";
+        } else if(array[i][54] == "03"){
+          array[i][54] = "増";
+        } else if(array[i][54] == "04"){
+          array[i][54] = "震";
+        } else if(array[i][54] == "11"){
+          array[i][54] = "住(特)";
+        } else if(array[i][54] == "12"){
+          array[i][54] = "認(特)";
+        } else if(array[i][54] == "13"){
+          array[i][54] = "増(特)";
+        } else if(array[i][54] == "14"){
+          array[i][54] = "震(特)";
+        } else if(array[i][54] == "21"){
+          array[i][54] = "住(特)(特)";
+        } else if(array[i][54] == "22"){
+          array[i][54] = "認(特)(特)";
+        } else if(array[i][54] == "23"){
+          array[i][54] = "増(特)(特)";
+        } else if(array[i][54] == "24"){
+          array[i][54] = "震(特)(特)";
+        } else if(array[i][54] == "31"){
+          array[i][54] = "住(特)(特)(特)";
+        } else if(array[i][54] == "32"){
+          array[i][54] = "認(特)(特)(特)";
+        } else if(array[i][54] == "33"){
+          array[i][54] = "増(特)(特)(特)";
+        } else if(array[i][54] == "34"){
+          array[i][54] = "震(特)(特)(特)";
         }
       }
 
@@ -950,6 +1050,14 @@ function define_store_employee_insurance() {
   }
   return define
 }
+// 業務_入社_銀行
+function define_store_employee_bank() {
+  const define = { 
+    'export_folder_id': getProperties("obicExportCsvFolderId"), // OBIC出力CSV格納ディレクトリ
+    'export_file_name': getProperties("obicBankCsvFileName"), // OBIC出力CSV格納ディレクトリファイル名
+  }
+  return define
+}
 // 業務_変更申請_社員基本
 function define_update_employee_base() {
   const define = { 
@@ -987,6 +1095,14 @@ function define_update_employee_insurance() {
   const define = { 
     'export_folder_id': getProperties("obicExportCsvFolderId"), // OBIC出力CSV格納ディレクトリ
     'export_file_name': getProperties("obicInsuranceCsvFileName"), // OBIC出力CSV格納ディレクトリファイル名
+  }
+  return define
+}
+// 業務_変更申請_銀行
+function define_update_employee_bank() {
+  const define = { 
+    'export_folder_id': getProperties("obicExportCsvFolderId"), // OBIC出力CSV格納ディレクトリ
+    'export_file_name': getProperties("obicBankCsvFileName"), // OBIC出力CSV格納ディレクトリファイル名
   }
   return define
 }
@@ -1047,4 +1163,26 @@ function define_tax_withoutholding() {
     'export_file_name': getProperties("shrCsvFileName"), // SHR出力CSV格納ディレクトリ
   }
   return define
+}
+
+/**
+ * 指定したドライブフォルダ内のファイルをすべて削除する
+ * 正確にはゴミ箱へファイルを移動する
+ * 
+ * @param [string] folderId
+ */
+function deleteCsv(folderId) {
+  //フォルダを取得
+  const folder = DriveApp.getFolderById(folderId);
+  //フォルダ内のすべてのファイルを取得
+  var files = folder.getFiles();
+
+  //各ファイルに対して繰り返し
+  while (files.hasNext()) {
+    //ファイルを取得
+    var file = files.next();
+
+    //ゴミ箱へ移動
+    file.setTrashed(true);　
+  }
 }

@@ -22,7 +22,7 @@ function sendMail(work,error_message = null) {
 
     // 本文
     var body 
-    = `【${work}】処理が失敗しました。以下システムエラーログでになります。`
+    = `【${work}】処理が失敗しました。以下システムエラーログになります。`
       + `\n ${error_message} \n`;
   } else {
     // 件名

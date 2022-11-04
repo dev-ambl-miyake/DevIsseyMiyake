@@ -1,7 +1,7 @@
 /**
  * みんなが呼び出す共通の処理
  * @param {string} processName  ログに表示する処理名
- * @param {string} status       処理が開始's'なのか、終了'e'なのか
+ * @param {string} status       処理が開始's'なのか、終了'e'なのか、エラー'error'なのか
  */
 function log(processName, status) {
   //月ごとのフォルダを作成
@@ -14,6 +14,10 @@ function log(processName, status) {
   //status = e であるならば、終了を表示
   else if(status === 'e') {
     createFile(processName + '　終了', targetFolder);
+  }
+  //status = error であるならば、processNameとして渡されてきた文字列(エラーメッセージ)をそのまま出力
+  else if(status === 'error') {
+    createFile(processName, targetFolder);
   }
 }
 
