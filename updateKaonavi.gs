@@ -2103,10 +2103,10 @@ function updateKaonavi() {
                       "values": [ inhouseEnglishTestName ]
                     },
                     // 英語（社内テスト）_スコア
-                    // {
-                    //   "id" : languageSheetIdList['inhouseEnglishTestScore'],
-                    //   "values": [ inhouseEnglishTestScore ]
-                    // },
+                    {
+                      "id" : languageSheetIdList['inhouseEnglishTestScore'],
+                      "values": [ inhouseEnglishTestScore ]
+                    },
                     // 英語（社内テスト）_受験日
                     {
                       "id" : languageSheetIdList['inhouseEnglishTestDate'],
