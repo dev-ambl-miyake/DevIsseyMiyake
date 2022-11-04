@@ -443,7 +443,6 @@ function processing_tax_withoutholding_data(csv_data) {
 
     // csvの見出行を削除
     csv_data.shift();
-    csv_data.shift();
 
     // csvの不要列の削除
     for (let i = 0; i < csv_data.length; i++) {
@@ -620,6 +619,80 @@ function processing_tax_withoutholding_data(csv_data) {
       for (let i = 0; i < array.length; i++) {
         if(array[i][87] == "00"){
           array[i][87] = 0;
+        }
+      }
+
+      // 住宅控除区分(1回目)
+      for (let i = 0; i < array.length; i++) {
+        if(array[i][48] == "01"){
+          array[i][48] = "住";
+        } else if(array[i][48] == "02"){
+          array[i][48] = "認";
+        } else if(array[i][48] == "03"){
+          array[i][48] = "増";
+        } else if(array[i][48] == "04"){
+          array[i][48] = "震";
+        } else if(array[i][48] == "11"){
+          array[i][48] = "住(特)";
+        } else if(array[i][48] == "12"){
+          array[i][48] = "認(特)";
+        } else if(array[i][48] == "13"){
+          array[i][48] = "増(特)";
+        } else if(array[i][48] == "14"){
+          array[i][48] = "震(特)";
+        } else if(array[i][48] == "21"){
+          array[i][48] = "住(特)(特)";
+        } else if(array[i][48] == "22"){
+          array[i][48] = "認(特)(特)";
+        } else if(array[i][48] == "23"){
+          array[i][48] = "増(特)(特)";
+        } else if(array[i][48] == "24"){
+          array[i][48] = "震(特)(特)";
+        } else if(array[i][48] == "31"){
+          array[i][48] = "住(特)(特)(特)";
+        } else if(array[i][48] == "32"){
+          array[i][48] = "認(特)(特)(特)";
+        } else if(array[i][48] == "33"){
+          array[i][48] = "増(特)(特)(特)";
+        } else if(array[i][48] == "34"){
+          array[i][48] = "震(特)(特)(特)";
+        }
+      }
+
+      // 住宅控除区分(2回目)
+      for (let i = 0; i < array.length; i++) {
+        if(array[i][54] == "01"){
+          array[i][54] = "住";
+        } else if(array[i][54] == "02"){
+          array[i][54] = "認";
+        } else if(array[i][54] == "03"){
+          array[i][54] = "増";
+        } else if(array[i][54] == "04"){
+          array[i][54] = "震";
+        } else if(array[i][54] == "11"){
+          array[i][54] = "住(特)";
+        } else if(array[i][54] == "12"){
+          array[i][54] = "認(特)";
+        } else if(array[i][54] == "13"){
+          array[i][54] = "増(特)";
+        } else if(array[i][54] == "14"){
+          array[i][54] = "震(特)";
+        } else if(array[i][54] == "21"){
+          array[i][54] = "住(特)(特)";
+        } else if(array[i][54] == "22"){
+          array[i][54] = "認(特)(特)";
+        } else if(array[i][54] == "23"){
+          array[i][54] = "増(特)(特)";
+        } else if(array[i][54] == "24"){
+          array[i][54] = "震(特)(特)";
+        } else if(array[i][54] == "31"){
+          array[i][54] = "住(特)(特)(特)";
+        } else if(array[i][54] == "32"){
+          array[i][54] = "認(特)(特)(特)";
+        } else if(array[i][54] == "33"){
+          array[i][54] = "増(特)(特)(特)";
+        } else if(array[i][54] == "34"){
+          array[i][54] = "震(特)(特)(特)";
         }
       }
 
