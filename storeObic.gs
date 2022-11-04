@@ -438,7 +438,9 @@ function createCSV() {
     log(work + "[エラーログ]", "s");
     log(e.message, "error");
     log(work + "[エラーログ]", "e");
-    SpreadsheetApp.getUi().alert("OBIC用CSVの出力に失敗しました。");
+    if (!e.message.includes("スプレッドシート操作エラー")) {
+      SpreadsheetApp.getUi().alert("OBIC用CSVの出力に失敗しました。");
+    }
   }
 }
 

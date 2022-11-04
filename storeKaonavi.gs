@@ -2997,12 +2997,13 @@ function createMember() {
   　log(work, 'e');
 
     SpreadsheetApp.getUi().alert("カオナビへの社員情報登録が完了しました。");
-
   } catch(e) {
     log(work + "[エラーログ]", "s");
     log(e.message, "error");
     log(work + "[エラーログ]", "e");
-    SpreadsheetApp.getUi().alert("カオナビへの社員情報登録に失敗しました。");
+    if (!e.message.includes("スプレッドシート操作エラー")) {
+      SpreadsheetApp.getUi().alert("カオナビへの社員情報登録に失敗しました。");
+    }
   }
 }
 
