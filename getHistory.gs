@@ -38,6 +38,9 @@ function storeHistory(json) {
       // 更新対象社員選択_スプレッドシートの見出しの行番目を定義
       let headerLine = 8;
 
+      // 削除対象行を判別するためのループキー格納配列
+      var deleteKeyList = [];
+
       // 現在日時を起点とした2か月前の日付値を定義
       let twoMonthAgo = new Date();
       twoMonthAgo.setMonth(twoMonthAgo.getMonth() - 2);
@@ -47,9 +50,17 @@ function storeHistory(json) {
         var targetDate = new Date(sheetData[sdl][5]);
         var shrUpdatedDate = Utilities.formatDate(targetDate, 'Asia/Tokyo', 'yyyy/MM/dd HH:mm:ss');
 
-        // smartHR_更新日時と現在日時を比較し、2か月以上経過している行を削除
+        // smartHR_更新日時と現在日時を比較し、2か月以上経過している行情報が参照された時のループキーを配列に格納
         if (shrUpdatedDate < twoMonthsAgoDate) {
-          updateEmployeeSheet.deleteRow(headerLine + sdl + 1);
+          deleteKeyList.push(sdl);
+        }
+      }
+
+      // 削除対象が1件以上存在する場合、シートの一番下から行を削除
+      if (deleteKeyList.length > 0) {
+        deleteKeyList.reverse();
+        for (var deleteKey of deleteKeyList) {
+          updateEmployeeSheet.deleteRow(headerLine + deleteKey + 1);
         }
       }
     }
