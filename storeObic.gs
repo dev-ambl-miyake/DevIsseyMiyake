@@ -87,6 +87,7 @@ function createCSV() {
       var zipCode = employeesData[l]['address']['zip_code'];
       // 住所1
       var address1 = employeesData[l]['address']['pref'] + employeesData[l]['address']['city'] + employeesData[l]['address']['street'];
+      var convertedAddress1 = zenkana2Hankana(address1);
       // 住所2
       var address2 = employeesData[l]['address']['building'] ? employeesData[l]['address']['building'] : null;
       // 住所カナ
@@ -108,6 +109,7 @@ function createCSV() {
       var residentCardZipCode = employeesData[l]['resident_card_address'] ? employeesData[l]['resident_card_address']['zip_code'] : null;
       // 住民票住所1
       var residentCardAddress1 = employeesData[l]['resident_card_address'] ? employeesData[l]['resident_card_address']['pref'] + employeesData[l]['resident_card_address']['city'] + employeesData[l]['resident_card_address']['street'] : null;
+      var convertedResidentCardAddress1 = employeesData[l]['resident_card_address'] ? zenkana2Hankana(employeesData[l]['resident_card_address']['pref'] + employeesData[l]['resident_card_address']['city'] + employeesData[l]['resident_card_address']['street']) : null
       // 住民票住所2
       var residentCardAddress2 = employeesData[l]['resident_card_address']['building'] ? employeesData[l]['resident_card_address']['building'] : null;
       // 住民票住所カナ
@@ -129,7 +131,7 @@ function createCSV() {
       // 住民票区分
       if (residentCardAddress1) {
         // 住所・住民票住所の丁目番地までの文字列を照合
-        if (zenkana2Hankana(address1) == zenkana2Hankana(residentCardAddress1)) {
+        if (convertedAddress1 === convertedResidentCardAddress1) {
           var residentCardType = 1;
         } else {
           var residentCardType = 0;
@@ -560,9 +562,26 @@ function zenkana2Hankana(str) {
     "ッ": "ｯ", "ャ": "ｬ", "ュ": "ｭ", "ョ": "ｮ",
     "。": "｡", "、": "､", "ー": "ｰ", "「": "｢", "」": "｣", "・": "･"
   }
+
+  // 英数記号を変換
+  var convertedAlphanumericAndSymbol = str.replace(/[！-～]/g,
+    function( tmpStr ) {
+      // 文字コードをシフト
+      return String.fromCharCode( tmpStr.charCodeAt(0) - 0xFEE0 );
+    }
+  );
+  // 文字コードシフトで対応できない文字の変換
+  convertedAlphanumericAndSymbol.replace(/”/g, "\"")
+    .replace(/’/g, "'")
+    .replace(/‘/g, "`")
+    .replace(/￥/g, "\\")
+    .replace(/　/g, " ")
+    .replace(/〜/g, "~");
+
+  // 英数字以外を変換
   var reg = new RegExp('(' + Object.keys(kanaMap).join('|') + ')', 'g');
 
-  return str.replace(reg,
+  return convertedAlphanumericAndSymbol.replace(reg,
     function (match) {
       return kanaMap[match];
   }).replace(/゛/g, 'ﾞ').replace(/゜/g, 'ﾟ');
