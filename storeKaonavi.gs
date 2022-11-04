@@ -3077,26 +3077,18 @@ function createKaonaviEmployeeList(idList) {
 
   let responseList = [];
 
-  try{
-    for(var k = 0; k < idList.length; k++) {
-      // SmartHR_API 従業員_"取得"にリクエストを送信しレスポンスを取得
-      const response = UrlFetchApp.fetch('https://'+SubDomain+'.daruma.space/api/v1/crews/' + idList[k], params)
-      // レスポンスを文字列で取得
-      const responseBody = response.getContentText()
-      // jsonオブジェクトに変換
-      const json = JSON.parse(responseBody)
+  for(var k = 0; k < idList.length; k++) {
+    // SmartHR_API 従業員_"取得"にリクエストを送信しレスポンスを取得
+    const response = UrlFetchApp.fetch('https://'+SubDomain+'.daruma.space/api/v1/crews/' + idList[k], params)
+    // レスポンスを文字列で取得
+    const responseBody = response.getContentText()
+    // jsonオブジェクトに変換
+    const json = JSON.parse(responseBody)
 
-      responseList.push(json);
-    }
-
-    return responseList;
-
-  } catch(e) {
-    SpreadsheetApp.getUi().alert("smartHRからの社員情報データ取得に失敗しました。");
-    log(work + "[エラーログ]", "s");
-    log(e.message, "error");
-    log(work + "[エラーログ]", "e");
+    responseList.push(json);
   }
+
+  return responseList;
 }
 
 /**
