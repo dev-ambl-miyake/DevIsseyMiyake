@@ -88,7 +88,7 @@ function storeHistory(json) {
         }
         // 履歴データ[登録用]_スプレッドシートに対象の社員番号が存在しない場合
         else{
-          addHistoryData[i] = ["'" + json[i].emp_code, json[i].last_name, json[i].created_at, json[i].id];
+          addHistoryData[i] = ["'" + json[i].emp_code, json[i].last_name + json[i].first_name, json[i].created_at, json[i].id];
           storeHistorySheet.appendRow(addHistoryData[i]);
         }
       }
