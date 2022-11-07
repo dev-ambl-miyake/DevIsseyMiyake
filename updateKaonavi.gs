@@ -1123,23 +1123,35 @@ function updateKaonavi() {
             var telNumber = employeesData[l]['tel_number'];
 
             // 現住所
-            var zipCode = employeesData[l]['address']['zip_code'] ? employeesData[l]['address']['zip_code'] : null;
-            var pref = employeesData[l]['address']['pref'] ? employeesData[l]['address']['pref'] : null;
-            var city = employeesData[l]['address']['city'] ? employeesData[l]['address']['city'] : null;
-            var street = employeesData[l]['address']['street'] ? employeesData[l]['address']['street'] : null;
-            var building = employeesData[l]['address']['building'] ? employeesData[l]['address']['building'] : null;
-            var countryNumber = employeesData[l]['address']['country_number'] ? employeesData[l]['address']['country_number'] : null;
+            var zipCode = employeesData[l]['address'] ? employeesData[l]['address']['zip_code'] : null;
+            var pref = employeesData[l]['address'] ? employeesData[l]['address']['pref'] : null;
+            var city = employeesData[l]['address'] ? employeesData[l]['address']['city'] : null;
+            var street = employeesData[l]['address'] ? employeesData[l]['address']['street'] : null;
+            if (employeesData[l]['address'] && employeesData[l]['address']['building']) {
+              var building = employeesData[l]['address']['building'];
+            } else {
+              var building = null;
+            }
+            if (employeesData[l]['address'] && employeesData[l]['address']['country_number']) {
+              var countryNumber = employeesData[l]['address']['country_number'];
+            } else {
+              var countryNumber = null;
+            }
 
             // 緊急連絡先
             var emergencyRelationName = employeesData[l]['emergency_relation_name'];
             var emergencyName = employeesData[l]['emergency_last_name'] + "　" +  employeesData[l]['emergency_first_name'];
             var emergencyNameKana = employeesData[l]['emergency_last_name_yomi'] + "　" +  employeesData[l]['emergency_first_name_yomi'];
             var emergencyTelNumber = employeesData[l]['emergency_tel_number'];
-            var emergencyAddressZipcode = employeesData[l]['emergency_address']['zip_code'] ? employeesData[l]['emergency_address']['zip_code'] : null;
-            var emergencyAddressPref = employeesData[l]['emergency_address']['pref'] ? employeesData[l]['emergency_address']['pref'] : null;
-            var emergencyAddressCity = employeesData[l]['emergency_address']['city'] ? employeesData[l]['emergency_address']['city'] : null;
-            var emergencyAddressStreet = employeesData[l]['emergency_address']['street'] ? employeesData[l]['emergency_address']['street'] : null;
-            var emergencyAddressBuilding = employeesData[l]['emergency_address']['building'] ? employeesData[l]['emergency_address']['building'] : null;
+            var emergencyAddressZipcode = employeesData[l]['emergency_address'] ? employeesData[l]['emergency_address']['zip_code'] : null;
+            var emergencyAddressPref = employeesData[l]['emergency_address'] ? employeesData[l]['emergency_address']['pref'] : null;
+            var emergencyAddressCity = employeesData[l]['emergency_address'] ? employeesData[l]['emergency_address']['city'] : null;
+            var emergencyAddressStreet = employeesData[l]['emergency_address'] ? employeesData[l]['emergency_address']['street'] : null;
+            if (employeesData[l]['emergency_address'] && employeesData[l]['emergency_address']['building']) {
+              var emergencyAddressBuilding = employeesData[l]['emergency_address']['building'];
+            } else {
+              var emergencyAddressBuilding = null;
+            }
 
             // 銀行口座
             var bankCode = employeesData[l]['bank_accounts'] ? employeesData[l]['bank_accounts'][0]['bank_code'] : null;
@@ -1727,7 +1739,11 @@ function updateKaonavi() {
                 familyData[efl+1]['familyPref'] = employeeFamilyData[efl]['address'] ? employeeFamilyData[efl]['address']['pref'] : null;
                 familyData[efl+1]['familyCity'] = employeeFamilyData[efl]['address'] ? employeeFamilyData[efl]['address']['city'] : null;
                 familyData[efl+1]['familyStreet'] = employeeFamilyData[efl]['address'] ? employeeFamilyData[efl]['address']['street'] : null;
-                familyData[efl+1]['familyBuilding'] = employeeFamilyData[efl]['address'] ? employeeFamilyData[efl]['address']['building'] : null;
+                if (employeeFamilyData[efl]['address'] && employeeFamilyData[efl]['address']['building']) {
+                  familyData[efl+1]['familyBuilding'] = employeeFamilyData[efl]['address']['building'];
+                } else {
+                  familyData[efl+1]['familyBuilding'] = null;
+                }
               }
               familyData[efl+1]['familyTelNumber'] = employeeFamilyData[efl]['tel_number'];
             }

@@ -92,10 +92,18 @@ function updateObic() {
             var address1 = employeesData[l]['address']['pref'] + employeesData[l]['address']['city'] + employeesData[l]['address']['street'];
             var convertedAddress1 = zenkana2Hankana(address1);
             // 住所2
-            var address2 = employeesData[l]['address']['building'] ? employeesData[l]['address']['building'] : null;
+            if (employeesData[l]['address'] && employeesData[l]['address']['building']) {
+              var address2 = employeesData[l]['address']['building'];
+            } else {
+              var address2 = null;
+            }
             // 住所カナ
             // 50文字までは住所カナ1、51文字～は住所カナ2にセット
-            var addressKana = employeesData[l]['address']['literal_yomi'] ? zenkana2Hankana(employeesData[l]['address']['literal_yomi']) : null
+            if (employeesData[l]['address'] && employeesData[l]['address']['literal_yomi']) {
+              var addressKana = zenkana2Hankana(employeesData[l]['address']['literal_yomi']);
+            } else {
+              var addressKana = null;
+            }
             if (addressKana) {
               if (addressKana.length > 50) {
                 var addressKana1 = addressKana.substring(0, 50);
@@ -114,10 +122,19 @@ function updateObic() {
             var residentCardAddress1 = employeesData[l]['resident_card_address'] ? employeesData[l]['resident_card_address']['pref'] + employeesData[l]['resident_card_address']['city'] + employeesData[l]['resident_card_address']['street'] : null;
             var convertedResidentCardAddress1 = employeesData[l]['resident_card_address'] ? zenkana2Hankana(employeesData[l]['resident_card_address']['pref'] + employeesData[l]['resident_card_address']['city'] + employeesData[l]['resident_card_address']['street']) : null
             // 住民票住所2
-            var residentCardAddress2 = employeesData[l]['resident_card_address']['building'] ? employeesData[l]['resident_card_address']['building'] : null;
+            if (employeesData[l]['resident_card_address'] && employeesData[l]['resident_card_address']['building']) {
+              var residentCardAddress2 = employeesData[l]['resident_card_address']['building'];
+            } else {
+              var residentCardAddress2 = null;
+              convertedResidentCardAddress2 = null;
+            }
             // 住民票住所カナ
             // 50文字までは住所カナ1、51文字～は住所カナ2にセット
-            var residentCardAddressKana = employeesData[l]['resident_card_address']['literal_yomi'] ? zenkana2Hankana(employeesData[l]['resident_card_address']['literal_yomi']) : null;
+            if (employeesData[l]['resident_card_address'] && employeesData[l]['resident_card_address']['literal_yomi']) {
+              var residentCardAddressKana = zenkana2Hankana(employeesData[l]['resident_card_address']['literal_yomi']);
+            } else {
+              var residentCardAddressKana = null;
+            }
             if (residentCardAddressKana) {
               if (residentCardAddressKana.length > 50) {
                 var residentCardAddressKana1 = residentCardAddressKana.substring(0, 50);
@@ -189,15 +206,19 @@ function updateObic() {
               // 同居の場合、対象社員の現住所を登録
               if (familyApiData[fl]['live_together_type'] == "living_together") {
                 extractedFamilyDataList[fl]['liveTogetherType'] = 1;
-                extractedFamilyDataList[fl]['zipCode'] = employeesData[l]['address']['zip_code'];
-                extractedFamilyDataList[fl]['address1'] = employeesData[l]['address']['pref'] + employeesData[l]['address']['city'] + employeesData[l]['address']['street'];
-                extractedFamilyDataList[fl]['address2'] = employeesData[l]['address']['building'];
+                extractedFamilyDataList[fl]['zipCode'] = zipCode;
+                extractedFamilyDataList[fl]['address1'] = address1;
+                extractedFamilyDataList[fl]['address2'] = address2;
               // 別居の場合、別居先住所を登録、登録が無ければブランク
               } else {
                 extractedFamilyDataList[fl]['liveTogetherType'] = 0;
-                extractedFamilyDataList[fl]['zipCode'] = familyApiData[fl]['address']['zip_code'];
-                extractedFamilyDataList[fl]['address1'] = familyApiData[fl]['address']['pref'] + familyApiData[fl]['address']['city'] + familyApiData[fl]['address']['street'];
-                extractedFamilyDataList[fl]['address2'] = familyApiData[fl]['address']['building'];
+                extractedFamilyDataList[fl]['zipCode'] = familyApiData[fl]['address'] ? familyApiData[fl]['address']['zip_code'] : null;
+                extractedFamilyDataList[fl]['address1'] = familyApiData[fl]['address'] ? familyApiData[fl]['address']['pref'] + familyApiData[fl]['address']['city'] + familyApiData[fl]['address']['street'] : null;
+                if (familyApiData[fl]['address'] && familyApiData[fl]['address']['building']) {
+                  extractedFamilyDataList[fl]['address2'] = familyApiData[fl]['address']['building'];
+                } else {
+                  extractedFamilyDataList[fl]['address2'] = null;
+                }
               }
             }
 
