@@ -982,6 +982,7 @@ function callShrEmployeeListApi() {
   // SmartHR_API 環境値
   const AccessToken = getProperties("ACCESS_TOKEN");  //smartHRのアクセストークン
   const SubDomain = getProperties("SUB_DOMAIN");  //smartHRのサブドメイン
+  const employeeListPerPage = 100;
 
   // HTTPリクエストヘッダーの作成
   const headers = {
@@ -996,7 +997,7 @@ function callShrEmployeeListApi() {
   }
 
   // SmartHR_API 従業員_"リストの取得"にリクエストを送信しレスポンスを取得
-  const response = UrlFetchApp.fetch('https://' + SubDomain + '.daruma.space/api/v1/crews?page=1' + '&per_page=' + PER_PAGE, params);
+  const response = UrlFetchApp.fetch('https://' + SubDomain + '.daruma.space/api/v1/crews?sort=-updated_at&page=1' + '&per_page=' + employeeListPerPage, params);
 
   // レスポンスを文字列で取得
   const responseBody = response.getContentText();
