@@ -609,6 +609,13 @@ function changeDataToKaonavi(csv_data,operation_type) {
       csv_data[i][2] = csv_data[i][2].replace(/\//g, '-');
     }
 
+    // レベル名
+    for (let i = 0; i < csv_data.length; i++) {
+      var delete_str = csv_data[i][15].slice(0,3); //文字列の最初から3文字目まで切り出す
+      csv_data[i][15] = csv_data[i][15].replace(delete_str, "");
+      console.log(csv_data[i][15]);
+    }
+
     // 「グレードレベル（G）変更、グレードレベル（L）変更」発令コード抽出
     csv_grade_data = [];
     for (let i = 0; i < csv_data.length; i++) {

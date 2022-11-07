@@ -96,6 +96,14 @@ function changeDataToSHR(csv_data,operation_type) {
         csv_data[i][9] = '専門職';
       }
     }
+
+    // レベル
+    for (let i = 0; i < csv_data.length; i++) {
+      var delete_str = csv_data[i][11].slice(0,3); //文字列の最初から3文字目まで切り出す
+      csv_data[i][11] = csv_data[i][11].replace(delete_str, "");
+      console.log(csv_data[i][11]);
+    }
+
   }else if(operation_type == 3.2){
     // csv_data.shift(); //見出し行の削除
     // 文字加工

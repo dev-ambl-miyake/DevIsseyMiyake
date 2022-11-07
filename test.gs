@@ -1,60 +1,9 @@
 function myFunction() {
-// 取得APIをグローバル変数で管理
-//何ページ分取得するか（登録されている社員数に依存する）
-var LAST_PAGE = 2;
-//1ページ最大100件まで
-var PER_PAGE = 100;
-
-// SmartHRのアクセストークンとサブドメインの宣言
-const ACCESS_TOKEN = getProperties("ACCESS_TOKEN");
-const SUB_DOMAIN = getProperties("SUB_DOMAIN");
-
-// 雇用形態のリストをAPIで取得
-var dep_response = 
-"https://"+SUB_DOMAIN+".daruma.space/api/v1/departments?page="+"1"+"&per_page="+"100"+"&access_token="+ACCESS_TOKEN;
-var dep_responseBody = UrlFetchApp.fetch(dep_response).getContentText();
-// 雇用形態のJsonリスト
-var dep_json = JSON.parse(dep_responseBody);
-console.log(dep_json);  
-  // Logger.log(newArray);
-// const member_sheets_api = kaonaviMemberSheetsApi(); // カオナビの基本情報シート情報
-// const member_custom_list = member_sheets_api['custom_fields']; // カオナビの基本情報シートカスタム項目リスト
-
-// console.log(member_sheets_api);
-
-// const department_api = kaonaviDepartmentApi(); // カオナビの所属ツリーAPI
-// var department_list = department_api['department_data'];
-
-// log(JSON.stringify(department_list),'s');
-
-// var str1 = '(総)品質管理';
-// var str2 = '(販)販売';
-// var str3 = '(専)技術';
-
-// str2 = str2.substring(0, 3);
-// console.log(str2);
-
-// for (let i = 0; i < department_list.length; i++) {
-//   if(department_list[i]['name'] == 'IM 新宿伊勢丹'){
-//     console.log('IM 新宿伊勢丹');
-//   }
-// }
-
-
-
-// 取得APIを取得
-// const employees_api = kaonaviMemberApi(); // カオナビの全従業員情報API
-// const member_list = employees_api['member_data']; // カオナビの全従業員情報リスト
-
-// const sheets_api = kaonaviSheetsApi(); // カオナビの全シート情報
-// const sheets_list = sheets_api['sheets']; // カオナビの全シート情報
-
-// for (let i = 0; i < sheets_list.length; i++) {
-//   if(sheets_list[i]['name'] == '通勤経路'){
-//     traffic_list = sheets_list[i]['custom_fields'];
-//   }
-// }
-// log(JSON.stringify(department_api, null, 5),'s');
+var str = '(2)15';
+var str1 = str.slice(0,3); //文字列の最初から1文字目まで切り出す
+console.log(str1);
+str = str.replace(str1, "");
+console.log(str);
 }
 
 

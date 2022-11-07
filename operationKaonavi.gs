@@ -226,7 +226,6 @@ function kaonaviSheetsUpdateApi(sheets_id,member_data) {
     method: 'patch', // 一括更新
     muteHttpExceptions : true,
   };
-  console.log(payload);
 
   //APIからの返答
   let response = UrlFetchApp.fetch(apiUrl, apiOptions).getContentText();
