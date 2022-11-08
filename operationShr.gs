@@ -974,15 +974,19 @@ function updateShrEmployee(id,processed_data,operation_type) {
 }
 
 /**
- * SmartHR_API "従業員-リストの取得"にリクエストを送信し、全従業員情報を一覧取得する
+ * SmartHR_API "従業員-リストの取得"にリクエストを送信し、
+ * 更新日時の降順でソートし、履歴データ出力のための元データとして1000人分の社員情報を取得する
  * 
- * return json
+ * return [array] employeeList
  */
 function callShrEmployeeListApi() {
   // SmartHR_API 環境値
   const AccessToken = getProperties("ACCESS_TOKEN");  //smartHRのアクセストークン
   const SubDomain = getProperties("SUB_DOMAIN");  //smartHRのサブドメイン
-  const employeeListPerPage = 100;
+
+  // 1000人分取得するためのAPIオプション値
+  const pageCount = 10;
+  const getCount = 100;
 
   // HTTPリクエストヘッダーの作成
   const headers = {
@@ -996,16 +1000,25 @@ function callShrEmployeeListApi() {
     'headers' : headers  //HTTPリクエストヘッダー
   }
 
+  var employeeList = [];
+
   // SmartHR_API 従業員_"リストの取得"にリクエストを送信しレスポンスを取得
-  const response = UrlFetchApp.fetch('https://' + SubDomain + '.daruma.space/api/v1/crews?sort=-updated_at&page=1' + '&per_page=' + employeeListPerPage, params);
+  for (var page = 1; page <= pageCount; page++) {
+    const response = UrlFetchApp.fetch('https://' + SubDomain + '.daruma.space/api/v1/crews?sort=-updated_at&page=' + page + '&per_page=' + getCount, params);
 
-  // レスポンスを文字列で取得
-  const responseBody = response.getContentText();
+    // レスポンスを文字列で取得
+    const responseBody = response.getContentText();
+    // jsonオブジェクトに変換
+    const json = JSON.parse(responseBody);
 
-  // jsonオブジェクトに変換
-  const json = JSON.parse(responseBody);
+    if (json.length > 0) {
+      for (var employeeCount = 0; employeeCount < json.length; employeeCount++) {
+        employeeList.push(json[employeeCount]);
+      }
+    }
+  }
 
-  return json;
+  return employeeList;
 }
 
 /**
