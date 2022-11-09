@@ -613,7 +613,6 @@ function changeDataToKaonavi(csv_data,operation_type) {
     for (let i = 0; i < csv_data.length; i++) {
       var delete_str = csv_data[i][15].slice(0,3); //文字列の最初から3文字目まで切り出す
       csv_data[i][15] = csv_data[i][15].replace(delete_str, "");
-      console.log(csv_data[i][15]);
     }
 
     // 「グレードレベル（G）変更、グレードレベル（L）変更」発令コード抽出
@@ -624,6 +623,44 @@ function changeDataToKaonavi(csv_data,operation_type) {
       }
     }
     csv_data = csv_grade_data;
+  }else if(operation_type == 3.7){
+    csv_data.shift(); //見出し行の削除
+    // 社員コード（4桁→5桁）
+    for (let i = 0; i < csv_data.length; i++) {
+      csv_data[i][0] = '0'+ csv_data[i][0];
+    }
+    // 所属名が空のものを削除
+    for (let i = 0; i < csv_data.length; i++) {
+      if(csv_data[i][6] == ''){
+          csv_data.splice(i,1); 
+          i = i - 1;
+      }
+    }
+    // 本務レコード区分名が「退職」「休職・復職」の行削除
+    for (let i = 0; i < csv_data.length; i++) {
+      if(csv_data[i][3] == '退職' || csv_data[i][3] == '休職・復職'){
+          csv_data.splice(i,1); 
+          i = i - 1;
+      }
+    }
+    // 不要発令コード行削除
+    for (let i = 0; i < csv_data.length; i++) {
+      if(no_proclamation.includes(csv_data[i][4])){
+          csv_data.splice(i,1); 
+          i = i - 1;
+      }
+    }
+    // 発令日（yyyy/mm/dd → yyyy-mm-dd）
+    for (let i = 0; i < csv_data.length; i++) {
+      csv_data[i][2] = csv_data[i][2].replace(/\//g, '-');
+    }
+    // 兼務コード行削除
+    for (let i = 0; i < csv_data.length; i++) {
+      if(kenmu_proclamation.includes(csv_data[i][4])){
+          csv_data.splice(i,1); 
+          i = i - 1;
+      }
+    }
   }
   return csv_data
 }
@@ -956,9 +993,33 @@ function mergeRecord(emp_data,sub_emp_data,sheet_name) {
         if(join_sec.includes(all_kenmu_array[0][5])){
           var old_ago_day = '';
         } else {
-          var old_ago_day = new Date(all_kenmu_array[0][2]);
-          old_ago_day.setDate(old_ago_day.getDate()-1);
-          old_ago_day = Utilities.formatDate(old_ago_day, 'Asia/Tokyo', 'yyyy-MM-dd')
+          let csv_main_dep_pos_history = import_csv(operation_type = 3.5);
+          let kaonavi_honmu_keireki_dep_pos_data = changeDataToKaonavi(csv_main_dep_pos_history, operation_type = 3.7);
+              // レコードの発令日より新しい発令をまとめて、その中で一番古い発令の前日を代入する
+          var dep_pos_end_list = [];
+          for (let i = 0; i < kaonavi_honmu_keireki_dep_pos_data.length; i++) {
+            var old_ago_day = new Date(all_kenmu_array[0][2]);
+            var old_end_day = new Date(kaonavi_honmu_keireki_dep_pos_data[i][2]);
+
+            if(old_ago_day.getTime() < old_end_day.getTime() && all_kenmu_array[0][0] == kaonavi_honmu_keireki_dep_pos_data[i][0]){
+              dep_pos_end_list.push(kaonavi_honmu_keireki_dep_pos_data[i]);
+              dep_pos_end_list.sort(function(a, b) {
+                return new Date(b[2]) - new Date(a[2]);
+              });
+            }
+          }
+          for(let y = 0; dep_pos_end_list.length > 1; y++){
+            if(dep_pos_end_list.length > 1){
+              dep_pos_end_list.shift();
+            }
+          }
+          if(typeof(dep_pos_end_list[0]) === "undefined"){
+            var dep_pos_end_date = '';
+          } else{
+            var dep_pos_end_date = new Date(dep_pos_end_list[0][2]);
+            dep_pos_end_date.setDate(dep_pos_end_date.getDate()-1);
+            dep_pos_end_date = Utilities.formatDate(dep_pos_end_date, 'Asia/Tokyo', 'yyyy-MM-dd');
+          }
         }
         for (let i = 0; i < sheets_list.length; i++) {
           if(sheets_list[i]['name'] == '所属・役職履歴'){
@@ -1137,7 +1198,7 @@ function mergeRecord(emp_data,sub_emp_data,sheet_name) {
             // 配属終了日
             {
               id : plo_end_date_id,
-              values : [old_ago_day]
+              values : [dep_pos_end_date]
             },
             // 本務所属履歴
             {
@@ -1197,9 +1258,33 @@ function mergeRecord(emp_data,sub_emp_data,sheet_name) {
         if(join_sec.includes(all_kenmu_array[0][5])){
           var old_ago_day = '';
         } else {
-          var old_ago_day = new Date(all_kenmu_array[0][2]);
-          old_ago_day.setDate(old_ago_day.getDate()-1);
-          old_ago_day = Utilities.formatDate(old_ago_day, 'Asia/Tokyo', 'yyyy-MM-dd')
+          let csv_main_dep_history = import_csv(operation_type = 3.5);
+          let kaonavi_honmu_keireki_dep_data = changeDataToKaonavi(csv_main_dep_history, operation_type = 3.7);
+              // レコードの発令日より新しい発令をまとめて、その中で一番古い発令の前日を代入する
+          var dep_end_list = [];
+          for (let i = 0; i < kaonavi_honmu_keireki_dep_data.length; i++) {
+            var old_ago_day = new Date(all_kenmu_array[0][2]);
+            var old_end_day = new Date(kaonavi_honmu_keireki_dep_data[i][2]);
+
+            if(old_ago_day.getTime() < old_end_day.getTime() && all_kenmu_array[0][0] == kaonavi_honmu_keireki_dep_data[i][0]){
+              dep_end_list.push(kaonavi_honmu_keireki_dep_data[i]);
+              dep_end_list.sort(function(a, b) {
+                return new Date(b[2]) - new Date(a[2]);
+              });
+            }
+          }
+          for(let y = 0; dep_end_list.length > 1; y++){
+            if(dep_end_list.length > 1){
+              dep_end_list.shift();
+            }
+          }
+          if(typeof(dep_end_list[0]) === "undefined"){
+            var dep_end_date = '';
+          } else{
+            var dep_end_date = new Date(dep_end_list[0][2]);
+            dep_end_date.setDate(dep_end_date.getDate()-1);
+            dep_end_date = Utilities.formatDate(dep_end_date, 'Asia/Tokyo', 'yyyy-MM-dd');
+          }
         }
         for (let i = 0; i < sheets_list.length; i++) {
           if(sheets_list[i]['name'] == '配属履歴'){
@@ -1312,7 +1397,7 @@ function mergeRecord(emp_data,sub_emp_data,sheet_name) {
             // 配属終了日
             {
               id : plo_end_date_id,
-              values : [old_ago_day]
+              values : [dep_end_date]
             },
             // 本務所属履歴
             {
@@ -1347,9 +1432,33 @@ function mergeRecord(emp_data,sub_emp_data,sheet_name) {
         if(join_sec.includes(all_kenmu_array[0][5])){
           var old_ago_day = '';
         } else {
-          var old_ago_day = new Date(all_kenmu_array[0][2]);
-          old_ago_day.setDate(old_ago_day.getDate()-1);
-          old_ago_day = Utilities.formatDate(old_ago_day, 'Asia/Tokyo', 'yyyy-MM-dd')
+          let csv_main_pos_history = import_csv(operation_type = 3.5);
+          let kaonavi_honmu_keireki_pos_data = changeDataToKaonavi(csv_main_pos_history, operation_type = 3.7);
+              // レコードの発令日より新しい発令をまとめて、その中で一番古い発令の前日を代入する
+          var pos_end_list = [];
+          for (let i = 0; i < kaonavi_honmu_keireki_pos_data.length; i++) {
+            var old_ago_day = new Date(all_kenmu_array[0][2]);
+            var old_end_day = new Date(kaonavi_honmu_keireki_pos_data[i][2]);
+
+            if(old_ago_day.getTime() < old_end_day.getTime() && all_kenmu_array[0][0] == kaonavi_honmu_keireki_pos_data[i][0]){
+              pos_end_list.push(kaonavi_honmu_keireki_pos_data[i]);
+              pos_end_list.sort(function(a, b) {
+                return new Date(b[2]) - new Date(a[2]);
+              });
+            }
+          }
+          for(let y = 0; pos_end_list.length > 1; y++){
+            if(pos_end_list.length > 1){
+              pos_end_list.shift();
+            }
+          }
+          if(typeof(pos_end_list[0]) === "undefined"){
+            var pos_end_date = '';
+          } else{
+            var pos_end_date = new Date(pos_end_list[0][2]);
+            pos_end_date.setDate(pos_end_date.getDate()-1);
+            pos_end_date = Utilities.formatDate(pos_end_date, 'Asia/Tokyo', 'yyyy-MM-dd');
+          }
         }
         for (let i = 0; i < sheets_list.length; i++) {
           if(sheets_list[i]['name'] == '役職履歴'){
@@ -1462,7 +1571,7 @@ function mergeRecord(emp_data,sub_emp_data,sheet_name) {
             // 配属終了日
             {
               id : plo_end_date_id,
-              values : [old_ago_day]
+              values : [pos_end_date]
             },
             // 本務所属履歴
             {
