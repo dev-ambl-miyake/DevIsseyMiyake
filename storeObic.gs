@@ -42,11 +42,11 @@ function createCSV() {
 
       /* 社員基本 */
       // 氏名
-      var name = employeesData[l]['last_name'] + " " + employeesData[l]['first_name'];
+      var name = employeesData[l]['last_name'] + "　" + employeesData[l]['first_name'];
       // 氏名カナ
       var nameKana = zenkana2Hankana(employeesData[l]['last_name_yomi'] + " " + employeesData[l]['first_name_yomi']);
       // 旧氏名
-      var businessName = employeesData[l]['business_last_name'] + " " + employeesData[l]['business_first_name'];
+      var businessName = employeesData[l]['business_last_name'] + "　" + employeesData[l]['business_first_name'];
       // 旧氏名カナ
       if (!employeesData[l]['business_last_name_yomi'] && !employeesData[l]['business_first_name_yomi']) {
         var businessNameKana = null;
