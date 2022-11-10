@@ -1,3 +1,10 @@
+/**
+ * 変更申請_SmartHRからOBICへの社員情報連携更新処理
+ * 
+ * 更新対象社員選択_スプレッドシートで選択された社員情報と、
+ * SmartHRに登録されている社員情報の社員番号を参照値として照合し、
+ * 一致した社員情報をSmartHR_APIより取得しOBIC取り込み用CSVファイルとして出力する
+ */
 function updateObic() {
   try {
     var work = "変更申請_OBIC連携登録";
@@ -45,11 +52,11 @@ function updateObic() {
 
             /* 社員基本 */
             // 氏名
-            var name = employeesData[l]['last_name'] + " " + employeesData[l]['first_name'];
+            var name = employeesData[l]['last_name'] + "　" + employeesData[l]['first_name'];
             // 氏名カナ
             var nameKana = zenkana2Hankana(employeesData[l]['last_name_yomi'] + " " + employeesData[l]['first_name_yomi']);
             // 旧氏名
-            var businessName = employeesData[l]['business_last_name'] + " " + employeesData[l]['business_first_name'];
+            var businessName = employeesData[l]['business_last_name'] + "　" + employeesData[l]['business_first_name'];
             // 旧氏名カナ
             if (!employeesData[l]['business_last_name_yomi'] && !employeesData[l]['business_first_name_yomi']) {
               var businessNameKana = null;
