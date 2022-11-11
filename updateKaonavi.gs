@@ -427,7 +427,7 @@ function proclamationKaonaviMain() {
     // 成功メールを送信
     sendMail(work);
     // 終了ログ
-    log('発令' + 'エラー内容：'+e.message, 'e');
+    log('発令' , 'e');
   }catch(e){
     // メール本文に記載するエラー内容
     var error_message = 'エラー内容：'+e.message;
