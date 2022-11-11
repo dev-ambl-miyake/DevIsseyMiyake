@@ -708,6 +708,7 @@ function createRecord(emp_data,sub_emp_data,sheet_name) {
   } else {
     // 社員番号一致している配列を1レコードづつループさせる
     for(let i = 0; i < emp_data.length; i++){
+      var ploclamation_date = emp_data[i][2];
       // 本務情報に兼務情報が結合された一次元配列を返す
       if(emp_data[i][3] == '本務' || emp_data[i][3] == '出向'){
         merge_data = mergeRecord(emp_data[i],sub_emp_data,sheet_name);
@@ -737,6 +738,11 @@ function createRecord(emp_data,sub_emp_data,sheet_name) {
             connect_data.shift();
           }
         }
+        if(typeof(connect_data[0] === "undefined")){
+          continue;
+        } else{
+          connect_data[0][2] = ploclamation_date; // 発令日の起点を兼務レコードに合わせる
+        }
         merge_data = mergeRecord(connect_data[0],sub_emp_data,sheet_name);
       }
       custom_array.push(merge_data);
@@ -749,7 +755,6 @@ function createRecord(emp_data,sub_emp_data,sheet_name) {
     code : emp_data[0][0],
     records : custom_array,
   }
-  
   return  JSON.stringify(dep_payload)
 
 }
