@@ -33,11 +33,7 @@ function updateObic() {
           const employeesData = getEmployeeList(employeeCodeList);
 
           // OBIC連携登録CSV出力_データ格納用配列変数
-          let baseDataList = [];
-          let addressDataList = [];
           let familyDataList = [];
-          let taxDataList = [];
-          let insuranceDataList = [];
           let bankDataList = [];
 
           // 連携登録対象の人数分、各CSVファイルを出力
@@ -46,126 +42,19 @@ function updateObic() {
             let familyApiData = callShrFamilyApi(employeesData[l]['id']);
 
             // 加工が必要な項目
-            /* 共通 */
             // 社員番号
             var employeeCode = employeesData[l]['emp_code'].substring(1, 5);
-
-            /* 社員基本 */
             // 氏名
             var name = employeesData[l]['last_name'] + "　" + employeesData[l]['first_name'];
-            // 氏名カナ
-            var nameKana = zenkana2Hankana(employeesData[l]['last_name_yomi'] + " " + employeesData[l]['first_name_yomi']);
-            // 旧氏名
-            var businessName = employeesData[l]['business_last_name'] + "　" + employeesData[l]['business_first_name'];
-            // 旧氏名カナ
-            if (!employeesData[l]['business_last_name_yomi'] && !employeesData[l]['business_first_name_yomi']) {
-              var businessNameKana = null;
-            } else if (employeesData[l]['business_last_name_yomi'] && employeesData[l]['business_first_name_yomi']) {
-              var businessNameKana = zenkana2Hankana(employeesData[l]['business_last_name_yomi'] + " " + employeesData[l]['business_first_name_yomi']);
-            } else {
-              var businessNameKana = zenkana2Hankana(employeesData[l]['business_last_name_yomi'] + employeesData[l]['business_first_name_yomi']);
-            }
-            // 呼称適用
-            // 氏名・ビジネスネーム両方が登録されていて、氏名とビジネスネームが一致している場合0 一致していなければ1
-            if (employeesData[l]['business_last_name'] && employeesData[l]['business_first_name']) {
-              if (name == businessName) {
-                var naming = 0;
-              } else {
-                var naming = 1;
-              }
-            // 氏名のみ登録されている場合
-            } else {
-              var naming = 0;
-            }
-            // 性別区分
-            if (employeesData[l]['gender'] == "male") {
-              var gender = 1;
-            } else if (employeesData[l]['gender'] == "female") {
-              var gender = 2;
-            }
-            // 生年月日
-            var birthDate = employeesData[l]['birth_at'].replace(/-/g, '/');
-            // 入社年月日
-            var enteredDate = employeesData[l]['entered_at'] ? employeesData[l]['entered_at'].replace(/-/g, '/') : null;  // ハイフンをスラッシュに変換
-            // 電話番号
-            var telNumber = employeesData[l]['tel_number'] ? employeesData[l]['tel_number'] : null;
-            // メールアドレス
-            var email = employeesData[l]['email'] ? employeesData[l]['email'] : null;
-
-            /* 住所 */
             // 郵便番号(現住所)
             var zipCode = employeesData[l]['address']['zip_code'];
             // 住所1
             var address1 = employeesData[l]['address']['pref'] + employeesData[l]['address']['city'] + employeesData[l]['address']['street'];
-            var convertedAddress1 = zenkana2Hankana(address1);
             // 住所2
             if (employeesData[l]['address'] && employeesData[l]['address']['building']) {
               var address2 = employeesData[l]['address']['building'];
             } else {
               var address2 = null;
-            }
-            // 住所カナ
-            // 50文字までは住所カナ1、51文字～は住所カナ2にセット
-            if (employeesData[l]['address'] && employeesData[l]['address']['literal_yomi']) {
-              var addressKana = zenkana2Hankana(employeesData[l]['address']['literal_yomi']);
-            } else {
-              var addressKana = null;
-            }
-            if (addressKana) {
-              if (addressKana.length > 50) {
-                var addressKana1 = addressKana.substring(0, 50);
-                var addressKana2 = addressKana.substring(50);
-              } else {
-                var addressKana1 = addressKana;
-                var addressKana2 = "";
-              }
-            } else {
-              var addressKana1 = null;
-              var addressKana2 = null;
-            }
-            // 郵便番号(住民票住所)
-            var residentCardZipCode = employeesData[l]['resident_card_address'] ? employeesData[l]['resident_card_address']['zip_code'] : null;
-            // 住民票住所1
-            var residentCardAddress1 = employeesData[l]['resident_card_address'] ? employeesData[l]['resident_card_address']['pref'] + employeesData[l]['resident_card_address']['city'] + employeesData[l]['resident_card_address']['street'] : null;
-            var convertedResidentCardAddress1 = employeesData[l]['resident_card_address'] ? zenkana2Hankana(employeesData[l]['resident_card_address']['pref'] + employeesData[l]['resident_card_address']['city'] + employeesData[l]['resident_card_address']['street']) : null
-            // 住民票住所2
-            if (employeesData[l]['resident_card_address'] && employeesData[l]['resident_card_address']['building']) {
-              var residentCardAddress2 = employeesData[l]['resident_card_address']['building'];
-            } else {
-              var residentCardAddress2 = null;
-              convertedResidentCardAddress2 = null;
-            }
-            // 住民票住所カナ
-            // 50文字までは住所カナ1、51文字～は住所カナ2にセット
-            if (employeesData[l]['resident_card_address'] && employeesData[l]['resident_card_address']['literal_yomi']) {
-              var residentCardAddressKana = zenkana2Hankana(employeesData[l]['resident_card_address']['literal_yomi']);
-            } else {
-              var residentCardAddressKana = null;
-            }
-            if (residentCardAddressKana) {
-              if (residentCardAddressKana.length > 50) {
-                var residentCardAddressKana1 = residentCardAddressKana.substring(0, 50);
-                var residentCardAddressKana2 = residentCardAddressKana.substring(50);
-              } else {
-                var residentCardAddressKana1 = residentCardAddressKana;
-                var residentCardAddressKana2 = "";
-              }
-            } else {
-              var residentCardAddressKana1 = null;
-              var residentCardAddressKana2 = null;
-            }
-
-            // 住民票区分
-            if (residentCardAddress1) {
-              // 住所・住民票住所の丁目番地までの文字列を照合
-              if (convertedAddress1 === convertedResidentCardAddress1) {
-                var residentCardType = 1;
-              } else {
-                var residentCardType = 0;
-              }
-            // 住民票住所の登録が無い場合
-            } else {
-              var residentCardType = 0;
             }
 
             /* 家族 */
@@ -229,36 +118,6 @@ function updateObic() {
               }
             }
 
-            /* 税表区分 */
-            // 課税区分
-            if (employeesData[l]['tax_cd'] == "kou") {
-              var taxCategory = 1;
-            } else if (employeesData[l]['tax_cd'] == "otsu") {
-              var taxCategory = 2;
-            } else {
-              var taxCategory = 1;  // 1,2の値のみ扱うため、それら以外の値は一律1(甲)となるよう値をセット
-            }
-            // 障害区分
-            if (!employeesData[l]['handicapped_type']) {
-              var handicappedType = 0;
-            } else if (employeesData[l]['handicapped_type'] == "ordinary_handicapped") {
-              var handicappedType = 1;
-            } else {
-              var handicappedType = 2;
-            }
-
-            /* 社会保険 */
-            // 基礎年金番号1
-            var basicPensionNumber1 = employeesData[l]['basic_pension_number'] ? employeesData[l]['basic_pension_number'].substring(0, 4) : null;
-            // 基礎年金番号2
-            var basicPensionNumber2 = employeesData[l]['basic_pension_number'] ? employeesData[l]['basic_pension_number'].substring(5, 11) : null;
-            // 雇用保険番号1
-            var insuredPersonNumber1 = employeesData[l]['emp_ins_insured_person_number'] ? employeesData[l]['emp_ins_insured_person_number'].substring(0, 4) : null;
-            // 雇用保険番号2
-            var insuredPersonNumber2 = employeesData[l]['emp_ins_insured_person_number'] ? employeesData[l]['emp_ins_insured_person_number'].substring(5, 11) : null;
-            // 雇用保険番号3
-            var insuredPersonNumber3 = employeesData[l]['emp_ins_insured_person_number'] ? employeesData[l]['emp_ins_insured_person_number'].substring(12, 13) : null;
-
             /* 銀行 */
             // 振込依頼銀行コード
             if (employeesData[l]['bank_accounts'][0]['bank_code']) {
@@ -299,75 +158,6 @@ function updateObic() {
             // 名義人ｶﾅ
             var accountHolderName = employeesData[l]['bank_accounts'][0]['account_holder_name'] ? zenkana2Hankana(employeesData[l]['bank_accounts'][0]['account_holder_name']) : null;
             
-            // 社員基本_配列に値をセット
-            let baseData = [
-              "100",  // データ区分(固定値)
-              employeeCode,  // 社員番号
-              name,  // 氏名
-              nameKana,  // 氏名カナ(半角)
-              naming,  // 呼称適用 0:氏名を呼称として使用, 1:旧氏名を呼称として使用
-              businessName,  // 旧氏名
-              businessNameKana,  // 旧氏名カナ(半角)
-              gender,  // 性別区分 0:不明、1:男、2:女
-              birthDate,  // 生年月日
-              enteredDate,  // 入社年月日
-              telNumber,  // 電話番号
-              email  // メールアドレス
-            ]
-            baseDataList.push(baseData);
-
-            // 住所_配列に値をセット
-            // 住民票区分が"1:住民票住所"の場合
-            if (residentCardType == 1) {
-              let addressData = [
-                "111",  // データ区分(固定値)
-                employeeCode,  // 社員番号
-                enteredDate,  // 入居年月日(入社日の値を入れる)
-                residentCardType,  // 住民票区分 0:住民票住所でない, 1:住民票住所
-                zipCode,  // 郵便番号
-                address1,  // 住所1
-                address2,  // 住所2
-                addressKana1,  // 住所1カナ
-                addressKana2,  // 住所2カナ
-                telNumber,  // 電話番号
-                null,  // 社員SEQ(値の入力は不要)
-                1  // 現住所区分  0:現住所でない 1:現住所
-              ]
-              addressDataList.push(addressData);
-            // 住民票区分が"0:住民票住所でない"の場合
-            } else {
-              let addressData1 = [
-                "111",  // データ区分(固定値)
-                employeeCode,  // 社員番号
-                enteredDate,  // 入居年月日(入社日の値を入れる)
-                1,  // 住民票区分 0:住民票住所でない, 1:住民票住所
-                residentCardZipCode,  // 郵便番号
-                residentCardAddress1,  // 住所1
-                residentCardAddress2,  // 住所2
-                residentCardAddressKana1,  // 住所1カナ
-                residentCardAddressKana2,  // 住所2カナ
-                null,  // 電話番号
-                null,  // 社員SEQ(値の入力は不要)
-                0  // 現住所区分
-              ];
-              let addressData2 = [
-                "111",  // データ区分(固定値)
-                employeeCode,  // 社員番号
-                enteredDate,  // 入居年月日(入社日の値を入れる)
-                0,  // 住民票区分 0:住民票住所でない, 1:住民票住所
-                zipCode,  // 郵便番号
-                address1,  // 住所1
-                address2,  // 住所2
-                addressKana1,  // 住所1カナ
-                addressKana2,  // 住所2カナ
-                telNumber,  // 電話番号
-                null,  // 社員SEQ(値の入力は不要)
-                1  // 現住所区分
-              ]
-              addressDataList.push(addressData1);
-              addressDataList.push(addressData2);
-            }
-            
             // 家族_配列に値をセット
             for(var efl = 0; efl < extractedFamilyDataList.length; efl++) {
               let familyData = [
@@ -393,27 +183,6 @@ function updateObic() {
               ]
               familyDataList.push(familyData);
             }
-
-            // 税表区分_配列に値をセット
-            let taxData = [
-              "103",  // データ区分(固定値)
-              employeeCode,  // 社員番号
-              taxCategory,  // 税表区分 1:甲, 2:乙, 3:定率, 4:定額, 5:税なし
-              handicappedType,  // 障害区分 0:対象外, 1：一般, 2：特別
-            ]
-            taxDataList.push(taxData);
-
-            // 社会保険_配列に値をセット
-            let insuranceData = [
-              "102",  // データ区分(固定値)
-              employeeCode,  // 社員番号
-              basicPensionNumber1,  // 基礎年金番号1
-              basicPensionNumber2,  // 基礎年金番号2
-              insuredPersonNumber1,  // 雇用保険番号1
-              insuredPersonNumber2,  // 雇用保険番号2
-              insuredPersonNumber3,  // 雇用保険番号3
-            ]
-            insuranceDataList.push(insuranceData);
 
             // 銀行_配列に値をセット
             let bankData1 = [
@@ -454,11 +223,7 @@ function updateObic() {
           deleteCsv(getProperties("obicExportCsvFolderId"));
 
           // CSVファイル出力
-          export_csv(baseDataList, operation_type = 2.1);
-          export_csv(addressDataList, operation_type = 2.2);
           export_csv(familyDataList, operation_type = 2.3);
-          export_csv(taxDataList, operation_type = 2.4);
-          export_csv(insuranceDataList, operation_type = 2.5);
           export_csv(bankDataList, operation_type = 2.6);
 
           // 連携ステータスを済に変更
