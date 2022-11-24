@@ -171,7 +171,7 @@ function export_csv(data, operation_type = 5) {
   // コンテンツタイプ
   const content_type = 'text/csv'
   // 文字コード
-  const charset = 'Shift_JIS'
+  const charset = 'CP932'
   // 出力するファイル名
   const file_name = define.export_file_name
   // 出力先ドライブフォルダID
