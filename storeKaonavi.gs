@@ -1714,7 +1714,7 @@ function createMember() {
         familyData[efl+1]['familyFirstName'] = employeeFamilyData[efl]['first_name'];
         familyData[efl+1]['familyLastNameKana'] = employeeFamilyData[efl]['last_name_yomi'];
         familyData[efl+1]['familyFirstNameKana'] = employeeFamilyData[efl]['first_name_yomi'];
-        familyData[efl+1]['familyBirthday'] = employeeFamilyData[efl]['birth_at'];
+        familyData[efl+1]['familyBirthday'] = employeeFamilyData[efl]['birth_at'].replace(/-/g, '/');
         familyData[efl+1]['familyGender'] = employeeFamilyData[efl]['gender'] === "male" ? "男性" : employeeFamilyData[efl]['gender'] === "female" ? "女性" : null;
         familyData[efl+1]['familyJob'] = employeeFamilyData[efl]['job'];
         familyData[efl+1]['familyLiveTogether'] = employeeFamilyData[efl]['live_together_type'] === "living_together" ? "同居" : employeeFamilyData[efl]['live_together_type'] === "living_separately" ? "別居" : null;
