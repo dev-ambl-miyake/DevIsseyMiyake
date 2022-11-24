@@ -180,9 +180,9 @@ function updateObic() {
                 // 家族名
                 'firstName' : familyApiData[fl]['first_name'] ? familyApiData[fl]['first_name'] : null,
                 // 家族姓カナ
-                'lastNameKana' : familyApiData[fl]['last_name_yomi'] ? familyApiData[fl]['last_name_yomi'] : null,
+                'lastNameKana' : familyApiData[fl]['last_name_yomi'] ? zenkana2Hankana(familyApiData[fl]['last_name_yomi']) : null,
                 // 家族名カナ
-                'firstNameKana' : familyApiData[fl]['first_name_yomi'] ? familyApiData[fl]['first_name_yomi'] : null,
+                'firstNameKana' : familyApiData[fl]['first_name_yomi'] ? zenkana2Hankana(familyApiData[fl]['first_name_yomi']) : null,
                 // 性別区分
                 'gender' : familyApiData[fl]['gender'] == "male" ? 1 : 2,
                 // 生年月日
