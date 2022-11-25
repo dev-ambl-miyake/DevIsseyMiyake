@@ -142,40 +142,11 @@ function export_csv(data, operation_type = 5) {
     // smartHRAPIよりデータ取得
     var import_data = data;
   // 変更申請
-  // 社員基本
-  } else if (operation_type === 2.1) {
-    //定義値
-    var define = define_update_employee_base()
-    // 見出し行
-    var title_row = title_update_employee_base()
-    // smartHRAPIよりデータ取得
-    var import_data = data;
-  // 住所
-  } else if (operation_type === 2.2) {
-    var define = define_update_employee_address()
-    // 見出し行
-    var title_row = title_update_employee_address()
-    // smartHRAPIよりデータ取得
-    var import_data = data;
   // 家族
   } else if (operation_type === 2.3) {
     var define = define_update_employee_family()
     // 見出し行
     var title_row = title_update_employee_family()
-    // smartHRAPIよりデータ取得
-    var import_data = data;
-  // 税表区分
-  } else if (operation_type === 2.4) {
-    var define = define_update_employee_tax()
-    // 見出し行
-    var title_row = title_update_employee_tax()
-    // smartHRAPIよりデータ取得
-    var import_data = data;
-  // 社会保険
-  } else if (operation_type === 2.5) {
-    var define = define_update_employee_insurance()
-    // 見出し行
-    var title_row = title_update_employee_insurance()
     // smartHRAPIよりデータ取得
     var import_data = data;
   // 銀行
@@ -200,7 +171,7 @@ function export_csv(data, operation_type = 5) {
   // コンテンツタイプ
   const content_type = 'text/csv'
   // 文字コード
-  const charset = 'Shift_JIS'
+  const charset = 'CP932'
   // 出力するファイル名
   const file_name = define.export_file_name
   // 出力先ドライブフォルダID
@@ -293,28 +264,6 @@ function title_store_employee_bank() {
   return title_row
 }
 
-// 変更申請_社員基本CSV_列名
-function title_update_employee_base() {
-  // 見出し行
-  const title_row = [
-    [
-      "データ区分", "社員コード", "氏名", "氏名ｶﾅ", "呼称適用", "旧氏名", "旧氏名ｶﾅ", "性別区分", "生年月日", "入社年月日", "携帯電話番号", "メールアドレス"
-    ]
-  ]
-  return title_row
-}
-
-// 変更申請_住所CSV_列名
-function title_update_employee_address() {
-  // 見出し行
-  const title_row = [
-    [
-      "データ区分", "社員コード", "入居年月日", "住民票区分", "郵便番号", "住所1", "住所2", "住所1カナ", "住所2カナ", "電話番号", "社員SEQ", "現住所区分" 
-    ]
-  ]
-  return title_row
-}
-
 // 変更申請_家族CSV_列名
 function title_update_employee_family() {
   // 見出し行
@@ -322,28 +271,6 @@ function title_update_employee_family() {
     [
       "データ区分", "社員コード", "続柄", "家族姓", "家族名", "家族姓カナ", "家族名カナ", "性別区分", "生年月日", "税扶養区分", "配偶者区分",
       "同居区分", "障害区分", "健康保険区分", "郵便番号", "住所1", "住所2", "電話番号", "社員SEQ"
-    ]
-  ]
-  return title_row
-}
-
-// 変更申請_税表区分CSV_列名
-function title_update_employee_tax() {
-  // 見出し行
-  const title_row = [
-    [
-      "データ区分", "社員コード", "税表区分", "障害区分"
-    ]
-  ]
-  return title_row
-}
-
-// 変更申請_社会保険CSV_列名
-function title_update_employee_insurance() {
-  // 見出し行
-  const title_row = [
-    [
-      "データ区分", "社員コード", "基礎年金番号1", "基礎年金番号2", "雇用保険番号1", "雇用保険番号2", "雇用保険番号3"
     ]
   ]
   return title_row
@@ -641,21 +568,21 @@ function processing_tax_withoutholding_data(csv_data) {
         } else if(array[i][48] == "14"){
           array[i][48] = "震(特)";
         } else if(array[i][48] == "21"){
-          array[i][48] = "住(特)(特)";
+          array[i][48] = "住(特特)";
         } else if(array[i][48] == "22"){
-          array[i][48] = "認(特)(特)";
+          array[i][48] = "認(特特)";
         } else if(array[i][48] == "23"){
-          array[i][48] = "増(特)(特)";
+          array[i][48] = "増(特特)";
         } else if(array[i][48] == "24"){
-          array[i][48] = "震(特)(特)";
+          array[i][48] = "震(特特)";
         } else if(array[i][48] == "31"){
-          array[i][48] = "住(特)(特)(特)";
+          array[i][48] = "住(特特特)";
         } else if(array[i][48] == "32"){
-          array[i][48] = "認(特)(特)(特)";
+          array[i][48] = "認(特特特)";
         } else if(array[i][48] == "33"){
-          array[i][48] = "増(特)(特)(特)";
+          array[i][48] = "増(特特特)";
         } else if(array[i][48] == "34"){
-          array[i][48] = "震(特)(特)(特)";
+          array[i][48] = "震(特特特)";
         }
       }
 
@@ -678,21 +605,21 @@ function processing_tax_withoutholding_data(csv_data) {
         } else if(array[i][54] == "14"){
           array[i][54] = "震(特)";
         } else if(array[i][54] == "21"){
-          array[i][54] = "住(特)(特)";
+          array[i][54] = "住(特特)";
         } else if(array[i][54] == "22"){
-          array[i][54] = "認(特)(特)";
+          array[i][54] = "認(特特)";
         } else if(array[i][54] == "23"){
-          array[i][54] = "増(特)(特)";
+          array[i][54] = "増(特特)";
         } else if(array[i][54] == "24"){
-          array[i][54] = "震(特)(特)";
+          array[i][54] = "震(特特)";
         } else if(array[i][54] == "31"){
-          array[i][54] = "住(特)(特)(特)";
+          array[i][54] = "住(特特特)";
         } else if(array[i][54] == "32"){
-          array[i][54] = "認(特)(特)(特)";
+          array[i][54] = "認(特特特)";
         } else if(array[i][54] == "33"){
-          array[i][54] = "増(特)(特)(特)";
+          array[i][54] = "増(特特特)";
         } else if(array[i][54] == "34"){
-          array[i][54] = "震(特)(特)(特)";
+          array[i][54] = "震(特特特)";
         }
       }
 
@@ -1058,22 +985,6 @@ function define_store_employee_bank() {
   }
   return define
 }
-// 業務_変更申請_社員基本
-function define_update_employee_base() {
-  const define = { 
-    'export_folder_id': getProperties("obicExportCsvFolderId"), // OBIC出力CSV格納ディレクトリ
-    'export_file_name': getProperties("obicBaseCsvFileName"), // OBIC出力CSV格納ディレクトリファイル名
-  }
-  return define
-}
-// 業務_変更申請_住所
-function define_update_employee_address() {
-  const define = { 
-    'export_folder_id': getProperties("obicExportCsvFolderId"), // OBIC出力CSV格納ディレクトリ
-    'export_file_name': getProperties("obicAddressCsvFileName"), // OBIC出力CSV格納ディレクトリファイル名
-  }
-  return define
-}
 // 業務_変更申請_家族
 function define_update_employee_family() {
   const define = { 
@@ -1082,22 +993,7 @@ function define_update_employee_family() {
   }
   return define
 }
-// 業務_変更申請_税表区分
-function define_update_employee_tax() {
-  const define = { 
-    'export_folder_id': getProperties("obicExportCsvFolderId"), // OBIC出力CSV格納ディレクトリ
-    'export_file_name': getProperties("obicTaxCsvFileName"), // OBIC出力CSV格納ディレクトリファイル名
-  }
-  return define
-}
-// 業務_変更申請_社会保険
-function define_update_employee_insurance() {
-  const define = { 
-    'export_folder_id': getProperties("obicExportCsvFolderId"), // OBIC出力CSV格納ディレクトリ
-    'export_file_name': getProperties("obicInsuranceCsvFileName"), // OBIC出力CSV格納ディレクトリファイル名
-  }
-  return define
-}
+
 // 業務_変更申請_銀行
 function define_update_employee_bank() {
   const define = { 
