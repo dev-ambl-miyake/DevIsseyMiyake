@@ -568,21 +568,21 @@ function processing_tax_withoutholding_data(csv_data) {
         } else if(array[i][48] == "14"){
           array[i][48] = "震(特)";
         } else if(array[i][48] == "21"){
-          array[i][48] = "住(特)(特)";
+          array[i][48] = "住(特特)";
         } else if(array[i][48] == "22"){
-          array[i][48] = "認(特)(特)";
+          array[i][48] = "認(特特)";
         } else if(array[i][48] == "23"){
-          array[i][48] = "増(特)(特)";
+          array[i][48] = "増(特特)";
         } else if(array[i][48] == "24"){
-          array[i][48] = "震(特)(特)";
+          array[i][48] = "震(特特)";
         } else if(array[i][48] == "31"){
-          array[i][48] = "住(特)(特)(特)";
+          array[i][48] = "住(特特特)";
         } else if(array[i][48] == "32"){
-          array[i][48] = "認(特)(特)(特)";
+          array[i][48] = "認(特特特)";
         } else if(array[i][48] == "33"){
-          array[i][48] = "増(特)(特)(特)";
+          array[i][48] = "増(特特特)";
         } else if(array[i][48] == "34"){
-          array[i][48] = "震(特)(特)(特)";
+          array[i][48] = "震(特特特)";
         }
       }
 
@@ -605,21 +605,21 @@ function processing_tax_withoutholding_data(csv_data) {
         } else if(array[i][54] == "14"){
           array[i][54] = "震(特)";
         } else if(array[i][54] == "21"){
-          array[i][54] = "住(特)(特)";
+          array[i][54] = "住(特特)";
         } else if(array[i][54] == "22"){
-          array[i][54] = "認(特)(特)";
+          array[i][54] = "認(特特)";
         } else if(array[i][54] == "23"){
-          array[i][54] = "増(特)(特)";
+          array[i][54] = "増(特特)";
         } else if(array[i][54] == "24"){
-          array[i][54] = "震(特)(特)";
+          array[i][54] = "震(特特)";
         } else if(array[i][54] == "31"){
-          array[i][54] = "住(特)(特)(特)";
+          array[i][54] = "住(特特特)";
         } else if(array[i][54] == "32"){
-          array[i][54] = "認(特)(特)(特)";
+          array[i][54] = "認(特特特)";
         } else if(array[i][54] == "33"){
-          array[i][54] = "増(特)(特)(特)";
+          array[i][54] = "増(特特特)";
         } else if(array[i][54] == "34"){
-          array[i][54] = "震(特)(特)(特)";
+          array[i][54] = "震(特特特)";
         }
       }
 
