@@ -55,7 +55,7 @@ function import_csv(operation_type = 5) {
 
   // Blob を作成する
   const blob = DriveApp.getFileById(fileId).getBlob();
-  const csv = blob.getDataAsString("Shift_JIS");
+  const csv = blob.getDataAsString('CP932');
   const csv_data = Utilities.parseCsv(csv);
 
   // インポートした取得データを出力用データに加工
