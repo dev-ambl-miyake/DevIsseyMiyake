@@ -72,7 +72,7 @@ function storeHistory(json) {
       let updatedDate = new Date(json[i].updated_at);
       
       // 前回の更新日より後に更新された従業員データのみ追記する
-      if(storeHistoryLastUpdate < updatedDate) {
+      if(storeHistoryLastUpdate < updatedDate || json[i]['family_update_flag'] == true) {
         // 履歴データ[登録用]_スプレッドシートに対象の社員番号が既に存在する場合
         if(employeeNumber.flat().includes(json[i].emp_code)) {
           // 履歴データ[更新用]_スプレッドシートに記載
