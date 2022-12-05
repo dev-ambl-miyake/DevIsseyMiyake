@@ -204,24 +204,24 @@ function proclamationKaonaviMain() {
       labelIn:
       for (let n = 0; n < kaonavi_kenmu_data.length; n++) {
         // 現職本務の1レコードと社員番号が一致するか、一致してたらカウント
-        if(kaonavi_kenmu_data[n][5] == ''){
+        if(kaonavi_kenmu_data[n][4] == ''){
           continue labelIn;
         }
         
         if(kaonavi_data[i][0] == kaonavi_kenmu_data[n][0] && count == 0){
-          kaonavi_data[i][21] = kaonavi_kenmu_data[n][5]; // 兼務2
+          kaonavi_data[i][24] = kaonavi_kenmu_data[n][4]; // 兼務2
           count = count + 1;
         }
         else if(kaonavi_data[i][0] == kaonavi_kenmu_data[n][0] && count == 1){
-          kaonavi_data[i][22] = kaonavi_kenmu_data[n][5]; // 兼務3
+          kaonavi_data[i][25] = kaonavi_kenmu_data[n][4]; // 兼務3
           count = count + 1;
         }
         else if(kaonavi_data[i][0] == kaonavi_kenmu_data[n][0] && count == 2){
-          kaonavi_data[i][23] = kaonavi_kenmu_data[n][5]; // 兼務4
+          kaonavi_data[i][26] = kaonavi_kenmu_data[n][4]; // 兼務4
           count = count + 1;
         }
         else if(kaonavi_data[i][0] == kaonavi_kenmu_data[n][0] && count == 3){
-          kaonavi_data[i][24] = kaonavi_kenmu_data[n][5]; // 兼務4
+          kaonavi_data[i][27] = kaonavi_kenmu_data[n][4]; // 兼務4
           count = count + 1;
           break;
         }
@@ -2185,27 +2185,27 @@ function makePayload(processed_data,member_custom_list,operation_type) {
   }// 所属データ
   else if(operation_type == 3.3){
     // 兼務情報が1つもない場合
-    if(typeof(processed_data[21]) == "undefined"){
+    if(typeof(processed_data[24]) == "undefined"){
       var count = 0;
     }
     
     // 兼務情報が1つの場合
-    if(typeof(processed_data[21]) != "undefined" && typeof processed_data[22] == "undefined"){
+    if(typeof(processed_data[24]) != "undefined" && typeof processed_data[25] == "undefined"){
       var count = 1;
     }
 
     // 兼務情報が2つの場合
-    if(typeof(processed_data[21]) != "undefined" && typeof processed_data[22] != "undefined" && typeof processed_data[23] == "undefined"){
+    if(typeof(processed_data[24]) != "undefined" && typeof processed_data[25] != "undefined" && typeof processed_data[26] == "undefined"){
       var count = 2;
     }
 
     // 兼務情報が3つの場合
-    if(typeof(processed_data[21]) != "undefined" && typeof processed_data[22] != "undefined" && typeof processed_data[23] != "undefined" && typeof processed_data[24] == "undefined"){
+    if(typeof(processed_data[24]) != "undefined" && typeof processed_data[25] != "undefined" && typeof processed_data[26] != "undefined" && typeof processed_data[27] == "undefined"){
       var count = 3;
     }
 
     // 兼務情報が4つの場合
-    if(typeof(processed_data[21]) != "undefined" && typeof processed_data[22] != "undefined" && typeof processed_data[23] != "undefined" && typeof processed_data[24] != "undefined"){
+    if(typeof(processed_data[24]) != "undefined" && typeof processed_data[25] != "undefined" && typeof processed_data[26] != "undefined" && typeof processed_data[27] != "undefined"){
       var count = 4;
     }
 
@@ -2214,7 +2214,7 @@ function makePayload(processed_data,member_custom_list,operation_type) {
     } else if(count == 1) {
       // 兼務コードの取得(1つ目)
       for (let i = 0; i < department_list.length; i++) {
-        if(department_list[i]['name'] == processed_data[21]){
+        if(department_list[i]['name'] == processed_data[24]){
           var department1_code = department_list[i]['code'];
         }
       }
@@ -2230,13 +2230,13 @@ function makePayload(processed_data,member_custom_list,operation_type) {
     } else if(count == 2) {
       // 兼務コードの取得(1つ目)
       for (let i = 0; i < department_list.length; i++) {
-        if(department_list[i]['name'] == processed_data[21]){
+        if(department_list[i]['name'] == processed_data[24]){
           var department1_code = department_list[i]['code'];
         }
       }
       // 兼務コードの取得(2つ目)
       for (let i = 0; i < department_list.length; i++) {
-        if(department_list[i]['name'] == processed_data[22]){
+        if(department_list[i]['name'] == processed_data[25]){
           var department2_code = department_list[i]['code'];
         }
       }
@@ -2256,19 +2256,19 @@ function makePayload(processed_data,member_custom_list,operation_type) {
     } else if(count == 3) {
       // 兼務コードの取得(1つ目)
       for (let i = 0; i < department_list.length; i++) {
-        if(department_list[i]['name'] == processed_data[21]){
+        if(department_list[i]['name'] == processed_data[24]){
           var department1_code = department_list[i]['code'];
         }
       }
       // 兼務コードの取得(2つ目)
       for (let i = 0; i < department_list.length; i++) {
-        if(department_list[i]['name'] == processed_data[22]){
+        if(department_list[i]['name'] == processed_data[25]){
           var department2_code = department_list[i]['code'];
         }
       }
       // 兼務コードの取得(3つ目)
       for (let i = 0; i < department_list.length; i++) {
-        if(department_list[i]['name'] == processed_data[23]){
+        if(department_list[i]['name'] == processed_data[26]){
           var department3_code = department_list[i]['code'];
         }
       }
@@ -2291,25 +2291,25 @@ function makePayload(processed_data,member_custom_list,operation_type) {
     } else if(count == 4) {
       // 兼務コードの取得(1つ目)
       for (let i = 0; i < department_list.length; i++) {
-        if(department_list[i]['name'] == processed_data[21]){
+        if(department_list[i]['name'] == processed_data[24]){
           var department1_code = department_list[i]['code'];
         }
       }
       // 兼務コードの取得(2つ目)
       for (let i = 0; i < department_list.length; i++) {
-        if(department_list[i]['name'] == processed_data[22]){
+        if(department_list[i]['name'] == processed_data[25]){
           var department2_code = department_list[i]['code'];
         }
       }
       // 兼務コードの取得(3つ目)
       for (let i = 0; i < department_list.length; i++) {
-        if(department_list[i]['name'] == processed_data[23]){
+        if(department_list[i]['name'] == processed_data[26]){
           var department3_code = department_list[i]['code'];
         }
       }
       // 兼務コードの取得(4つ目)
       for (let i = 0; i < department_list.length; i++) {
-        if(department_list[i]['name'] == processed_data[24]){
+        if(department_list[i]['name'] == processed_data[27]){
           var department4_code = department_list[i]['code'];
         }
       }
