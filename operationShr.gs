@@ -23,12 +23,33 @@ var custom_responseBody = UrlFetchApp.fetch(custom_response).getContentText();
 // 雇用形態のJsonリスト
 var custom_json = JSON.parse(custom_responseBody);
 
-// 雇用形態のリストをAPIで取得
-var dep_response = 
+// 部署のリストをAPIで取得
+var dep_response1 = 
 "https://"+SUB_DOMAIN+".daruma.space/api/v1/departments?page="+"1"+"&per_page="+"100"+"&access_token="+ACCESS_TOKEN;
-var dep_responseBody = UrlFetchApp.fetch(dep_response).getContentText();
-// 雇用形態のJsonリスト
-var dep_json = JSON.parse(dep_responseBody);
+var dep_responseBody1 = UrlFetchApp.fetch(dep_response1).getContentText();
+var dep_json1 = JSON.parse(dep_responseBody1);
+
+var dep_response2 = 
+"https://"+SUB_DOMAIN+".daruma.space/api/v1/departments?page="+"2"+"&per_page="+"100"+"&access_token="+ACCESS_TOKEN;
+var dep_responseBody2 = UrlFetchApp.fetch(dep_response2).getContentText();
+var dep_json2 = JSON.parse(dep_responseBody2);
+
+var dep_response3 = 
+"https://"+SUB_DOMAIN+".daruma.space/api/v1/departments?page="+"3"+"&per_page="+"100"+"&access_token="+ACCESS_TOKEN;
+var dep_responseBody3 = UrlFetchApp.fetch(dep_response3).getContentText();
+var dep_json3 = JSON.parse(dep_responseBody3);
+
+var dep_json = [];
+
+for (var dj1 = 0; dj1 < dep_json1.length; dj1++) {
+  dep_json.push(dep_json1[dj1]);
+}
+for (var dj2 = 0; dj2 < dep_json2.length; dj2++) {
+  dep_json.push(dep_json2[dj2]);
+}
+for (var dj3 = 0; dj3 < dep_json3.length; dj3++) {
+  dep_json.push(dep_json3[dj3]);
+}
 
 
 /**
