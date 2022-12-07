@@ -834,7 +834,7 @@ function mergeRecord(emp_data,sub_emp_data,sheet_name) {
 
     for (let i = 0; i < grade_list.length; i++) {
       // 取得APIリストのnameがカスタム項目名と一致するか
-      if(grade_list[i]['name'] == '開始日'){
+      if(grade_list[i]['name'] == '発令日'){
         var date_id = grade_list[i]['id']; // 項目名IDを宣言
         break;
       }
@@ -860,7 +860,7 @@ function mergeRecord(emp_data,sub_emp_data,sheet_name) {
     // カスタム（終了日）のnameが一致するまでループし、template_idを取得する
     for (let i = 0; i < grade_list.length; i++) {
       // 取得APIリストのnameがカスタム項目名と一致するか
-      if(grade_list[i]['name'] == 'グレード'){
+      if(grade_list[i]['name'] == 'グレード履歴'){
         var grade_id = grade_list[i]['id']; // 項目名IDを宣言
         break;
       }
@@ -873,7 +873,7 @@ function mergeRecord(emp_data,sub_emp_data,sheet_name) {
     // カスタム（終了日）のnameが一致するまでループし、template_idを取得する
     for (let i = 0; i < grade_list.length; i++) {
       // 取得APIリストのnameがカスタム項目名と一致するか
-      if(grade_list[i]['name'] == 'レベル'){
+      if(grade_list[i]['name'] == 'レベル履歴'){
         var level_id = grade_list[i]['id']; // 項目名IDを宣言
         break;
       }
@@ -1794,7 +1794,7 @@ function makePayload(processed_data,member_custom_list,operation_type) {
 
     // カスタム（通勤経路1_（発）利用駅）のnameが一致するまでループし、template_idを取得する
     for (let i = 0; i < traffic_list.length; i++) {
-      if(traffic_list[i]['name'] == '通勤経路1_(発)利用駅'){
+      if(traffic_list[i]['name'] == '通勤経路1_（発）利用駅'){
         var departure1_id = traffic_list[i]['id'];
         break;
       }
@@ -1808,7 +1808,7 @@ function makePayload(processed_data,member_custom_list,operation_type) {
 
     // カスタム（通勤経路2_（発）利用駅）のnameが一致するまでループし、template_idを取得する
     for (let i = 0; i < traffic_list.length; i++) {
-      if(traffic_list[i]['name'] == '通勤経路2_(発)利用駅'){
+      if(traffic_list[i]['name'] == '通勤経路2_（発）利用駅'){
         var departure2_id = traffic_list[i]['id'];
         break;
       }
@@ -1822,7 +1822,7 @@ function makePayload(processed_data,member_custom_list,operation_type) {
 
     // カスタム（通勤経路3_（発）利用駅）のnameが一致するまでループし、template_idを取得する
     for (let i = 0; i < traffic_list.length; i++) {
-      if(traffic_list[i]['name'] == '通勤経路3_(発)利用駅'){
+      if(traffic_list[i]['name'] == '通勤経路3_（発）利用駅'){
         var departure3_id = traffic_list[i]['id'];
         break;
       }
@@ -1836,7 +1836,7 @@ function makePayload(processed_data,member_custom_list,operation_type) {
 
     // カスタム（通勤経路4_（発）利用駅）のnameが一致するまでループし、template_idを取得する
     for (let i = 0; i < traffic_list.length; i++) {
-      if(traffic_list[i]['name'] == '通勤経路4_(発)利用駅'){
+      if(traffic_list[i]['name'] == '通勤経路4_（発）利用駅'){
         var departure4_id = traffic_list[i]['id'];
         break;
       }
@@ -1851,7 +1851,7 @@ function makePayload(processed_data,member_custom_list,operation_type) {
 
     // カスタム（通勤経路.通勤経路1_（経由）利用駅）のnameが一致するまでループし、template_idを取得する
     for (let i = 0; i < traffic_list.length; i++) {
-      if(traffic_list[i]['name'] == '通勤経路1_(経由)利用駅'){
+      if(traffic_list[i]['name'] == '通勤経路1_（経由）利用駅'){
         var via1_id = traffic_list[i]['id'];
         break;
       }
@@ -1865,7 +1865,7 @@ function makePayload(processed_data,member_custom_list,operation_type) {
 
     // カスタム（通勤経路.通勤経路2_（経由）利用駅）のnameが一致するまでループし、template_idを取得する
     for (let i = 0; i < traffic_list.length; i++) {
-      if(traffic_list[i]['name'] == '通勤経路2_(経由)利用駅'){
+      if(traffic_list[i]['name'] == '通勤経路2_（経由）利用駅'){
         var via2_id = traffic_list[i]['id'];
         break;
       }
@@ -1879,7 +1879,7 @@ function makePayload(processed_data,member_custom_list,operation_type) {
 
     // カスタム（通勤経路.通勤経路3_（経由）利用駅）のnameが一致するまでループし、template_idを取得する
     for (let i = 0; i < traffic_list.length; i++) {
-      if(traffic_list[i]['name'] == '通勤経路3_(経由)利用駅'){
+      if(traffic_list[i]['name'] == '通勤経路3_（経由）利用駅'){
         var via3_id = traffic_list[i]['id'];
         break;
       }
@@ -1893,7 +1893,7 @@ function makePayload(processed_data,member_custom_list,operation_type) {
 
     // カスタム（通勤経路.通勤経路4_（経由）利用駅）のnameが一致するまでループし、template_idを取得する
     for (let i = 0; i < traffic_list.length; i++) {
-      if(traffic_list[i]['name'] == '通勤経路4_(経由)利用駅'){
+      if(traffic_list[i]['name'] == '通勤経路4_（経由）利用駅'){
         var via4_id = traffic_list[i]['id'];
         break;
       }
@@ -1909,7 +1909,7 @@ function makePayload(processed_data,member_custom_list,operation_type) {
 
     // カスタム（通勤経路.通勤経路1_（着）利用駅）のnameが一致するまでループし、template_idを取得する
     for (let i = 0; i < traffic_list.length; i++) {
-      if(traffic_list[i]['name'] == '通勤経路1_(着)利用駅'){
+      if(traffic_list[i]['name'] == '通勤経路1_（着）利用駅'){
         var arrival1_id = traffic_list[i]['id'];
         break;
       }
@@ -1920,7 +1920,7 @@ function makePayload(processed_data,member_custom_list,operation_type) {
 
     // カスタム（通勤経路.通勤経路2_（着）利用駅）のnameが一致するまでループし、template_idを取得する
     for (let i = 0; i < traffic_list.length; i++) {
-      if(traffic_list[i]['name'] == '通勤経路2_(着)利用駅'){
+      if(traffic_list[i]['name'] == '通勤経路2_（着）利用駅'){
         var arrival2_id = traffic_list[i]['id'];
         break;
       }
@@ -1934,7 +1934,7 @@ function makePayload(processed_data,member_custom_list,operation_type) {
 
     // カスタム（通勤経路.通勤経路3_（着）利用駅）のnameが一致するまでループし、template_idを取得する
     for (let i = 0; i < traffic_list.length; i++) {
-      if(traffic_list[i]['name'] == '通勤経路3_(着)利用駅'){
+      if(traffic_list[i]['name'] == '通勤経路3_（着）利用駅'){
         var arrival3_id = traffic_list[i]['id'];
         break;
       }
@@ -1948,7 +1948,7 @@ function makePayload(processed_data,member_custom_list,operation_type) {
 
     // カスタム（通勤経路.通勤経路4_（着）利用駅）のnameが一致するまでループし、template_idを取得する
     for (let i = 0; i < traffic_list.length; i++) {
-      if(traffic_list[i]['name'] == '通勤経路4_(着)利用駅'){
+      if(traffic_list[i]['name'] == '通勤経路4_（着）利用駅'){
         var arrival4_id = traffic_list[i]['id'];
         break;
       }
@@ -2230,127 +2230,115 @@ function makePayload(processed_data,member_custom_list,operation_type) {
       var count = 4;
     }
 
+    // カスタム項目ID取得
+    for (let i = 0; i < member_custom_list.length; i++) {
+      if(member_custom_list[i]['name'] == '兼務1'){
+        var sub1_id = member_custom_list[i]['id'];
+        break;
+      }
+    }
+
+    for (let i = 0; i < member_custom_list.length; i++) {
+      if(member_custom_list[i]['name'] == '兼務2'){
+        var sub2_id = member_custom_list[i]['id'];
+        break;
+      }
+    }
+
+    for (let i = 0; i < member_custom_list.length; i++) {
+      if(member_custom_list[i]['name'] == '兼務3'){
+        var sub3_id = member_custom_list[i]['id'];
+        break;
+      }
+    }
+
+    for (let i = 0; i < member_custom_list.length; i++) {
+      if(member_custom_list[i]['name'] == '兼務4'){
+        var sub4_id = member_custom_list[i]['id'];
+        break;
+      }
+    }
+
     if(count == 0){
       return null;
     } else if(count == 1) {
-      // 兼務コードの取得(1つ目)
-      for (let i = 0; i < department_list.length; i++) {
-        if(department_list[i]['name'] == processed_data[24]){
-          var department1_code = department_list[i]['code'];
-        }
-      }
       // 兼務が1つの更新Json作成
       var payload =
       {
         code: processed_data[0], // 社員コード
-        // 兼務部署
-        sub_departments : [{
-          code: department1_code
-        }],
+        // カスタム項目
+        custom_fields: [
+          // 兼務
+          {
+            id: sub1_id,
+            values: [processed_data[24]],
+          }
+        ],
       }
     } else if(count == 2) {
-      // 兼務コードの取得(1つ目)
-      for (let i = 0; i < department_list.length; i++) {
-        if(department_list[i]['name'] == processed_data[24]){
-          var department1_code = department_list[i]['code'];
-        }
-      }
-      // 兼務コードの取得(2つ目)
-      for (let i = 0; i < department_list.length; i++) {
-        if(department_list[i]['name'] == processed_data[25]){
-          var department2_code = department_list[i]['code'];
-        }
-      }
       // 兼務が2つの更新Json作成
       var payload =
       {
         code: processed_data[0], // 社員コード
-        // 兼務部署
-        sub_departments : [{
-          code: department1_code
-        },
-        {
-          code: department2_code
-        }
+        // カスタム項目
+        custom_fields: [
+          // 兼務
+          {
+            id: sub1_id,
+            values: [processed_data[24]],
+          },
+          {
+            id: sub2_id,
+            values: [processed_data[25]],
+          }
         ],
       }
     } else if(count == 3) {
-      // 兼務コードの取得(1つ目)
-      for (let i = 0; i < department_list.length; i++) {
-        if(department_list[i]['name'] == processed_data[24]){
-          var department1_code = department_list[i]['code'];
-        }
-      }
-      // 兼務コードの取得(2つ目)
-      for (let i = 0; i < department_list.length; i++) {
-        if(department_list[i]['name'] == processed_data[25]){
-          var department2_code = department_list[i]['code'];
-        }
-      }
-      // 兼務コードの取得(3つ目)
-      for (let i = 0; i < department_list.length; i++) {
-        if(department_list[i]['name'] == processed_data[26]){
-          var department3_code = department_list[i]['code'];
-        }
-      }
       // 兼務が3つの更新Json作成
       var payload =
       {
         code: processed_data[0], // 社員コード
-        // 兼務部署
-        sub_departments : [{
-          code: department1_code
-        },
-        {
-          code: department2_code
-        },
-        {
-          code: department3_code
-        }
+        // カスタム項目
+        custom_fields: [
+          // 兼務
+          {
+            id: sub1_id,
+            values: [processed_data[24]],
+          },
+          {
+            id: sub2_id,
+            values: [processed_data[25]],
+          },
+          {
+            id: sub3_id,
+            values: [processed_data[26]],
+          }
         ],
       }
     } else if(count == 4) {
-      // 兼務コードの取得(1つ目)
-      for (let i = 0; i < department_list.length; i++) {
-        if(department_list[i]['name'] == processed_data[24]){
-          var department1_code = department_list[i]['code'];
-        }
-      }
-      // 兼務コードの取得(2つ目)
-      for (let i = 0; i < department_list.length; i++) {
-        if(department_list[i]['name'] == processed_data[25]){
-          var department2_code = department_list[i]['code'];
-        }
-      }
-      // 兼務コードの取得(3つ目)
-      for (let i = 0; i < department_list.length; i++) {
-        if(department_list[i]['name'] == processed_data[26]){
-          var department3_code = department_list[i]['code'];
-        }
-      }
-      // 兼務コードの取得(4つ目)
-      for (let i = 0; i < department_list.length; i++) {
-        if(department_list[i]['name'] == processed_data[27]){
-          var department4_code = department_list[i]['code'];
-        }
-      }
       // 兼務が4つの更新Json作成
       var payload =
       {
         code: processed_data[0], // 社員コード
-        // 兼務部署
-        sub_departments : [{
-          code: department1_code
-        },
-        {
-          code: department2_code
-        },
-        {
-          code: department3_code
-        },
-        {
-          code: department4_code
-        },
+        // カスタム項目
+        custom_fields: [
+          // 兼務
+          {
+            id: sub1_id,
+            values: [processed_data[24]],
+          },
+          {
+            id: sub2_id,
+            values: [processed_data[25]],
+          },
+          {
+            id: sub3_id,
+            values: [processed_data[26]],
+          },
+          {
+            id: sub4_id,
+            values: [processed_data[27]],
+          }
         ],
       }
     }
@@ -2485,12 +2473,12 @@ function makeEnterData(csv_data) {
           // 採用地
           {
             id: land_id,
-            values: [csv_data[21]],
+            values: [csv_data[22]],
           },
           // 採用時職種
           {
             id: job_id,
-            values: [csv_data[22]],
+            values: [csv_data[23]],
           }
         ]
       }
