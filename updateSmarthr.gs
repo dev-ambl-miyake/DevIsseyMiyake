@@ -50,12 +50,12 @@ function proclamationShrMain() {
     } 
     log('3. SmartHRへのデータ更新’（現職本務）', 'e');
 
-    // 3. カオナビへのデータ更新（兼務）
-    log('3. カオナビへのデータ更新（兼務）', 's');
+    // 3. SmartHRへのデータ更新（兼務）
+    log('3. SmartHRへのデータ更新（兼務）', 's');
     for (let i = 0; i < smartHR_data.length; i++) {
       callShrApi(smartHR_data[i],operation_type = 3.3);
     } 
-    log('3. カオナビへのデータ更新（兼務）', 'e');
+    log('3. SmartHRへのデータ更新（兼務）', 'e');
 
     // 3. SmartHRへのデータ更新（通勤手当）
     log('3. SmartHRへのデータ更新（通勤手当）', 's');

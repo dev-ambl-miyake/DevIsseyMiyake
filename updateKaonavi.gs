@@ -146,9 +146,26 @@ function proclamationKaonaviMain() {
 
     // 3. カオナビへのデータ更新’（現職本務）
     log('3. カオナビへのデータ更新’（現職本務）', 's');
+
+    const grade_sheets_name = 'グレード';
+    const grade_sheets_id = matchSheets(grade_sheets_name);
+
+    const enter_sheets_name = '入社時情報';
+    const enter_sheets_id = matchSheets(enter_sheets_name);
+
+    let grade_data = [];
+    let enter_data = [];
+
     // ループで各従業員の更新JSONを作成し、連結する
     for (let i = 0; i < kaonavi_data.length; i++) {
       // var kaonavi_id = matchEmpCode(kaonavi_data[i][0],member_list);
+
+      // シート_グレード 更新データ作成
+      var grade = makeGradeData(kaonavi_data[i]);
+      grade_data.push(grade);
+      // シート_入社時情報 更新データ作成
+      var enter = makeEnterData(kaonavi_data[i]);
+      enter_data.push(enter);
 
       // 更新JSONを作成
       var payload = makePayload(kaonavi_data[i],member_custom_list,operation_type = 3.1);
@@ -165,6 +182,10 @@ function proclamationKaonaviMain() {
     } 
     // カオナビ更新API
     kaonaviUpdateApi(member_data);
+    // カオナビ更新API_シート_グレード
+    kaonaviSheetsUpdateApi(grade_sheets_id, grade_data);
+    // カオナビ更新API_シート_入社時情報
+    kaonaviSheetsUpdateApi(enter_sheets_id, enter_data);
     log('3. カオナビへのデータ更新’（現職本務）', 'e');
 
 
@@ -2335,4 +2356,146 @@ function makePayload(processed_data,member_custom_list,operation_type) {
     }
   }
   return payload;
+}
+
+/**
+ * シート_グレードの更新payloadを作成
+ * 配列データをjson文字列に加工後呼び出し元へ返却
+ * 
+ * @param {array}   csv_data  抽出加工した現職本務データ
+ * 
+ * return json
+*/
+function makeGradeData(csv_data) {
+  // シート_グレードの存在確認
+  for (let i = 0; i < sheets_list.length; i++) {
+    if(sheets_list[i]['name'] == 'グレード'){
+      grade_list = sheets_list[i]['custom_fields'];
+      break;
+    }
+  }
+  if(typeof grade_list == "undefined"){
+    throw new Error("シート_グレードが見つかりませんでした。");
+  }
+
+  // シート_グレード内のカスタム項目の存在確認
+  // グレード
+  for (let i = 0; i < grade_list.length; i++) {
+    // 取得APIリストのnameがカスタム項目名と一致するか
+    if(grade_list[i]['name'] == 'グレード'){
+      var grade_id = grade_list[i]['id']; // 項目名IDを宣言
+      break;
+    }
+  }
+  // 項目名IDが未定義なら空で宣言
+  if(typeof grade_id == "undefined"){
+    var grade_id = '';
+  }
+  // レベル
+  for (let i = 0; i < grade_list.length; i++) {
+    // 取得APIリストのnameがカスタム項目名と一致するか
+    if(grade_list[i]['name'] == 'レベル'){
+      var revel_id = grade_list[i]['id']; // 項目名IDを宣言
+      break;
+    }
+  }
+  // 項目名IDが未定義なら空で宣言
+  if(typeof revel_id == "undefined"){
+    var revel_id = '';
+  }
+
+  // 更新データ作成
+  var payload = {
+    code: csv_data[0], // 社員コード
+    records: [
+      {
+        // カスタム項目
+        custom_fields: [
+          // グレード
+          {
+            id: grade_id,
+            values: [csv_data[7]],
+          },
+          // レベル
+          {
+            id: revel_id,
+            values: [csv_data[11].replace(csv_data[11].slice(0,3), "")],
+          }
+        ]
+      }
+    ]
+  }
+
+  return JSON.stringify(payload);
+}
+
+/**
+ * シート_入社時情報の更新payloadを作成
+ * 配列データをjson文字列に加工後呼び出し元へ返却
+ * 
+ * @param {array}   csv_data  抽出加工した現職本務データ
+ * 
+ * return json
+*/
+function makeEnterData(csv_data) {
+  // シート_入社時情報の存在確認
+  for (let i = 0; i < sheets_list.length; i++) {
+    if(sheets_list[i]['name'] == '入社時情報'){
+      enter_list = sheets_list[i]['custom_fields'];
+      break;
+    }
+  }
+  if(typeof enter_list == "undefined"){
+    throw new Error("シート_入社時情報が見つかりませんでした。");
+  }
+
+  // シート_入社時情報内のカスタム項目の存在確認
+  // 採用地
+  for (let i = 0; i < enter_list.length; i++) {
+    // 取得APIリストのnameがカスタム項目名と一致するか
+    if(enter_list[i]['name'] == '採用地'){
+      var land_id = enter_list[i]['id']; // 項目名IDを宣言
+      break;
+    }
+  }
+  // 項目名IDが未定義なら空で宣言
+  if(typeof land_id == "undefined"){
+    var land_id = '';
+  }
+  // 採用時職種
+  for (let i = 0; i < enter_list.length; i++) {
+    // 取得APIリストのnameがカスタム項目名と一致するか
+    if(enter_list[i]['name'] == '採用時職種'){
+      var job_id = enter_list[i]['id']; // 項目名IDを宣言
+      break;
+    }
+  }
+  // 項目名IDが未定義なら空で宣言
+  if(typeof job_id == "undefined"){
+    var job_id = '';
+  }
+
+  // 更新Json作成
+  var payload = {
+    code: csv_data[0], // 社員コード
+    records: [
+      {
+        // カスタム項目
+        custom_fields: [
+          // 採用地
+          {
+            id: land_id,
+            values: [csv_data[21]],
+          },
+          // 採用時職種
+          {
+            id: job_id,
+            values: [csv_data[22]],
+          }
+        ]
+      }
+    ]
+  }
+
+  return JSON.stringify(payload);
 }
