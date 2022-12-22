@@ -477,7 +477,10 @@ function processing_tax_withoutholding_data(csv_data) {
       //（源泉）控除対象配偶者（従有）
       // OBIC出力(源泉)控除対象配偶者の有無が3の場合SmartHRでは1、3以外の場合0
       for (let i = 0; i < array.length; i++) {
-        if(array[i][15] == 3){
+        if(array[i][15] == 1){
+          array[i][15] = 1;
+          array[i][111] = 0;
+        }else if(array[i][15] == 3){
           array[i][15] = 1;
           array[i][111] = 1;
         }else{
